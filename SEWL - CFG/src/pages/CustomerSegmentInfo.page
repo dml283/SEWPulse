@@ -1,0 +1,33 @@
+<apex:page standardController="Account">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Displays segmentation information on detail page layout.
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+    <apex:pageBlock mode="detail">
+        <apex:pageBlockSection collapsible="false" columns="1">
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Segment"/>
+                <apex:outputText value="{!Account.Segment__r.Name}"
+                    style="color: #{!Account.Segment__r.Text_Colour__c}; background-color: #{!Account.Segment__r.Background_Colour__c}; padding:3px; font-weight: bold"/>           
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection collapsible="false" columns="2">
+            <apex:outputField value="{!Account.Segment_Profile_Last_Updated__c}"/>
+            <apex:outputField value="{!Account.Segment_Profile_Next_Review_Date__c}"/>
+            <apex:outputField value="{!Account.Segment__r.Profile__c}"/>
+            <apex:pageblockSectionItem >
+                <apex:outputLabel value="Image"/>
+                <apex:image value="{!Account.Segment__r.Image__c}"/>
+            </apex:pageblockSectionItem>                
+            <!--<apex:outputField value="{!Account.Segment__r.Offer__c}"/>      -->     
+        </apex:pageBlockSection>
+        <apex:pageMessage summary="The segmentation details for this customer is out-of-date. Please review the segmentation questionaire with the customer."
+                            severity="warning" strength="1" rendered="{!Account.Segmentation_Overdue__c=='Y'}" /> 
+    </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,17 @@
+<apex:component controller="PortalHomeKAMController">
+
+    <!--
+        Description: Text displaying key account manager details
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+    <apex:outputPanel rendered="{!IsKeyAccount}">
+        For any issues please contact your key customer manager:<br/>
+        <apex:outputText value="{!keyAccountMgr.Name} on {!keyAccountMgr.Phone} or" rendered="{!keyAccountMgr.Phone != null}"/>
+        <apex:outputText value="{!keyAccountMgr.Name} on" rendered="{!keyAccountMgr.Phone == null}"/>
+        &nbsp;
+        <apex:outputField value="{!keyAccountMgr.Email}"/>
+        <p/>
+    </apex:outputPanel>
+</apex:component>

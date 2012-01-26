@@ -1,0 +1,164 @@
+<apex:component access="global">
+
+<apex:attribute access="global" name="ErrorCondition" description="Some errors to be displayed" type="String" required="true"/>
+<apex:attribute access="global" name="NoSuccess" description="Offer abort option" type="String" required="true"/>
+<apex:attribute access="global" name="SomeSuccess" description="Offer launch or abort options" type="String" required="true"/>
+<apex:attribute access="global" name="FormData" description="Popup URLs and Tokens" type="String[]" required="true"/>
+<apex:attribute access="global" name="RNextUrl" description="Url to move to afterwards" type="String" required="true"/>
+
+<apex:sectionHeader title="Automatic Address Searching..."/>
+
+<apex:pageBlock rendered="{!ErrorCondition}" title="Address Searching Failed">
+<h3>Error(s) were encountered while attempting to search for an address with QAS On Demand.</h3>
+<p/>
+<apex:pageMessages />
+
+<apex:outputPanel rendered="{!NoSuccess}">
+Please contact your Salesforce administrator with the above details, then move on to the next page: 
+ <input type="button" class="btn" onclick="window.parent.location.replace('{!RNextUrl}'); return false" value=" Next "/>
+</apex:outputPanel>
+</apex:pageBlock> 
+
+<apex:pageBlock rendered="{!SomeSuccess}">
+
+      Opening the QAS Address Searching dialog(s)...
+       If they do not open, please check your browsers pop-up window settings and/or launch the popups manually with this button.
+       <input type="button" class="btn" onclick="openAllPopups(); return false" value=" Check Addresses " />
+	<p/>      
+      After searching, you should be forwarded on to the next page automatically, but if not continue manually by pressing 'Next'.
+       <input type="button" class="btn" onclick="moveOnToNextPage(); return false" value=" Next " />
+       
+<!--// Doesn't compile - complains of "Unknown property 't'"-->
+<!--<apex:form id="fd">-->
+<!--<apex:repeat value="{!FormData}" var="t">-->
+<!--<apex:inputHidden id="x" value="{!t}"/>-->
+<!--</apex:repeat>-->
+<!--</apex:form>-->
+
+<form name="fd">
+<apex:repeat value="{!FormData}" var="tus">
+<input type="hidden" name="tus" value="{!tus}"/>
+</apex:repeat>
+</form>
+
+<script type="text/javascript">
+
+//References to the popup windows
+var popupWindows = [];
+var intervalId = null;
+
+function openWin(popupURL, token) {
+    var newWin = open("", "_blank", "width=775,height=400,status=yes,toolbar=no,menubar=no");
+    
+    if (newWin == null) {
+        alert("Unable to open popup. Please check your browser\'s popup blocker\'s settings.");
+        return;
+    }
+    
+    // open document for further output - creating content
+    newWin.document.open();
+    
+    // Break tag across two lines to stop Visualforce processor inserting Meta tags here!!!
+    newWin.document.write("<html><");
+    newWin.document.write("HEAD><title>QAS On Demand Address Search</title></head><body><h4>Searching for an address...</h4>");
+    
+    newWin.document.write("<form name=\"myFrm\" action=\"" + popupURL + "\" method=\"POST\">");
+    newWin.document.write("<input name=\"token\" type=\"hidden\" value=\"" + token + "\"/></form></body></html>");
+    
+    // close the document - (not the window!)
+    newWin.document.close();
+    
+    // Submit
+    newWin.document.myFrm.submit();
+    
+    return newWin;
+}
+
+//Gets all the required popup details & calls openWin
+function openAllPopups() {
+	var tokenUrls = document.fd.tus;
+	var attempted = false;
+    var someFailed = false;
+    var token = null;
+	if (tokenUrls != null) {
+
+		for(var i=0; (i+2 < tokenUrls.length); i = i+3){
+			var token = tokenUrls[i].value;
+			var url = tokenUrls[i+1].value;
+			var skipAddress = tokenUrls[i+2].value;
+				
+			if(skipAddress.substring(0,25) != 'Skip Unlicenced Data Set:')
+			{
+				attempted = true;
+				var popupWin = openWin(url, token);
+				if (popupWin != null) {
+					popupWindows.push(popupWin);
+				} else {
+					someFailed = true;
+				}
+			}
+		}
+	}
+
+    if (attempted) {
+        if (someFailed) {
+             alert('Unable to open popup(s). Please check your browser\'s popup blocker settings.');
+        } else {
+            intervalId = self.setInterval('checkPopups()',500);
+        }
+    } else {
+        moveOnToNextPage();
+    }
+}
+
+function moveOnToNextPage() {
+    if (intervalId != null) { 
+        //cancel the periodical checking
+        self.clearInterval(intervalId);
+    }
+
+    // TODO: Why parent?
+    window.parent.location.replace("{!RNextUrl}");
+}
+
+//Checks whether the pop up window(s) are closed
+function checkPopups()
+{
+	for (var i=0; i<popupWindows.length; i++) {
+		if (!popupWindows[i].closed) {
+		    //If popup is not closed do nothing
+			return;
+		}
+	}           
+    moveOnToNextPage();
+}
+
+
+//Popup on load
+// for Mozilla browsers
+
+if (this.addEventListener) 
+{
+  this.addEventListener("load", openAllPopups, false);
+}
+else if (document.addEventListener) 
+{
+  document.addEventListener("load", openAllPopups, false);
+}   
+// IE
+else if (window.attachEvent)
+{
+    window.attachEvent("onload", openAllPopups);
+    window.attachEvent("unload", function()
+        {
+            window.detachEvent("onload", openAllPopups);
+        });
+}
+else
+    document.onload = openAllPopups;
+
+</script>
+
+</apex:pageBlock>
+
+</apex:component>

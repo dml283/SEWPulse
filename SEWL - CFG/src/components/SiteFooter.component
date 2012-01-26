@@ -1,0 +1,24 @@
+<apex:component id="footerComponent">
+
+    <!--
+        Description: Site footer rebranded
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+<div style="margin: auto; width: 600px; color: #fff; text-align: left; font-family: Arial, Helvetica, sans-serif; font-size: 0.9em; padding-top: 10px">
+        <a href="/portal/home/home.jsp" class="headerLink">Home</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.southeastwater.com.au/Footer/Pages/Terms.aspx" class="headerLink" target="_blank">Terms of use</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.southeastwater.com.au/Footer/Pages/Privacy.aspx" class="headerLink" target="_blank">Privacy policy</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.southeastwater.com.au/myaccount/Complaints" class="headerLink" target="_blank">Complaints</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.southeastwater.com.au/Footer/Pages/SiteMap.aspx" class="headerLink" target="_blank">Site map</a>
+    <br/>
+    <br/>
+    <span style="font-size:0.9em; padding-top: 10px;">Copyright &copy; 2011 South East Water Limited</span>
+    <br/>
+    <span style="font-size:0.75em; line-height: 25px;">ABN 89 066 902 547</span>
+</div>
+
+
+</apex:component>

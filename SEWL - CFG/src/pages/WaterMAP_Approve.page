@@ -1,0 +1,75 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_View_Extension">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <!--
+        Description: Used as a redirector to approve the watermap using the Approve
+                     action of the WaterMAP_View_Extension class. This will approve the
+                     watermap and archive the submission in PDF format
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+
+    <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+    <apex:sectionHeader title="waterMAP Submission Approval" subtitle="{!WaterMAP_Submission__c.Name}"/>
+    <apex:form >
+        <apex:pageMessages />
+        <apex:pageBlock title="waterMAP Submission Approval" id="waterMAPSubmitApprovalPB" rendered="{!WaterMAP_Submission__c.Status__c == 'Submitted for Approval'}">
+            <apex:pageBlockSection columns="1">
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value="Approval?"/>
+                    <apex:outputPanel >
+                        <apex:selectRadio value="{!approvedStr}" layout="pageDirection">
+                            <apex:selectOption itemvalue="{!APPROVAL_YES}" itemlabel="Yes - waterMAP submission satisfactory"/>
+                            <apex:selectOption itemvalue="{!APPROVAL_NO}" itemlabel="No - further information required"/>
+                            <apex:actionSupport event="onclick" reRender="waterMAPSubmitApprovalPB" status="approveStrStatus" action="{!updateDefaultEmailWordings}"/>
+                        </apex:selectRadio>
+                        <apex:actionStatus id="approveStrStatus">
+                            <apex:facet name="start">
+                                <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:outputPanel>
+                </apex:pageblockSectionItem>
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value="Email Customer?"/>
+                        <apex:outputPanel >
+                        <apex:inputCheckbox value="{!WaterMAP_Submission__c.HIDDEN_Send_Approval_Email__c}">
+                            <apex:actionSupport event="onclick" reRender="waterMAPSubmitApprovalPB" status="emailCustStatus" action="{!updateDefaultEmailWordings}"/>
+                        </apex:inputCheckbox>
+                        <apex:actionStatus id="emailCustStatus">
+                            <apex:facet name="start">
+                                <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:outputPanel>
+                </apex:pageblockSectionItem>
+                <apex:pageblockSectionItem rendered="{!WaterMAP_Submission__c.HIDDEN_Send_Approval_Email__c}">
+                    <apex:outputLabel value="Email Message"/>
+                    <apex:outputPanel >
+                        <apex:inputField value="{!WaterMAP_Submission__c.HIDDEN_Approval_Email_Message__c}" style="width:70%"/>
+                        <br/>
+                        <br/>
+                        Regards,
+                        <br/>
+                        <br/>
+                        {!WaterMAP_Submission__c.WaterMAP__r.Customer__r.Owner.Name}
+                        <br/>
+                        South East Water
+                    </apex:outputPanel>
+                </apex:pageblockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!Approve}" rendered="{!NOT(ISNULL(approvedStr))}"/>
+                <apex:commandButton value="Cancel" action="{!Cancel}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        <apex:outputPanel rendered="{!WaterMAP_Submission__c.Status__c <> 'Submitted for Approval'}">
+            The user has not submitted waterMAP yet - it cannot be approved / rejected.<br/><br/>
+            <apex:commandButton value="Return" action="{!Cancel}"/>
+        </apex:outputPanel>
+    </apex:form>
+
+</apex:page>

@@ -1,0 +1,114 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" controller="CreditCardPaymentController">
+    <!-- 
+    Type:       VF page
+    Purpose:    Displays HiAF Payment History For Portal User
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+    <head>
+        <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+    
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <!--<apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>-->
+
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}"/>
+
+    <apex:form id="form">
+        <!-- hidden outputfields or input fields go here -->
+        <apex:outputfield rendered="false" value="{!userInputFields.Billing_Account__c}"/>
+        <!-- <apex:outputfield rendered="false" value="{!userInputFields.Billing_Account__c.HiAF_Account_Number_Check_Digit__c}"/>
+        <apex:outputfield rendered="false" value="{!userInputFields.Billing_Account__c.HiAF_Account_Number__c}"/> -->
+        
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:PortalSidebar id="sidebar" groupName="Billing_Account__c" currentDevName="PortalCCPayment" title="Menu">
+                        <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(userInputFields.Billing_Account__c))}">
+                          <apex:outputText value="{!userInputFields.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                            <br/>
+                            <apex:outputText value="{!userInputFields.Billing_Account__r.Property_Address__c}" escape="false"/>
+                        </apex:outputPanel>
+                    </c:PortalSidebar>
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:outputPanel layout="none" rendered="{!ISNULL(userInputFields.Billing_Account__c)}">
+                        <c:PortalSelectBillAcctForOperation groupName="Billing_Account__c" currentDevName="PortalCCPayment"/>
+                    </apex:outputPanel>
+                    
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(userInputFields.Billing_Account__c))}">
+                    <apex:pageBlock id="pageblock">
+                    
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Pay Bills</span>
+                                </div>
+                            </apex:facet>
+                      
+                            <!--  PAGE MESSAGES -->
+                            <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+    
+                            <!-- CONTENT -->
+                            <!-- use the outputpanel below for words that goes across the whole content page-->
+                            <apex:outputPanel >
+                                <h1>Credit Card Payment for {!userInputFields.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}</h1>
+                                
+                            </apex:outputPanel>
+                            <br/> <!-- another way to add spaces - <br/> leaves more space than <p/> -->
+                            <!-- use the structure below for fields -->
+                      
+                            <apex:pageBlockSection columns="1">              
+                				<apex:outputField value="{!taskRec.Description}" rendered="{!paymentSucceeded}" />
+            				</apex:pageBlockSection>
+
+        
+        <c:EnhancedActionStatus BackColor="#ffffff"
+                                borderColor="#6B6B6B"
+                                borderSize="1"
+                                height="50px"
+                                width="120px"
+                                margintop="-25px"
+                                marginleft="-60px"
+                                ImageUrl="{!$Resource.AjaxAnimation}"
+                                Message="Processing..."
+                                rendered="{!submitting}"/>
+
+  
+                            
+                            
+                            <div class="pbSectionDivider"></div>
+                            <br/>
+
+                            <br/>
+                        </apex:pageBlock>
+                 
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+
+        
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+
+    </apex:form>  
+</apex:page>

@@ -1,0 +1,105 @@
+<apex:page standardController="Billing_Account__c" extensions="BillingAccountCopyAddressExCon" title="{!Billing_Account__c.Name} - Copy Billing Address">
+<!-- 
+    Type:       VF page
+    Purpose:    Copies Billing Addresses 
+    ---------------------------------------------------------------
+    History:
+ -->
+
+  <apex:sectionHeader title="Copy Billing Address" subtitle="{!Billing_Account__c.Name}"/>
+  <b>Current Address: {!Billing_Account__c.Street_Address__c} {!Billing_Account__c.City__c}
+  {!Billing_Account__c.State__c} {!Billing_Account__c.Postal_Code__c}</b>
+  <apex:includeScript value="/support/console/22.0/integration.js"/>
+     <script type="text/javascript">
+
+       function setTabTitle() {
+           sforce.console.setTabTitle('{!Billing_Account__c.Name} - Copy Billing Address');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+   </script>
+  <apex:pagemessages />
+  <apex:form >
+      <apex:pageblock title="Billing Accounts related to {!Billing_Account__c.Name}">
+        <apex:pageblockTable value="{!myBillingAccounts}" var="billacct" id="bacctTable" rendered="{!Billing_Account__c.Group_Billing_Account__c == null}">
+            <apex:column headervalue="Select"><apex:inputCheckbox value="{!billacct.checked}" disabled="{!billacct.bill_acct.Group_Billing_Account__c != null}"/></apex:column>
+            <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Name.label}">
+                <A HREF="#" onClick="testOpenSubtab{!billacct.bill_acct.id}();return false">{!billacct.bill_acct.Name}</A>
+                  <script type="text/javascript">
+                      function testOpenSubtab{!billacct.bill_acct.id}() {
+                          if(sforce.console.isInConsole()){
+                              sforce.console.getEnclosingPrimaryTabId(openSubtab{!billacct.bill_acct.id});
+                          }
+                          else{
+                              window.open("/{!billacct.bill_acct.id}");
+                          }
+                      }
+                      var openSubtab{!billacct.bill_acct.id} = function openSubtab{!billacct.bill_acct.id}(result) {
+                          var primaryTabId = result.id;
+                          sforce.console.openSubtab(primaryTabId , '/{!billacct.bill_acct.id}', true,
+                              '{!billacct.bill_acct.Name}', null, null, 'subtab{!billacct.bill_acct.id}');
+                      };
+                  </script>
+            </apex:column>
+            <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Role__c.label}">
+                <apex:outputText escape="false" value="{!billacct.bill_acct.Role__c}"/>
+            </apex:column>
+            <apex:column headervalue="Current Billing Address">
+                <apex:outputText escape="false" value="{!billacct.bill_acct.Street_Address__c}<br>{!billacct.bill_acct.City__c} {!billacct.bill_acct.State__c} {!billacct.bill_acct.Postal_Code__c}"/>
+            </apex:column>
+            <apex:column headervalue="Property Address">
+                <apex:outputText escape="false" value="{!billacct.bill_acct.Property_Address__c}"/>
+            </apex:column>
+            <apex:column headervalue="Same As">
+                <apex:outputField value="{!billacct.bill_acct.Billing_Address_Same_As__c}"/>
+                <apex:outputPanel rendered="{!billacct.bill_acct.Group_Billing_Account__c != null}">
+                    <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Warning_Icon.png')}" style="vertical-align:middle;" title="This is a Sub Customer. Refer all address changes to the Miscellaneous Charges Team."/>
+                </apex:outputPanel>
+            </apex:column>
+            <apex:column headervalue="Bill To Parent">
+                <apex:outputField value="{!billacct.bill_acct.Bill_To_Parent__c}"/>
+            </apex:column>
+            <apex:column headervalue="Invalid Billing Address">
+                <apex:outputField value="{!billacct.bill_acct.Invalid_Billing_Address__c}"/>
+            </apex:column>
+        </apex:pageblockTable>
+        <apex:pageblockSection rendered="{!Billing_Account__c.Group_Billing_Account__c == null}" >
+            <apex:outputPanel >
+                <apex:commandLink value="Select All" action="{!selectAllBAs}" rerender="bacctTable" status="selectUnselectAllStatus"/>&nbsp;&nbsp;
+                <apex:commandLink value="Unselect All" action="{!unselectAllBAs}" rerender="bacctTable" status="selectUnselectAllStatus"/>&nbsp;&nbsp;
+                <apex:actionStatus id="selectUnselectAllStatus">
+                    <apex:facet name="start">
+                        <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                    </apex:facet>
+                </apex:actionStatus>
+            </apex:outputPanel>
+        </apex:pageblockSection>
+        <apex:pageblockButtons >
+              <!--<apex:commandButton value="Save" action="{!saveBillingAccounts}"/>-->
+              <apex:commandButton value="Copy Address" action="{!copyBillingAddress}" rendered="{!Billing_Account__c.Group_Billing_Account__c == null}"/>
+              <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+              <script type="text/javascript">
+                  function testCloseTab() {
+                      if(sforce.console.isInConsole()){
+                          sforce.console.getEnclosingTabId(closeSubtab);
+                      }
+                      else{
+                          window.location = "/{!Billing_Account__c.id}";
+                      }
+                  }
+
+                  var closeSubtab = function closeSubtab(result) {
+                      var tabId = result.id;
+                      sforce.console.closeTab(tabId);
+                  };
+              </script>
+          </apex:pageblockButtons>
+      </apex:pageblock>
+  </apex:form>
+</apex:page>

@@ -1,0 +1,156 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Pg5_Opp_to_Save_Water_Con"
+            sidebar="false" tabstyle="WaterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+    </script>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+    <apex:form >
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Year__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Opportunities_to_Save_Water_Complete__c}"/>
+
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:WaterMAPContentsSidebar id="sidebar" waterMAPSubId="{!waterMAPSub.Id}" currentPageNumber="5" />
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:pageBlock id="pageblock">
+
+                        <!--  HEADER -->
+                        <apex:facet name="header">
+                            <div class="pageBlockHeader">
+                                <span class="pageBlockTitle">Opportunities to save water</span>
+                            </div>
+                        </apex:facet>
+
+                        <!--  TOP BUTTONS -->
+                        <div style="vertical-align: text-top; height: 40px;">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                        <!--  PAGE MESSAGES -->
+                        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                        <!-- CONTENT -->
+                        <apex:outputPanel >
+                            <p style="text-align: justify">
+                            Review what strategic opportunities exist to become more water efficient.
+                            Whilst issues raised may not be immediately applicable or viable they should
+                            be considered as part of future significant business decisions.
+                            </p>
+                            <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                Examples may include future actions or what is best practice. For example:
+                                <ul>
+                                    <li>
+                                        When replacing or upgrading equipment or amenities maximising the water
+                                        efficiency of the new equipment will be an important considerations.
+                                    </li>
+                                    <li>
+                                        Our business is committed to becoming more ecologically sustainable and
+                                        water use will be a key focus area.
+                                    </li>
+                                </ul>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <p/>
+                        <apex:outputPanel >
+                            <h1>People and Culture</h1>
+                        </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:outputPanel layout="block" style="text-align: justify">
+                                        <p>Promoting water efficient behaviour helps raise awareness and can lead to a reduction in
+                                        water use. Cultural, educational or changes in operating practices that could be implemented
+                                        include:
+                                        </p>
+                                        <br/>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="peopleAndCultureText" value="{!$ObjectType.WaterMAP__c.fields.People_and_Culture__c.label}"/>
+                                <apex:inputField id="peopleAndCultureText" value="{!WaterMAP_Submission__c.WaterMAP__r.People_and_Culture__c}" style="height:50px"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <br/>
+                        <apex:outputPanel >
+                            <h1>Equipment, Infrastructure and Processes</h1>
+                        </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:outputPanel layout="block" style="text-align: justify">
+                                        <p>Installation of more water efficient equipment or fittings, adopting new processes or utilizing
+                                        recycled water or rainwater are all great ways to reduce your reliance on drinking water.
+                                        To achieve best practice in water efficiency we would need to:
+                                        </p>
+                                        <br/>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="equipText" value="{!$ObjectType.WaterMAP__c.fields.Equipment_Infrastructure_Processes__c.label}"/>
+                                <apex:inputField id="equipText" value="{!WaterMAP_Submission__c.WaterMAP__r.Equipment_Infrastructure_Processes__c}" style="height:50px"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <!--  BOTTOM BUTTONS -->
+                        <br/>
+                        <div class="pbSectionDivider"></div>
+                        <br/>
+                        <div style="vertical-align: text-top">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                        <br/>
+                    </apex:pageBlock>
+                </td>
+            </tr>
+        </table>
+
+
+       <!-- Action Status that are not position dependent -->
+       <apex:actionStatus id="loading">
+           <apex:facet name="start">
+               <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+           </apex:facet>
+       </apex:actionStatus>
+    </apex:form>
+</apex:page>

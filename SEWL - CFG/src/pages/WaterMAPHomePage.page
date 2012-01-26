@@ -1,0 +1,79 @@
+<apex:page controller="WaterMAPListController" tabstyle="waterMAP_Portal_Home__tab" sidebar="false">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <!--
+        Description: Branded home page for wMAP allowing the portal user
+                     to edit current watermaps and view past ones
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+    <style type="text/css">
+        .waterMAPHomeBox {
+/*          border-bottom: #bbb0a6 1px ridge;
+            border-left: #e2d9cf 1px solid;
+            border-right: #bbb0a6 1px ridge;
+            border-top: #e2d9cf 1px ridge; */
+            margin:auto;
+            width:700px;
+        }
+
+        .list .headerRow TH {
+            border-bottom:  #bbb0a6 1px ridge;
+        }
+    </style>
+
+    <div class="shell" style="margin: auto; width: 700px;">
+        <div class="waterMAPHomeBox" style="margin-top:10px; margin-left: 5px;">
+            <apex:image url="{!$Resource.WaterMAPHomeBanner}"/>
+            <div style="padding: 10px 5px">
+                <c:WaterMAPHomePageContent />
+            </div>
+        </div>
+        <br/>
+        <apex:pageBlock >
+            <apex:facet name="header">
+                <div class="pageBlockHeader">
+                    <span class="pageBlockTitle" style="padding-left: 13px">Your Current waterMAPs</span>
+                </div>
+            </apex:facet>
+            <b>Please select a waterMAP for one of your properties.</b><br/><br/>
+
+            <div style="margin:0px; width:600px; border-bottom: #bbb0a6 1px ridge;">
+                <apex:pageBlockTable value="{!waterMapSubList}" var="wmap">
+                    <apex:column headerValue="Action" width="60px">
+                        <!-- <apex:outputPanel styleclass="btn btn2" onclick="parent.location='{!$Page.WaterMAP_Pg0_CoverPage}?id={!wmap.id}'">Edit...</apex:outputPanel> -->
+                        <apex:outputLink value="{!$Page.WaterMAP_Pg0_CoverPage}?id={!wmap.id}">Edit</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Customer Number">
+                        <apex:outputText value="{!wmap.waterMAP__r.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="Primary Site Address" style="padding-right: 10px;">
+                        <apex:outputText value="{!wmap.Site_Address__c}" escape="false"/>
+                    </apex:column>
+                    <apex:column headerValue="Financial Year" >
+                        <apex:outputText value="{!wmap.Year__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="Status" style="width:100px">
+                        <apex:outputText value="{!wmap.Status__c} "/>
+                    </apex:column>
+                </apex:pageBlockTable>
+                <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!waterMapSubCount=0}"><i>No records to display</i></apex:outputPanel>
+            </div>
+            <p/>
+            <apex:outputLink value="{!$Page.WaterMAPHistoryPage}">View Completed waterMAPs</apex:outputLink>
+            <p/>
+            <apex:outputLink value="http://get.adobe.com/reader/" target="_blank">
+                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/get_adobe_reader.png')}"/>
+            </apex:outputLink>
+            <div style="width: 300px; color: #595959; text-align: left; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; padding: 5px 0px">
+                Adobe Acrobat Reader is required to view waterMAPs.<br/>Click the button about to download and install.
+            </div>
+        </apex:pageBlock>
+    </div>
+</apex:page>

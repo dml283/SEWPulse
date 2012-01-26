@@ -1,0 +1,68 @@
+<apex:page showHeader="false" sidebar="false"
+	standardStylesheets="{!ErrorCondition}"
+	controller="experianqas.QASUpdateDBController" action="{!AutoRun}">
+
+	<apex:sectionHeader rendered="{!ErrorCondition}"
+		title="Address Update Failed" />
+	<apex:pageBlock rendered="{!PopupError}">
+		<h3>Error(s) were encountered while attempting to write back the
+		new address to Salesforce.</h3>
+		<p /><apex:messages />
+		<p />Please contact your Salesforce administrator with the above
+		details, and continue by pressing the 'Close' button.
+		<p /><input class="btn" type="submit" value=" Close " onclick="window.close();" />
+	</apex:pageBlock>
+
+	<apex:pageBlock rendered="{!LightboxError}">
+		<h3>Error(s) were encountered while attempting to write back the
+		new address to Salesforce.</h3>
+		<p /><apex:messages />
+		<p />Please contact your Salesforce administrator with the above details,
+			and continue by pressing the 'Close' button (the small cross at the top right of this window).
+	</apex:pageBlock>
+
+	<apex:outputPanel rendered="{!AutoReloadParent}">
+		<h3>Updating Address...</h3>
+		<script>
+		// Tim Watt April 9, 2010: Fix for QAFOR0895; Force the domain for 
+		// all pages to force.com (which clients also have to do for their custom pages)
+		// to ensure that all pages have the same domain. Otherwise they will be loaded from
+		// different subdomains causing xss issues (e.g. experianqas.visual.force.com and na7.visual.force.com)
+		document.domain='force.com';	
+		
+    var selfClose = true;
+    try {
+        var navUrl = '{!NavUrl}';
+        if (navUrl != null && navUrl.length > 0 && navUrl.indexOf("newid=") < 0) {
+        	var sFirstChar = navUrl.charAt(0);
+        	if (sFirstChar == 'x') {
+        		// Reload opener via redirecting to a page from the right (xxx.saleforce.com) domain
+        		// This code should not be called leave alert in so we can determine if it is
+        		alert('A navUrl value of \'x\' is no longer supported - please use the updated functions in the PopupHelperJS static resource.');
+        		        	
+        	} else if (navUrl == 'y') {
+        		// Close a lightbox - only works when over a fellow VF window
+        		selfClose = false;
+        		self.parent.jQuery("#TB_closeWindowButton").trigger("click");
+        	} else {
+        		// Reload whole window via direct setting of URL
+	        	if (self.opener != null) {
+	            	self.opener.location.href = navUrl;
+	            } else {
+	            	self.parent.location.href = navUrl;
+	            }
+            }
+        }
+    }
+    catch(e) {
+        alert('Please refresh the original Salesforce page so it displays the new address.\r\n' + e);
+        selfClose = true;
+    }
+    
+    if (selfClose) {
+    	window.close();
+    }
+</script>
+	</apex:outputPanel>
+
+</apex:page>

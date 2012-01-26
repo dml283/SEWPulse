@@ -1,0 +1,13 @@
+<apex:page controller="experianqas.QASInlineEditResetController" action="{!autoRun}" >
+<script>
+if ({!ErrorCondition}==false)
+window.parent.location='{!RNextUrl}';
+</script>
+<apex:pageBlock rendered="{!ErrorCondition}">
+<apex:pageMessages />
+<apex:outputPanel >
+Please contact your Salesforce administrator with the above details, then move on to the next page: 
+ <input type="button" class="btn" onclick="window.parent.location='{!RNextUrl}';" value=" Next "/>
+</apex:outputPanel>
+</apex:pageBlock> 
+</apex:page>

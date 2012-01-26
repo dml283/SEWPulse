@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Invalid Location Code for Meter Location</description>
+    <internalUseOnly>true</internalUseOnly>
+    <keywords>Meter Location</keywords>
+    <name>Invalid Location Code</name>
+    <public>false</public>
+</Document>

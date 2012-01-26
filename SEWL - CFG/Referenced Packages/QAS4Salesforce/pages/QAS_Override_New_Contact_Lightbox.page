@@ -1,0 +1,4 @@
+<apex:page standardController="Contact" extensions="experianqas.QASOverrideController" action="{!autoRun}">
+<c:QASRedirectLightboxComponent ErrorCondition="{!ErrorCondition}" NoSuccess="{!NoSuccess}" SomeSuccess="{!SomeSuccess}"
+    FormData="{!FormData}" RNextUrl="{!RNextUrl}"/>
+</apex:page>

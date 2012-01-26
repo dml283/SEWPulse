@@ -1,0 +1,156 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Submit_Controller"
+            sidebar="false" tabstyle="waterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+
+    <!--
+        Description: This page allows the portal user to submit the watermap
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+        function addCommas(nStr)
+        {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            return x1 + x2;
+        }
+        var prevYrTotal;
+    </script>
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+    <style type="text/css">
+        <!-- increase width of label for this page only -->
+        .bPageBlock .detailList .labelCol {
+            width: 25%;
+        }
+    </style>
+
+    <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+    <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Active__c}"/>
+    <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Customer__r.OwnerId}"/>
+
+
+    <apex:form >
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:WaterMAPContentsSidebar id="sidebar" waterMAPSubId="{!waterMAPSub.Id}" currentPageNumber="submit" />
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:pageBlock id="pageblock">
+                        <!--  HEADER -->
+                        <apex:facet name="header">
+                            <div class="pageBlockHeader">
+                                <span class="pageBlockTitle">Submit Your waterMAP</span>
+                            </div>
+                        </apex:facet>
+
+                        <!--  TOP BUTTONS -->
+
+                        <!--  PAGE MESSAGES -->
+                        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                        <!-- CONTENT -->
+                        <apex:pageBlockSection title="Progress of Your waterMAP for {!WaterMAP_Submission__c.Year__c}" collapsible="false">
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection columns="1">
+                            <apex:outputPanel styleclass="informationBox" rendered="{!NOT(Submittable) && (WaterMAP_Submission__c.Status__c='In Progress' || WaterMAP_Submission__c.Status__c='Not Started')}">
+                                You are not able to submit a waterMAP until all sections have been completed.
+                            </apex:outputPanel>
+                            <apex:outputPanel styleclass="informationBox" rendered="{!Submittable && WaterMAP_Submission__c.Status__c='In Progress'}">
+                                Upon submission, your Key Account Manager will review your waterMAP and notify you upon approval.
+                            </apex:outputPanel>
+                            <apex:outputPanel styleclass="informationBox" rendered="{!Submitted}">
+                                This waterMAP has already been submitted.
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                        <br/>
+                        <apex:pageBlockSection columns="2" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Cover" for="cover"/>
+                                <apex:outputField value="{!WaterMAP_Submission__c.Cover_Complete__c}" id="cover"/>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Indicators" for="indicators"/>
+                                <apex:outputField value="{!WaterMAP_Submission__c.Indicators_Targets_Complete__c}" id="indicators"/>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Company & Site Information" for="company"/>
+                                <apex:outputField value="{!WaterMAP_Submission__c.Company_Site_Info_Complete__c}" id="company"/>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Opportunities to Save Water" for="oppty"/>
+                                <apex:outputField value="{!WaterMAP_Submission__c.Opportunities_to_Save_Water_Complete__c}" id="oppty"/>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Water Consumption" for="watercons"/>
+                                <apex:outputField value="{!WaterMAP_Submission__c.Water_Consumption_Complete__c}" id="watercons"/>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Action Plan" for="actionplan"/>
+                                <apex:outputField value="{!WaterMAP_Submission__c.Action_Plan_Complete__c}" id="actionplan"/>
+                            </apex:pageBlockSectionItem>
+
+                        </apex:pageBlockSection>
+                        <!--  BOTTOM BUTTONS -->
+                        <br/>
+                        <apex:pageBlockSection columns="1">
+                            <apex:outputPanel >
+                                <apex:commandButton value="Submit" action="{!Submit}" styleclass="btnGreen" disabled="{!NOT(Submittable)}" title="Submit for approval"/>
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!WaterMAP_Submission__c.id}');return false;"/>
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                        <div class="pbSectionDivider"></div>
+                        <br/>
+                    </apex:pageBlock>
+                </td>
+            </tr>
+        </table>
+
+
+       <!-- Action Status that are not position dependent -->
+       <apex:actionStatus id="loading">
+           <apex:facet name="start">
+               <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+           </apex:facet>
+       </apex:actionStatus>
+    </apex:form>
+
+</apex:page>

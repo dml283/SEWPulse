@@ -1,0 +1,138 @@
+<apex:page standardcontroller="WaterMAP_Submission__c"  extensions="WaterMAP_Pg3_MajorWaterAreaFrameCon" sidebar="false" tabstyle="waterMAP_Portal_Home__tab" showHeader="false">
+
+    <apex:outputField value="{!WaterMAP_Submission__c.Watermap__c}" rendered="false"/>
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+    <apex:stylesheet value="{!$Resource.SiteStyles}"/>
+
+    <style type="text/css">
+        <!-- increase width of label for this page only -->
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+        <!-- remove padding on left of page block -->
+        .bPageBlock .pbBody {
+            padding-left:0px;
+            padding-right:0px;
+        }
+        <!-- remove border from page block -->
+        .bPageBlock {
+            border-width:0px;
+        }
+        <!-- shift label slightly left -->
+        .bPageBlock .labelCol {
+            padding-right:14px;
+        }
+        <!-- shift data col slightly right -->
+        .bPageBlock .detailList .data2Col {
+            padding-left:6px;
+        }
+
+        .informationBox {
+            vertical-align:middle;
+            margin-top:7px;
+        }
+        body {
+            font-size:0.8em;
+        }
+		.secondaryPalette.bPageBlock {
+			border: none;
+			padding: 0;
+			-moz-border-radius: 0;
+			-webkit-border-radius: 0;
+			border-radius: 0;
+			-moz-box-shadow: none;
+			-webkit-box-shadow: none;
+			box-shadow: none;
+		}
+
+    </style>
+
+    <div id="blurrybackground" style="position:absolute; left:1px; top:1px; width:100%; height:100%; text-align:center; vertical-align: middle; display:none; background-color: #ffffff; opacity:0; filter:alpha(opacity=0)"/>
+
+    <apex:form enctype="multipart/form-data">
+        <apex:pageBlock >
+            <apex:pageBlockSection id="majorWaterAreaSection" collapsible="false" columns="1">
+                <apex:pageBlockSectionItem helpText="Upload a GIF, JPG, DOC, DOCX or PDF file.">
+                    <apex:outputLabel for="majorWaterArea" value="Major water using facilities diagram and/or site map"/>
+                    <apex:outputPanel >
+                        <apex:inputFile id="majorWaterArea" value="{!attachment.body}"
+                                                    filename="{!attachment.Name}"
+                                                    contentType="{!attachment.ContentType}"
+                                                    fileSize="{!attachment.BodyLength}"
+                                                    onchange="ChangeDiagramFileName(this.value)"/>
+                        <apex:commandButton value="{!IF(ISBLANK(existingattachment.Id), 'Upload', 'Replace')}"
+                                             action="{!UploadAttachment}" styleClass="btn" style="width:58px;font-size:0.96em"
+                                              onclick="return CheckDiagramFileName('{!$Component.uploaddiagrambutton}')"
+                                              id="uploaddiagrambutton"/>
+                        <img src="{!URLFOR($Resource.AjaxAnimation)}" style="vertical-align:middle; display:none;" id="uploadanimation"/>
+                        <apex:outputPanel rendered="{!existingattachment.Id != null}">
+                            <apex:outputLink value="/servlet/servlet.FileDownload?file={!existingattachment.Id}" target="_blank">{!existingattachment.Name}</apex:outputLink>
+                            <apex:commandLink action="{!DeleteAttachment}" title="Delete Diagram">
+                                <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Cross_Icon.png')}" style="vertical-align:middle;"/>
+                            </apex:commandLink>
+                        </apex:outputPanel>
+                        <br/>
+                        <apex:outputPanel styleclass="informationBox">
+                            <apex:outputPanel layout="inline" rendered="{!existingattachment.Id = null}">
+                                Choose the file to upload then click on the "Upload" button.
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="inline" rendered="{!existingattachment.Id != null}">
+                                To replace the file upload a new file then click on the "Replace" button.
+                                <br/>
+                                To delete, click on the "X" button.
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:messages style="margin-top:5px; margin-bottom:5px; margin-left:80px; color:red;" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+
+
+    <script type="text/javascript">
+
+        var diagramFileName;
+        var button;
+
+        var AgreementForm = document.getElementById("blurrybackground");
+        AgreementForm.style.height = window.screen.availHeight + "px";
+        AgreementForm.style.width = window.screen.availWidth + "px";
+
+
+        function CheckDiagramFileName (btnid) {
+
+            // check that the file is there
+            if (diagramFileName == null || diagramFileName == "undefined") {
+                alert("Please select a file.");
+                return false;
+            }
+
+            // must have an extension
+            if (diagramFileName.length < 4) {
+                alert("Please select a valid file.");
+                return false;
+            }
+
+            // prevent editing whilst posting
+            var blur = document.getElementById("blurrybackground");
+            blur.style.display="block";
+
+            var btn = document.getElementById(btnid);
+            btn.value = 'Loading...';
+
+            document.getElementById("uploadanimation").style.display="inline";
+
+            return true;
+        }
+
+        function ChangeDiagramFileName (filename) {
+
+            diagramFileName = filename.toLowerCase();
+        }
+
+    </script>
+
+</apex:page>

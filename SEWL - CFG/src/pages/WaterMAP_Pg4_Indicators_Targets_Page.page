@@ -1,0 +1,368 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Pg4_Indicators_Targets_Con"
+            sidebar="false" tabstyle="WaterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+        function addCommas(nStr)
+        {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            return x1 + x2;
+        }   </script>
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+    <style type="text/css">
+
+        <!-- increase width of label for this page only -->
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+
+        #kbaitextblock td.labelCol {
+            width: 20% !important;
+        }
+        #kbaitextblock td.dataCol {
+            width: auto !important;
+        }
+
+        .waterUseHeading {
+            padding-left: 30px !important;
+        }
+
+    </style>
+
+    <apex:form >
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Year__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Indicators_Targets_Complete__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.ANZSIC__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.ANZSIC_Benchmark_Indicator__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__c}"/>
+
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:WaterMAPContentsSidebar id="sidebar" waterMAPSubId="{!waterMAPSub.Id}" currentPageNumber="4" />
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:pageBlock id="pageblock">
+
+                        <!--  HEADER -->
+                        <apex:facet name="header">
+                            <div class="pageBlockHeader">
+                                <span class="pageBlockTitle">Indicators &amp; Targets</span>
+                            </div>
+                        </apex:facet>
+
+                        <!--  TOP BUTTONS -->
+                        <div style="vertical-align: text-top; height: 40px;">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                        <!--  PAGE MESSAGES -->
+                        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                        <!-- CONTENT -->
+                        <apex:outputPanel >
+                            <h1>Business Water Use Indicator</h1>
+                            <p style="text-align: justify">
+                            A business water use indicator is a measure of water use efficiency and takes into account
+                            core business operations specific to the site. It considers how variables such as production
+                            rates, number of staff or the number of customers affect water use when setting water-saving
+                            targets. Examples of water use indicators include water used per customer or water used
+                            per tonne of product produced.
+                            </p>
+                            <p style="text-align: justify">
+                            Determining a Key Business Activity Indicator (KBAI) allows measurable targets for water
+                            efficiency to be set, and enables comparison of water use across years.
+                            </p>
+                            <p style="text-align: justify">
+                            For {!WaterMAP_Submission__c.WaterMap__r.Customer__r.Name} the Key Business Activity
+                            Indicator is the volume of water used per unit of measure (e.g. number of visitors,
+                            tonne of product, square metres irrigated, etc). Quarterly/monthly data in terms of
+                            the indicator is presented below.
+                            </p>
+                            <p/>
+                        </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="benchmarkName" value="Key business activity indicator description"/>
+                                </apex:outputPanel>
+                                <apex:outputPanel id="kbaiEntry">
+                                    <apex:selectList size="1" value="{!chosenBenchmark}" style="vertical-align:top;margin-bottom:10px;">
+                                        <apex:selectOptions value="{!selectableBenchmarks}"/>
+                                        <apex:actionSupport event="onchange"
+                                                            action="{!RefreshANZSICBenchmark}"
+                                                            rerender="kbaiEntry,kbaiDesc,kbaiTable,shortTermTargetUnit,longTermTargetUnit,msg"
+                                                            status="loading"/>
+                                    </apex:selectList>
+                                    &nbsp;
+                                    <apex:image rendered="{!chosenBenchmark==OTHER_BENCHMARK}" url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:inputField rendered="{!chosenBenchmark==OTHER_BENCHMARK}" value="{!WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c}">
+                                        <apex:actionSupport event="onchange"
+                                                            action="{!RefreshANZSICBenchmark}"
+                                                            rerender="kbaiEntry,kbaiDesc,kbaiTable,shortTermTargetUnit,longTermTargetUnit,msg"
+                                                            status="loading"/>
+                                    </apex:inputField>
+                                    <br/>
+                                    <apex:outputLabel rendered="{!chosenBenchmark==OTHER_BENCHMARK}" value="Summary Type:"/>
+                                    <apex:outputPanel rendered="{!chosenBenchmark==OTHER_BENCHMARK}" styleclass="informationBox">
+                                        Select an option to determine how you would like to summarise your activity.
+                                    </apex:outputPanel>
+                                    <apex:selectRadio rendered="{!chosenBenchmark==OTHER_BENCHMARK}" value="{!WaterMAP_Submission__c.WaterMAP__r.KBAI_Type__c}">
+                                        <apex:selectOptions value="{!selectableKBAISummaryTypes}"/>
+                                    </apex:selectRadio>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="kbaiTable" value="Water consumption estimated breakdown"/>
+                                <apex:outputPanel >
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        Please Note: This table will calculate the Kilolitres used per tonne of product, visitor
+                                        etc, once the page is submitted. This table only requires you to enter the number of
+                                        tonnes, visitors, etc for each period
+                                    </apex:outputPanel>
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        Click on the button below to copy the KBAI count from last year’s waterMAP data.
+                                        If this does not accurately reflect this year’s operations please adjust accordingly.
+                                        <br/>
+                                        <apex:commandButton value="Copy data from last year's waterMAP" action="{!copyKBAIFromPriorYear}" rerender="kbaiTable" status="loading"/>
+                                    </apex:outputPanel>
+                                    <apex:repeat value="{!kbaiTablebyYears}" var="table">
+                                        <div style="border-top: #595959 solid 1px; padding: 3px 0px; color: #005f98; background-color: #e5f1f8;">
+                                            <h2>Year {!table.year}</h2>
+                                        </div>
+                                        <apex:pageBlockTable rendered="{!table.kbaiLines.size>0}" id="kbaiTable" value="{!table.kbaiLines}" var="kbaiLineItem" style="margin-bottom:10px; font-size: 9pt; border-bottom: #595959 solid 1px;">
+                                            <apex:column value="{!kbaiLineItem.kbai.Period__c}" headerClass="headerRowLGBack headerRowPeriod"/>
+                                            <apex:column headervalue="Water Use (KL)" headerClass="headerRowLGBack waterUseHeading headerRowRight"
+                                                                styleClass="dataRowRight" style="width:50px">
+                                                <apex:outputText value="{0, number, ###,###,##0}" id="klwaterusage">
+                                                    <apex:param value="{!kbaiLineItem.usage}" />
+                                                </apex:outputText>
+                                            </apex:column>
+                                            <apex:column headerClass="headerRowLGBack waterUseHeading headerRowRight"
+                                                    style="padding: 3px 3px 2px 30px; text-align: right">
+                                                <apex:facet name="header">
+                                                    <div style="padding-left:25px">
+                                                        Count<br/>{!IF(WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c==null,'',' ('&WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c&')')}
+                                                    </div>
+                                                </apex:facet>
+                                                <apex:inputField value="{!kbaiLineItem.kbai.Count__c}"
+                                                                    id="kbaicount"
+                                                                    style="width:80px; font-size: 9pt; text-align: right;"
+                                                                    rendered="{!kbaiLineItem.year=mostRecentYrToDisplay}"
+                                                                    onchange="calculateKLPerKBAI_{!kbaiLineItem.rowNum}()"/>
+                                                <apex:outputField value="{!kbaiLineItem.kbai.Count__c}"
+                                                                    id="kbaicount2"
+                                                                    style="width:80px"
+                                                                    rendered="{!NOT(kbaiLineItem.year=mostRecentYrToDisplay)}"/>
+                                            </apex:column>
+                                            <apex:column headerClass="headerRowLGBack waterUseHeading headerRowRight"
+                                                            styleClass="dataRowRight">
+                                                <apex:facet name="header">
+                                                    <apex:outputText escape="false" value="KL Per<br/>{!IF(WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c==null,'',' ('&WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c&')')}"/>
+                                                </apex:facet>
+                                                <apex:outputText style="width:50px" id="klperkbai"/>
+                                                <apex:inputHidden id="klperkbaiInputHidden" value="{!kbaiLineItem.kbai.KL_per_KBAI_Unit__c}"/>
+                                                <script>
+                                                    function calculateKLPerKBAI_{!kbaiLineItem.rowNum}(){
+                                                        try {
+                                                            var kbaicount = document.getElementById("{!$Component.kbaicount}").value;
+                                                        } catch (e) {
+                                                            kbaicount = document.getElementById("{!$Component.kbaicount2}").innerHTML;
+                                                        }
+                                                        var klperkbaiText = document.getElementById("{!$Component.klperkbai}");
+                                                        var klperkbaiInputHidden = document.getElementById("{!$Component.klperkbaiInputHidden}");
+                                                        var klwaterusage = document.getElementById("{!$Component.klwaterusage}").innerHTML;
+                                                        if(isNaN(parseFloat(kbaicount))) klperkbaiText.innerHTML = "";
+                                                        else if (kbaicount==0){
+                                                            klperkbaiText.innerHTML = "&#8734;";
+                                                            klperkbaiInputHidden.value = "";
+                                                        }
+                                                        else{
+                                                            klperkbaiText.innerHTML = addCommas(((parseFloat(klwaterusage.replace(/,/g,''))/((parseFloat(kbaicount.replace(/,/g,''))*1.0)))).toFixed(2));
+                                                            klperkbaiInputHidden.value = klperkbaiText.innerHTML;
+                                                        }
+                                                    }
+                                                    calculateKLPerKBAI_{!kbaiLineItem.rowNum}();
+                                                </script>
+    
+                                            </apex:column>
+                                        </apex:pageBlockTable>
+                                        <apex:outputPanel rendered="{!table.kbaiLines.size=0}" layout="block" style="border-top: #bbb0a6 1px solid; border-bottom: #595959 solid 1px; padding: 10px 4px; margin-bottom: 10px;">
+                                            <i>No usage for this year</i>
+                                        </apex:outputPanel>
+                                    </apex:repeat>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                    Click the button below to preview the graph of this information. It shows changes in water efficiency over time.
+                                    <br/>
+                                    <apex:commandButton value="View Chart" action="{!NoOp}" onclick="ShowKBAIChart('{!$Component.closebtn}'); return false;"/>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="waterEfficiencyDesc" value="{!$ObjectType.WaterMAP__c.fields.Efficiency_Change_Comments__c.label}"/>
+                                <apex:outputPanel style="text-align: justify">
+                                    Comment on the changes of your KBAI. Provide a possible explanation for this. Also insert comments about
+                                    benchmarks within your industry, if appropriate.
+                                    <apex:inputField id="waterEfficiencyDesc" value="{!WaterMAP_Submission__c.WaterMAP__r.Efficiency_Change_Comments__c}" style="height:50px"/>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <br/>
+                        <apex:outputPanel >
+                            <p/><h1>Water Efficiency Targets</h1>
+                            <p style="text-align: justify">
+                                Setting water targets will help drive the implementation of water conservation
+                                actions.
+                            </p>
+                        </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="shortTermTarget" value="{!$ObjectType.WaterMAP__c.fields.Short_Term_Conservation_Target__c.label}"/>
+                                <apex:outputPanel >
+                                    <apex:inputField id="shortTermTarget" value="{!WaterMAP_Submission__c.WaterMAP__r.Short_Term_Conservation_Target__c}"/>
+                                    &nbsp;<apex:outputText id="shortTermTargetUnit" value="KL per {!IF(WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c)} per year"/>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="longTermTarget" value="{!$ObjectType.WaterMAP__c.fields.Long_Term_Conservation_Target__c.label}"/>
+                                <apex:outputPanel >
+                                    <apex:inputField id="longTermTarget" value="{!WaterMAP_Submission__c.WaterMAP__r.Long_Term_Conservation_Target__c}"/>
+                                    &nbsp;<apex:outputText id="longTermTargetUnit" value="KL per {!IF(WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c)} per year"/>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <!--  BOTTOM BUTTONS -->
+                        <br/><div class="pbSectionDivider"></div>
+                        <br/>
+                        <div style="vertical-align: text-top">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                        <br/>
+                    </apex:pageBlock>
+                </td>
+            </tr>
+        </table>
+
+        <!--  FLOATING PANELS -->
+        <apex:outputPanel id="kbaichartpanel">
+            <!-- Panel that blurs the background -->
+            <div id="kbaiblur" style="display:none; position:fixed; left:1px; top:1px; width:100%; height:100%; text-align:center; vertical-align: middle; background-color: #dcdcdc; opacity:0.6;filter:alpha(opacity=60); z-index: 2;"></div>
+
+            <div id="kbaichartdiv" style="display:none; position:fixed; border-right: 2px solid #595959; border-bottom: 2px solid #595959; border-top: 1px solid #7e7e7e; border-left: 1px solid #7e7e7e; margin-left:-325px; margin-top:-275px; left:50%; top: 50%; width:650px; height:550px; background-color: white; padding:10px; z-index:3;">
+
+                <apex:commandButton style="background: transparent; height: 24px; clear: left; width: 24px; padding: 0; float: right;"
+                                        onclick="return CloseKBAIChart(); return false;"
+                                        action="{!NoOp}"
+                                        image="{!URLFOR($Resource.Icons, 'Icons/CloseWindow.png')}"/>
+                <center>
+                    <c:WaterMAP_KBAI_Preview_Chart recentYrKBAIs="{!kbaiTableUnwrapped}"
+                                        wmapSub="{!waterMAPSub}"
+                                        id="kbaiChart"/>
+                </center>
+                <br/>
+                <apex:commandButton id="closebtn" onclick="return CloseKBAIChart(); return false;"
+                            action="{!NoOp}" value="Close" style="position:absolute; float: left; margin-left:50px;"/>
+            </div>
+        </apex:outputPanel>
+
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <!--  Action Functions -->
+        <apex:actionFunction name="RefreshKBAIChart" action="{!NoOp}" rerender="kbaiChart" status="loading"/>
+
+    </apex:form>
+
+    <script type="text/javascript">
+        function ShowKBAIChart(closebtnid) {
+            // refresh the data
+            RefreshKBAIChart();
+
+            // show the blur
+            var blur = document.getElementById("kbaiblur");
+            blur.style.display = "block";
+            blur.style.zindex="2";
+            blur.style.height = window.screen.availHeight + "px";
+            blur.style.width = window.screen.availWidth + "px";
+
+            // show the popup
+            var form = document.getElementById("kbaichartdiv");
+            try {
+                //AlignToCenter(form);
+            } catch(e) {
+                alert(e.toString());
+            }
+            form.style.display = "block";
+
+            try {
+                document.getElementById(closebtnid).focus();
+            } catch (e) { alert(e.toString()); }
+
+        }
+
+        function CloseKBAIChart() {
+            // hide the blur
+            var blur = document.getElementById("kbaiblur");
+            blur.style.display = "none";
+
+            // hide the popup
+            var form = document.getElementById("kbaichartdiv");
+            form.style.display = "none";
+
+            return false;
+        }
+
+    </script>
+
+</apex:page>

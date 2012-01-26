@@ -1,0 +1,124 @@
+<apex:component access="global" >
+
+<apex:attribute access="global" name="ErrorCondition" description="Some errors to be displayed" type="String" required="true"/>
+<apex:attribute access="global" name="NoSuccess" description="Offer abort option" type="String" required="true"/>
+<apex:attribute access="global" name="SomeSuccess" description="Offer launch or abort options" type="String" required="true"/>
+<apex:attribute access="global" name="FormData" description="Popup URLs and Tokens" type="String[]" required="true"/>
+<apex:attribute access="global" name="RNextUrl" description="Url to move to afterwards" type="String" required="true"/>
+
+<apex:sectionHeader title="Automatic Address Searching..."/>
+
+<apex:pageBlock rendered="{!ErrorCondition}" title="Address Searching Failed">
+<h3>Error(s) were encountered while attempting to search for an address with QAS On Demand.</h3>
+<p/>
+<apex:pageMessages />
+
+<apex:outputPanel rendered="{!NoSuccess}">
+Please contact your Salesforce administrator with the above details, then move on to the next page: 
+ <input type="button" class="btn" onclick="window.parent.location.replace('{!RNextUrl}'); return false" value=" Next "/>
+</apex:outputPanel>
+</apex:pageBlock> 
+
+<apex:pageBlock rendered="{!SomeSuccess}">
+
+<form name="fd">
+<apex:repeat value="{!FormData}" var="tus">
+<input type="hidden" name="tus" value="{!tus}"/>
+</apex:repeat>
+</form>
+
+<form id="idfLauncher" name="fLauncher" method="POST">
+<input type="hidden" name="token" id = "idToken"/>
+</form>
+
+<apex:includeScript value="{!$Resource.experianqas__jquery132min}"/>
+<apex:includeScript value="{!$Resource.experianqas__thickbox31js}"/>
+<apex:stylesheet value="{!$Resource.experianqas__Thickbox31css}"/>
+
+<script type="text/javascript">
+
+//Position in list of token/urls to fire
+var tusPos = 0;
+
+//Gets all the required popup details & calls openWin
+function openNextPopup() {
+	var tokenUrls = document.fd.tus;
+	var success = false;
+    var token = null;
+    if (tokenUrls != null) {
+    	if (tusPos+1 >= tokenUrls.length) {
+//			No more searches
+			return false;
+		}
+    	var token = tokenUrls[tusPos].value;
+    	++tusPos;
+    	var url = tokenUrls[tusPos].value;
+    	++tusPos;
+    	var licenseDetails = tokenUrls[tusPos].value;
+    	++tusPos;
+    	if (token == null || token.length < 2 || url == null || url.length < 2) {
+    		alert("Corrupt search instructions");
+			return false;
+    	}
+    	if (!url.substring(0, 4).toLowerCase() == 'http') {
+    		alert("Incorrect search url:"+url);
+			return false;
+    	}
+    	if(licenseDetails.substring(0,25) == 'Skip Unlicenced Data Set:')
+    	{
+    		moveOnToNextSearch();
+    		return true;
+    	}
+    	
+        success = true;
+        $("#idToken").val(token);
+		tb_show('QAS for salesforce.com - Address Capture for new objects',
+			url+'?TB_frmResult=idfLauncher&TB_iframe=true&height=400&width=775');
+		$("#TB_window").bind("unload",  function(e){
+				setTimeout("moveOnToNextSearch()",500);
+    		});
+	}
+
+    return success;
+}
+
+function moveOnToNextSearch() {
+	var tokenUrls = document.fd.tus;
+	if (tusPos+1 >= tokenUrls.length) {
+//		No more searches to do - continuing
+		moveOnToNextPage();
+	} else {
+		if (!openNextPopup()) {
+			// An error (length check above should mean this is not just the end)
+			moveOnToNextPage();
+		}
+	}
+}
+
+function moveOnToNextPage() {
+    // TODO: Why parent?
+    window.parent.location.replace("{!RNextUrl}");
+}
+
+// Tim Watt April 9, 2010: Fix for QAFOR0895; Force the domain for 
+// all pages to force.com (which clients also have to do for their custom pages)
+// to ensure that all pages have the same domain. Otherwise they will be loaded from
+// different subdomains causing xss issues (e.g. experianqas.visual.force.com and na7.visual.force.com)
+document.domain='force.com';
+
+//Popup on load
+$(document).ready(function(){
+   openNextPopup();
+});
+
+</script>
+
+      Opening the QAS Address Searching dialog - if it does not open, please click this button.
+       <input type="button" class="btn" onclick="openNextPopup(); return false" value=" Check Addresses "/>
+<p/>      
+      After searching, you should be forwarded on to the next page automatically - if not continue manually by pressing 'Next'.
+       <input type="button" class="btn" onclick= "moveOnToNextPage(); return false" value=" Next "/>
+
+</apex:pageBlock>
+
+</apex:component>

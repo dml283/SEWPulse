@@ -1,0 +1,65 @@
+<apex:page standardcontroller="Account" tabStyle="Account" extensions="Customer_Plans_Extension">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Manages council and KAM plans
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+    <apex:sectionHeader title="{!$ObjectType.Account.Label}" subtitle="{!Account.Name}"/>
+
+    <apex:form >
+        <apex:pageBlock title="Generate Customer Plans" id="thepageblock">
+            <apex:pageMessages />
+            <apex:pageBlockSection title="Customer Details" collapsible="false">
+                <apex:outputField value="{!Account.Name}" />
+                <apex:outputField value="{!Account.Customer_Number2__c}" />
+                <apex:outputField value="{!Account.Trading_Name__c}" />
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Parameters" collapsible="false">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Select Year" for="yearspicklist" />
+                    <apex:selectList value="{!selectedYear}" multiselect="false"
+                        size="1" required="true" id="yearspicklist">
+                        <apex:selectOptions value="{!selectableYears}" />
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton action="{!Run}" value="Council Plan" status="loading" rerender="thepageblock" oncomplete="CouncilPlan()"/>
+                <apex:commandButton action="{!Run}" value="Key Customer Plan" status="loading" rerender="thepageblock" oncomplete="KeyCustomerPlan()"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        <center>*Make sure that popup blockers are disabled</center>
+    </apex:form>
+
+   <!-- Action Status that are not position dependent -->
+   <apex:actionStatus id="loading">
+       <apex:facet name="start">
+           <c:EnhancedActionStatus BackColor="#ffffff"
+                                   borderColor="#6B6B6B"
+                                   borderSize="1"
+                                   height="50px"
+                                   width="120px"
+                                   margintop="-25px"
+                                   marginleft="-60px"
+                                   ImageUrl="{!$Resource.AjaxAnimation}"
+                                   Message="Loading..."/>
+       </apex:facet>
+   </apex:actionStatus>
+
+    <script Language="JavaScript">
+        function CouncilPlan() {
+            window.open('{!URLFOR($Action.Account.Generate_Council_Plan,Account.Id)}', '','scrollbars=yes,menubar=no,height=600,width=800,resizable=yes, toolbar=no,location=no,status=yes');
+        }
+        function KeyCustomerPlan() {
+            window.open('{!URLFOR($Action.Account.Generate_Key_Customer_Plan,Account.Id)}', '','scrollbars=yes,menubar=no,height=600,width=800,resizable=yes, toolbar=no,location=no,status=yes');
+        }
+    </script>
+
+</apex:page>

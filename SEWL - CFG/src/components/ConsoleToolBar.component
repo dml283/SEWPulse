@@ -1,0 +1,140 @@
+<apex:component controller="ConsoleToolBar_Controller">
+    <apex:attribute name="recordId" type="id" assignTo="{!recordId}" description="Record ID of the page the bar is on"/>
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <apex:stylesheet value="{!$Resource.SCCToolbar}"/>
+
+    <apex:form >
+        <div class="moduleHeader">
+            <span class="btmlabel">
+                Create Case:
+            </span>
+            <span class="btmfield">
+                <apex:selectList multiselect="false" size="1" onchange="QuickCase('{!$Component.quickcase}');" id="quickcase">
+                    <apex:selectOptions value="{!createCaseSelectOptions}"/>
+                </apex:selectList>
+            </span>
+            <span class="btmlabel">
+                Quick Action:
+            </span>
+            <span class="btmfield">
+                <apex:selectList multiselect="false" size="1" onchange="QuickAction('{!$Component.quickaction}');" id="quickaction">
+                    <apex:selectOption itemvalue="" itemlabel="Select One..."/>
+                    <apex:selectOption itemvalue="New Customer" itemlabel="New Customer"/>
+                    <apex:selectOption itemvalue="New Billing Account" itemlabel="New Billing Account"/>
+                </apex:selectList>
+            </span>
+            <span class="btmlabel">
+                Process:
+            </span>
+            <span class="btmfield">
+                <apex:selectList multiselect="false" size="1" onchange="QuickCase('{!$Component.quickprocess}');" id="quickprocess">
+                    <apex:selectOptions value="{!processSelectOptions}"/>
+                </apex:selectList>
+            </span>
+            <span class="btmfield">
+                <apex:outputLink value="Verify" onclick="Verify();" id="verify" >Verify</apex:outputLink>
+            </span>
+            <span class="btmfield">
+                <apex:outputLink value="Quick Notes" onclick="QuickNotes();" id="quickNotes" >Quick Notes</apex:outputLink>
+            </span>
+            <span>
+                <!--
+                {!recordId}, {!objectType}
+                -->
+                <apex:inputHidden value="{!recordId}" id="recordid">
+                </apex:inputHidden>
+                <apex:inputHidden value="{!objectType}" id="objecttypeid" >
+                </apex:inputHidden>
+                <apex:inputHidden value="{!customer.Id}" id="customerid" >
+                </apex:inputHidden>
+                <apex:inputHidden value="{!billAcct.Id}" id="billacctid" >
+                </apex:inputHidden>
+                <apex:inputHidden value="{!property.Id}" id="propertyid" >
+                </apex:inputHidden>
+            </span>
+        </div>
+
+        <script type="text/javascript">
+            var objectType = document.getElementById('{!$Component.objecttypeid}').value;
+            var recordId = document.getElementById('{!$Component.recordId}').value;
+            var customerId = document.getElementById('{!$Component.customerid}').value;
+            var billAcctId = document.getElementById('{!$Component.billacctid}').value;
+            var propertyId = document.getElementById('{!$Component.propertyid}').value;
+            var caseRecordTypeSelectField;
+            var caseRecordTypeId;
+
+            if (customerId == null || customerId == '') {
+                document.getElementById('{!$Component.verify}').style.display = 'none';
+            }
+
+            function OpenCustomerCare() {
+
+                if (typeof objectType==="undefined")
+                    return;
+
+                //if (objectType == 'Billing_Account__c')
+                    //sforce.console.openPrimaryTab(null, '/apex/BAcctPop?id=' + objectId, false, 'Customer Care');
+
+            }
+
+            function QuickAction(compId) {
+                var quickCreateSelectField = document.getElementById(compId);
+                var quickCreateChoice = quickCreateSelectField.options[quickCreateSelectField.selectedIndex].value;
+                if(quickCreateChoice == 'New Customer'){
+                    sforce.console.openPrimaryTab(null, '{!quickCreateCustomerURL}', true, 'Create Customer');
+                }else if (quickCreateChoice == 'New Billing Account'){
+                    sforce.console.openPrimaryTab(null, '{!quickCreateBillAcctURL}', true, 'Create Billing A/C');
+                }
+                //sforce.console.openPrimaryTab(null, '/apex/CreateCustomerAndPersonWizard', true, 'Create Customer');
+                document.getElementById(compId).selectedIndex=0;
+                //sforce.console.openPrimaryTab(null, '/apex/BAcctPop', true, 'Screen Pop');
+            }
+
+            function QuickCase(compId) {
+                caseRecordTypeSelectField = document.getElementById(compId);
+                caseRecordTypeId = caseRecordTypeSelectField.options[caseRecordTypeSelectField.selectedIndex].value;
+                sforce.console.getEnclosingPrimaryTabId(openCase );
+                //sforce.console.openPrimaryTab(null,'{!quickCaseURLPrefix}&RecordType='+caseRecordTypeId, true);
+                caseRecordTypeSelectField.selectedIndex=0;
+            }
+
+            function QuickNotes(){
+                sforce.console.getEnclosingPrimaryTabId(openQuickNotes );
+            }
+
+            function Verify() {
+                sforce.console.getEnclosingPrimaryTabId(openCustVerify );
+            }
+
+            var openCase = function openCase (result) {
+            
+                if(caseRecordTypeId.indexOf("012", 0) == 0){
+                    sforce.console.openSubtab(result.id ,'{!quickCaseURLPrefix}&RecordType='+caseRecordTypeId, true,
+                    '', null);
+                }else{
+                    sforce.console.openSubtab(result.id ,caseRecordTypeId+'{!urlParameterSuffix}', true,
+                    '', null);
+                }
+            }
+
+            var openQuickNotes = function openQuickNotes (result) {
+                sforce.console.openSubtab(result.id ,'{!quickNotesURLPrefix}', true,
+                'Quick Notes', null);
+            }
+
+            var openCustVerify = function openCustVerify (result) {
+
+                if (billAcctId != null && billAcctId != '') {
+                    sforce.console.openSubtab(result.id ,'/apex/CustomerVerificationPage?id=' + customerId + '&billAccId=' + billAcctId, true,
+                        'Customer Verification', null);
+                } else {
+                    sforce.console.openSubtab(result.id ,'/apex/CustomerVerificationPage?id=' + customerId, true,
+                        'Customer Verification', null);
+                }
+            }
+
+
+        </script>
+    </apex:form>
+
+</apex:component>

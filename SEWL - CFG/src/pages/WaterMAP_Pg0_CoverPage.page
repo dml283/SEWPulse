@@ -1,0 +1,286 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Pg0_Cover_Controller"
+            sidebar="false" tabstyle="waterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+    </script>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+
+<apex:form >
+    <!-- Activate hidden fields for the controller -->
+    <apex:inputHidden value="{!WaterMAP_Submission__c.Status__c}"/>
+
+    <table maxwidth="900px">
+        <tr>
+            <td class="sideBarCell">
+            <!-- Sidebar menu -->
+                <c:WaterMAPContentsSidebar id="sidebar" waterMAPSubId="{!WaterMAP_Submission__c.Id}" currentPageNumber="0" />
+            </td>
+            <td class="contentCell">
+            <!-- Start of real page content here-->
+                <apex:pageBlock id="pageblock">
+
+                    <!--  HEADER -->
+                    <apex:facet name="header">
+                        <div class="pageBlockHeader">
+                            <span class="pageBlockTitle">Cover Page</span>
+                        </div>
+                    </apex:facet>
+
+                    <!--  TOP BUTTONS -->
+                    <div style="vertical-align: text-top; height: 40px;">
+                        <div style="float:left">
+                            <apex:commandButton value="Save" action="{!Save}"/>
+                            <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                        </div>
+                        <span style="float:right;">
+                            <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                        </span>
+                    </div>
+                    <!--  PAGE MESSAGES -->
+                    <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                    <!-- COMPANY INFORMATION SECTION -->
+
+                    <div class="pbSectionDivider"></div>
+                    <apex:outputPanel styleclass="informationBox">
+                        Please contact your Key Customer Manager to modify those fields you cannot access.
+                        You will be able to modify company information in the near future as part
+                        of South East Water's customer self-service strategy.
+                    </apex:outputPanel>
+
+                    <apex:pageBlockSection id="companyinfosection" title="Company Information" collapsible="false">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="name" value="Name"/>
+                            <apex:outputField id="name" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Name}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="phone" value="Phone"/>
+                            <apex:outputField id="phone" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Phone}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="Website" value="Website"/>
+                            <apex:outputField id="website" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.website}"/>
+                        </apex:pageBlockSectionItem>
+                        <!--
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="email" value="Email"/>
+                            <apex:outputField id="email" value="{!waterMAP_Submission__c.Watermap__r.Customer__r.Email_Address__c}"/>
+                        </apex:pageBlockSectionItem>
+                        -->
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="fax" value="Fax"/>
+                            <apex:outputField id="fax" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Fax}"/>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="IsEREP" value="Does your business participate in EREP?"/>
+                            <apex:outputPanel >
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Is_EREP__c}" rendered="false"/>
+                                            <apex:inputCheckBox id="iserp" value="{!isEREP}" style="vertical-align: middle"/>
+                                        </td>
+                                        <td>
+                                            <apex:outputPanel styleclass="informationBox">
+                                                EREP is a regulatory program introduced by the EPA that helps businesses meet
+                                                climate change and resource scarcity challenges by implementing actions that
+                                                achieve environmental benefits and direct cost savings in a short timeframe.
+                                                The EREP program applies to large energy and water using sites – ie. those
+                                                using more than 100 TJ of energy and/or 120 ML of water per annum.
+                                            </apex:outputPanel>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+<!--
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel />
+                            <apex:outputPanel styleclass="informationBox">
+                                Please contact your Key Account Manager to modify your company's information
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+-->
+                    <!-- COMPANY LOGO SECTION -->
+
+                    <apex:pageBlockSection id="companylogosection" title="Company Logo" collapsible="false" columns="1">
+                        <apex:iframe src="{!$Page.WaterMAP_Pg0_CompanyLogoFrame}?id={!WaterMAP_Submission__c.id}" height="122px" scrolling="false"/>
+                    </apex:pageBlockSection>
+
+                    <!-- PREPARED BY SECTION -->
+                    <apex:actionRegion >
+                    <apex:pageBlockSection id="preparedbysection" title="Prepared By" collapsible="false" columns="1" >
+                        <apex:pageBlockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                <apex:outputLabel for="preparedbyname" value="Name"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel >
+                                <apex:selectList size="1" value="{!WaterMAP_Submission__c.Prepared_By__c}" style="vertical-align:top;margin-right:10px;">
+                                    <apex:selectOptions value="{!selectableContacts}"/>
+                                    <apex:actionSupport event="onchange"
+                                                        action="{!RefreshPreparedBy}"
+                                                        rerender="preparedbysection,msg"
+                                                        status="loading"/>
+                                </apex:selectList>
+                                <!--
+                                <apex:outputPanel styleclass="informationBox" style="width: 300px; vertical-align:top; margin-top: 0px">
+                                    Please contact your Key Account Manager to modify your company's information
+                                </apex:outputPanel>
+                                -->
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="preparedbyorgname" value="Organisation"/>
+                            <apex:outputText id="preparedbyorgname" value="{!WaterMAP_Submission__c.Prepared_By__r.Organisation_Name__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="preparedbytitle" value="Title"/>
+                            <apex:outputText id="preparedbytitle" value="{!WaterMAP_Submission__c.Prepared_By__r.Title}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="preparedbyphone" value="Phone"/>
+                            <apex:outputText id="preparedbyphone" value="{!WaterMAP_Submission__c.Prepared_By__r.Phone}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="preparedbyemail" value="Email"/>
+                            <apex:outputField id="preparedbyemail" value="{!WaterMAP_Submission__c.Prepared_By__r.Email}"/>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    </apex:actionRegion>
+
+                    <!-- AUTHORISED BY SECTION -->
+                    <apex:actionRegion >
+                    <apex:pageBlockSection id="authorisedbysection" title="Authorised By" collapsible="false" columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                <apex:outputLabel for="authbyname" value="Name"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel >
+                                <apex:selectList size="1" value="{!WaterMAP_Submission__c.Authorised_By__c}" style="vertical-align:top;margin-right:10px;">
+                                    <apex:selectOptions value="{!selectableContacts}"/>
+                                    <apex:actionSupport event="onchange"
+                                                        action="{!RefreshAuthorisedBy}"
+                                                        rerender="authorisedbysection,msg"
+                                                        status="loading"/>
+                                </apex:selectList>
+                                <!--
+                                <apex:outputPanel styleclass="informationBox" style="width: 300px; vertical-align:top; margin-top: 0px">
+                                    Please contact your Key Account Manager to modify your company's information
+                                </apex:outputPanel>
+                                -->
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="authbyorgname" value="Organisation"/>
+                            <apex:outputText id="authbyorgname" value="{!WaterMAP_Submission__c.Authorised_By__r.Organisation_Name__c}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="authbytitle" value="Title"/>
+                            <apex:outputText id="authbytitle" value="{!WaterMAP_Submission__c.Authorised_By__r.Title}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="authbyphone" value="Phone"/>
+                            <apex:outputText id="authbyphone" value="{!WaterMAP_Submission__c.Authorised_By__r.Phone}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="authbyemail" value="Email"/>
+                            <apex:outputField id="authbyemail" value="{!WaterMAP_Submission__c.Authorised_By__r.Email}"/>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    </apex:actionRegion>
+
+
+                    <!--  BOTTOM BUTTONS -->
+                    <br/><div class="pbSectionDivider"></div>
+                    <br/>
+                    <div style="vertical-align: text-top">
+                        <div style="float:left">
+                            <apex:commandButton value="Save" action="{!Save}"/>
+                            <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                        </div>
+                        <span style="float:right;">
+                            <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                        </span>
+                    </div>
+                    <br/>
+                    
+                </apex:pageBlock>
+            </td>
+        </tr>
+    </table>
+
+
+   <!-- Action Status that are not position dependent -->
+   <apex:actionStatus id="loading">
+       <apex:facet name="start">
+           <c:EnhancedActionStatus BackColor="#ffffff"
+                                   borderColor="#6B6B6B"
+                                   borderSize="1"
+                                   height="50px"
+                                   width="120px"
+                                   margintop="-25px"
+                                   marginleft="-60px"
+                                   ImageUrl="{!$Resource.AjaxAnimation}"
+                                   Message="Loading..."/>
+       </apex:facet>
+   </apex:actionStatus>
+</apex:form>
+<script type="text/javascript">
+
+    var logoFileName;
+
+    function CheckLogoFileName () {
+
+        // check that the file is there
+        if (logoFileName == null || logoFileName == "undefined") {
+            alert("Please select a file.");
+            return false;
+        }
+
+        // must have an extension
+        if (logoFileName.length < 4) {
+            alert("Please select a valid image file.");
+            return false;
+        }
+
+        // check that the file is a valid image (jpg, gif, png)
+        var logoFileExtension = logoFileName.substr(logoFileName.length - 3, 3);
+
+        if (logoFileExtension != "jpg" && logoFileExtension != "gif" && logoFileExtension != "png") {
+            alert("Please select a valid image file.");
+            return false;
+        }
+
+        return true;
+    }
+
+    function ChangeLogoFileName (filename) {
+
+        logoFileName = filename.toLowerCase();
+    }
+
+
+</script>
+
+
+</apex:page>

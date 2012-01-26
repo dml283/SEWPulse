@@ -1,0 +1,162 @@
+<apex:page id="newUserRegistrationPage" controller="ForgotUsernameController" showHeader="false" title="Customer Portal - New User Registration">
+    <!--
+        Description: Site login paged rebranded for SEW
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+    <head>
+        <title>South East Water Customer Portal - New User Registration</title>
+        <link rel="shortcut icon" href="https://southeastwater.secure.force.com/portal/favicon.ico" />
+    </head>
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="body">
+            <apex:outputPanel id="wholePage">
+                <apex:form forceSSL="true">
+                    <div style="margin: auto; width: 600px; display: block" >
+                        <div class="sitePanel" style="width: 600px;padding:10px;">
+                            <apex:outputPanel layout="none" rendered="{!NOT(NOT(ISNULL(billAcctEntered))&&isValidUserDetail&&isSecretQAVerifySuccessful)}">
+                                <span>
+                                    <apex:outputText style="font-size:8pt" value="This form is secure."/>&nbsp;
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                    <apex:outputText style="font-size:8pt" value="Indicates mandatory fields."/>
+                                </span>
+                            </apex:outputPanel>
+                            <div style="margin: auto; width: 450px">
+
+								<p/>
+	                                <apex:outputText styleClass="siteTitle" value="Welcome to South East Water Online Services"/>
+                                <p/>
+
+                                <!-- Checking Account Information -->
+                                <apex:outputPanel layout="none" rendered="{!NOT(isValidUserDetail)}">
+                                    <apex:outputText styleClass="siteTitle" value="Forgotten Username"/>
+			                        <p/>
+                                    <apex:outputText value="Enter your details below" style="font-weight:bold"/>
+                                    <p/>
+                                        <div style="color: #000;">
+                                            <apex:outputPanel layout="block">
+                                                <apex:pageMessages />
+                                                <apex:panelGrid columns="2" style="margin-top:2px;white-space:nowrap;">
+                                                    <apex:outputPanel layout="block" styleClass="siteLabel">
+                                                        <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                                        <apex:outputLabel value="Customer Number" />
+                                                    </apex:outputPanel>
+													<apex:outputPanel >
+	                                                    <apex:inputText style="width:155px" value="{!accNumberEntryStr}"/>
+	                                                    <apex:image value="{!$Resource.Info_Icon}"
+	                                                    		style="padding-left: 5px; vertical-align: middle"
+	                                                    		title="This can be found on the top right hand corner of your bill."/>
+													</apex:outputPanel>
+                                                    <apex:outputPanel layout="block" styleClass="siteLabel">
+                                                        <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                                        <apex:outputLabel value="Email Address"/>
+                                                    </apex:outputPanel>
+                                                    <apex:inputText style="width:155px" value="{!userConfirmEmailEntryStr}"/>
+												</apex:panelGrid>
+												<center>
+	                                                <apex:panelGrid columns="1" style="margin-top:2px;white-space:nowrap;">
+	                                                    <apex:outputPanel layout="block">
+	                                                        <div style="white-space:normal;">
+		                                                        <apex:outputText style="font-size:8pt;" value="Please enter both words below separated by a space."/>
+	                                                        </div>
+	                                                    </apex:outputPanel>
+													</apex:panelGrid>
+	                                                <apex:panelGrid columns="2" style="margin-top:2px;white-space:nowrap;">
+	                                                    <apex:outputLabel />
+	                                                    <apex:outputPanel layout="block" style="padding-top:3px">
+	                                                        <script src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js" type="text/javascript" />
+	                                                        <script>
+	                                                        function showRecaptcha(element) {
+	                                                          Recaptcha.create("{!reCAPTCHA.publicKey}", element, {
+	                                                                theme: 'clean',
+	                                                                tabindex: 0,
+	                                                                callback: Recaptcha.focus_response_field
+	                                                          });
+	                                                        }
+	                                                        </script>
+	                                                        <apex:outputPanel id="captcha">
+	                                                                <apex:inputhidden value="{!reCAPTCHA.challenge}" id="challenge" />
+	                                                                <apex:inputhidden value="{!reCAPTCHA.response}" id="response" />
+	                                                                <script type="text/javascript">
+	                                                                function captureResponse(ele) {
+	                                                                    document.getElementById('{!$Component.challenge}').value =
+	                                                                        document.getElementById('recaptcha_challenge_field').value;
+
+	                                                                    document.getElementById('{!$Component.response}').value =
+	                                                                        document.getElementById('recaptcha_response_field').value;
+	                                                                }
+	                                                                </script>
+	                                                                <div id="dynamic_recaptcha_1"></div>
+	                                                            <script type="text/javascript">showRecaptcha('dynamic_recaptcha_1');</script>
+	                                                        </apex:outputPanel>
+	                                                    </apex:outputPanel>
+	                                                    <apex:outputLabel />
+	                                                </apex:panelGrid>
+                                                    <apex:commandButton value="Next" onclick="javascript:captureResponse(this);" action="{!checkAccountDetails}" styleClass="btnGreen"/>
+                                                </center>
+                                            </apex:outputPanel>
+                                        </div>
+                                    <br/>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!isValidUserDetail&&reCAPTCHA.correctResponse&&NOT(isSecretQAVerifySuccessful)}">
+                                    <apex:outputText value="Secret Question & Answer" style="font-weight:bold"/>
+                                    <br/>
+                                        <div style="color: #000;">
+                                            <apex:outputPanel layout="block">
+                                                <apex:pageMessages />
+                                                <apex:panelGrid columns="1" style="margin-top:1em;">
+                                                    <apex:outputText value="To confirm your identity, please answer the following secret question:"/>
+                                                    <apex:outputField value="{!userInfoEntered.Secret_Question__c}"/>
+                                                </apex:panelGrid>
+                                                <apex:panelGrid columns="2" style="margin-top:2px;white-space:nowrap;">
+                                                    <apex:outputPanel layout="block" styleClass="siteLabel">
+                                                        <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                                        <apex:outputLabel value="Secret Answer"/>
+                                                    </apex:outputPanel>
+                                                    <apex:inputText value="{!secretAnswerInput}"/>
+                                                    <apex:outputLabel />
+                                                    <apex:outputPanel layout="block" style="padding-top:3px">
+                                                        <apex:commandButton value="Next" action="{!verifySecretQA}" styleClass="btnGreen"/>
+                                                    </apex:outputPanel>
+                                                </apex:panelGrid>
+                                            </apex:outputPanel>
+                                        </div>
+                                    <br/>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!isValidUserDetail&&reCAPTCHA.correctResponse&&isSecretQAVerifySuccessful}">
+                                    <br/>
+                                    <apex:outputText styleClass="siteTitle" value="Your Username"/>
+                                    <br/>
+                                        <div style="color: #000;">
+                                            <apex:outputPanel layout="block">
+                                                <apex:pageMessages />
+                                                <apex:panelGrid columns="2" style="margin-top:2px;white-space:nowrap;">
+                                                    <apex:outputPanel layout="block" styleClass="siteLabel">
+                                                        <apex:outputLabel value="Username"/>
+                                                    </apex:outputPanel>
+                                                    <apex:outputField value="{!userInfoEntered.Username}"/>
+                                                    <apex:outputLabel />
+                                                    <apex:outputLink value="{!$Page.SiteLogin}" style="font-size:10pt;">Go back to Login Page</apex:outputLink>
+                                                </apex:panelGrid>
+                                            </apex:outputPanel>
+                                        </div>
+                                    <br/>
+                                </apex:outputPanel>
+                            </div>
+                            <apex:outputPanel layout="none" rendered="{!NOT(NOT(ISNULL(billAcctEntered))&&isValidUserDetail&&isSecretQAVerifySuccessful)}">
+		                        <span>
+		                            <apex:outputText style="font-size:8pt" value="If you need assistance with our registration contact us on 131 694 or email: "/>&nbsp;
+		                            <apex:outputLink target="_self" value="mailto:info@sewl.com.au" style="font-size:8pt" title="South East Water Portal Registration Issue">info@sewl.com.au</apex:outputLink>
+		                            <apex:outputText style="font-size:8pt" value="."/>
+		                        </span>
+                            </apex:outputPanel>
+                        </div>
+                    </div>
+                </apex:form>
+            </apex:outputPanel>
+        </apex:define>
+    </apex:composition>
+
+
+</apex:page>

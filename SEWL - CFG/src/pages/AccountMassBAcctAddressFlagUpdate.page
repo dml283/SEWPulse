@@ -1,0 +1,92 @@
+<apex:page standardController="Account" extensions="AccountMassBAcctAddressFlagUpdateExCon" title="{!Account.Name} - Mass Billing Address Update">
+<!-- 
+    Type:       VF page
+    Purpose:    Updates the Billing Account Address flags 
+    ---------------------------------------------------------------
+    History:
+ -->
+
+  <apex:sectionHeader title="Mass Billing Address Flag Update" subtitle="{!Account.Name}"/>
+  <apex:includeScript value="/support/console/22.0/integration.js"/>
+     <script type="text/javascript">
+
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('{!Account.Name} - Manage Billing Address');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+   </script>
+  <p>
+      Check and update settings below to indicate the address used for each billing account.
+  </p>
+  <apex:pagemessages />
+  <apex:form >
+      <apex:pageblock title="Billing Accounts under {!Account.Name}">
+          <apex:pageblockTable value="{!Account.Billing_Account__r}" var="bacct">
+              <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Name.label}">
+                  <A HREF="#" onClick="testOpenSubtab{!bacct.id}();return false">{!bacct.Name}</A>
+                  <script type="text/javascript">
+                      function testOpenSubtab{!bacct.id}() {
+                          if(sforce.console.isInConsole()){
+                              sforce.console.getEnclosingPrimaryTabId(openSubtab{!bacct.id});
+                          }
+                          else{
+                              window.open("/{!bacct.id}");
+                          }
+                      }
+                      var openSubtab{!bacct.id} = function openSubtab{!bacct.id}(result) {
+                          var primaryTabId = result.id;
+                          sforce.console.openSubtab(primaryTabId , '/{!bacct.id}', true,
+                              '{!bacct.Name}', null, null, 'subtab{!bacct.id}');
+                      };
+                  </script>
+              </apex:column>
+              <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Role__c.label}">
+                  <apex:outputText escape="false" value="{!bacct.Role__c}"/>
+              </apex:column>
+              <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Property_Address__c.label}">
+                  <apex:outputText escape="false" value="{!bacct.Property_Address__c}"/>
+              </apex:column>
+              <apex:column headervalue="Current Billing Address">
+                  <apex:outputText escape="false" value="{!bacct.Street_Address__c}<br>{!bacct.City__c} {!bacct.State__c} {!bacct.Postal_Code__c}"/>
+              </apex:column>
+              <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Billing_Address_Same_As__c.label}">
+                  <apex:inputField value="{!bacct.Billing_Address_Same_As__c}" rendered="{!bacct.Group_Billing_Account__c == null}" />
+                  <apex:outputPanel rendered="{!bacct.Group_Billing_Account__c != null}">
+                      <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Warning_Icon.png')}" style="vertical-align:middle;" title="This is a Sub Customer. Refer all address changes to the Miscellaneous Charges Team."/>
+                      <apex:outputField value="{!bacct.Billing_Address_Same_As__c}"  />
+                  </apex:outputPanel>
+              </apex:column>
+              <apex:column headervalue="{!$ObjectType.Billing_Account__c.fields.Bill_To_Parent__c.label}">
+                  <apex:inputField value="{!bacct.Bill_To_Parent__c}" rendered="{!bacct.Group_Billing_Account__c == null}"/>
+              </apex:column>
+          </apex:pageblockTable>
+          <apex:pageblockButtons >
+              <apex:commandButton value="Save" action="{!saveBillingAccounts}"/>
+              <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+              <script type="text/javascript">
+                  function testCloseTab() {
+                      if(sforce.console.isInConsole()){
+                          sforce.console.getEnclosingTabId(closeSubtab);
+                      }
+                      else{
+                          window.location = "/{!Account.id}";
+                      }
+                  }
+
+                  var closeSubtab = function closeSubtab(result) {
+                      var tabId = result.id;
+                      sforce.console.closeTab(tabId);
+                  };
+              </script>
+          </apex:pageblockButtons>
+      </apex:pageblock>
+  </apex:form>
+</apex:page>

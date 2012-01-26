@@ -1,0 +1,173 @@
+<!-- 
+    Type:       VF page
+    Purpose:    Capture Credit Card Payment information 
+                
+    Used By:    CC Payment button of Billing Account 
+    ---------------------------------------------------------------
+    History:
+    
+    15-11-2011 Ji Zhang (Coretec Solutions)   Created
+ -->
+<apex:page controller="CreditCardPaymentController" id="pg">
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <script type="text/javascript">
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Credit Card Payment');
+       } 
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) { 
+                previousOnload(); 
+            }
+            setTabTitle(); 
+       }
+    </script>
+    <apex:sectionHeader title="Pay Bills" />
+    <apex:form id="form">
+        <apex:outputPanel id="wholePage"><apex:pagemessages />
+            <apex:pageblock mode="edit" title="1 - Credit Card Information" id="pb" rendered="{!gateWayStatus}">
+                <apex:pageBlockSection columns="1" id="pbs1">
+                    <apex:inputField value="{!userInputFields.Customer_Account__c}" required="true"/>
+                    <apex:pageBlockSectionItem >
+                    <apex:outputLabel >Billing Account</apex:outputLabel>
+                    <apex:actionRegion >
+                    <apex:inputField value="{!userInputFields.Billing_Account__c}" required="true">
+                        <apex:actionsupport event="onchange" action="{!getAmount}" rerender="amountField"/>
+                    </apex:inputField>
+                    </apex:actionRegion>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!userInputFields.Credit_Card_Type__c}" required="true"/>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Credit Card Number"/>
+                        <apex:outputPanel >
+                        <table style="border-spacing:0">
+                                <tr>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_1__c}" id="creditCardNumber1" required="true" style="width:30px; margin-left:2px">
+                                        
+                                        </apex:inputField>
+                                   </td>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_2__c}" id="creditCardNumber2" style="width:30px; margin-left:2px">
+                                        </apex:inputField>
+                                   </td>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_3__c}" id="creditCardNumber3" style="width:30px; margin-left:2px">
+                                        </apex:inputField>
+                                   </td>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_4__c}" id="creditCardNumber4" style="width:30px; margin-left:2px">
+                                        </apex:inputField>
+                                   </td>
+                                </tr>
+                        </table>
+                        <script>
+                            document.getElementById('{!$Component.creditCardNumber1}').autocomplete = "off";
+                            document.getElementById('{!$Component.creditCardNumber2}').autocomplete = "off";
+                            document.getElementById('{!$Component.creditCardNumber3}').autocomplete = "off";
+                            document.getElementById('{!$Component.creditCardNumber4}').autocomplete = "off";
+                        </script>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Expiry Date:"/>
+                        <apex:outputPanel >
+                        <table style="border-spacing:0">
+                            <tr>
+                                <td style="width:80px">
+                                    <apex:inputField value="{!userInputFields.Expiration_Date_Month__c}" required="true" />
+                                </td>                               
+                                <td>    
+                                    <apex:selectList value="{!userInputFields.Expiration_Date_Year__c}" multiselect="false" size="1" required="true">
+                                        <apex:selectOptions value="{!items}"/>
+                                    </apex:selectList>
+                                </td>
+                            </tr>
+                        </table>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!userInputFields.Name_on_Card__c}" id="nameoncard" required="true">
+                        <script>
+                            document.getElementById('{!$Component.nameoncard}').autocomplete = "off";
+                        </script>
+                    </apex:inputField>
+                    <apex:inputField value="{!userInputFields.CVN__c}" style="width:30px; margin-left: 2px" id="cvn" required="true">
+                        <script>
+                            document.getElementById('{!$Component.cvn}').autocomplete = "off";
+                        </script>
+                    </apex:inputField>  
+                     <apex:inputField id="amountField" value="{!userInputFields.Amount__c}" required="true">
+                        <script>
+                            document.getElementById('{!$Component.amountField}').autocomplete = "off";
+                        </script>
+                    </apex:inputField>    
+                </apex:pageBlockSection>
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton action="{!submit}" value="Submit" disabled="{!submitting}" 
+                                        rerender="form"
+                                        oncomplete="doSubmitPayment();"/>
+                    <apex:commandButton value="Cancel" onclick="testCloseTab();return false"/>
+                </apex:pageBlockButtons>
+            </apex:pageblock>
+            <!-- gateway service down to display close button-->
+            <apex:pageBlock rendered="{!IF(gateWayStatus, false, true)}">
+                 <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+                </apex:pageBlockButtons>
+            </apex:pageBlock>          
+            <apex:actionPoller action="{!checkStatus}" interval="5" rendered="{!submitting}" rerender="form" oncomplete="doRedirect()"/>
+            <apex:inputHidden value="{!redirect}" id="redirectflag"/>
+            <apex:inputHidden value="{!timeOut}" id="timeoutflag"/>
+            
+            <script>
+                function doRedirect() {
+                    var redirectFlag = document.getElementById('{!$Component.redirectflag}').value;
+                    var timeoutFlag = document.getElementById('{!$Component.timeoutflag}').value;
+
+                    if (redirectFlag == 'true') {
+                        Redirect();
+                    }
+                    if (timeoutFlag == 'true') {
+                        Timeout();
+                    } 
+                }
+                function doSubmitPayment() {
+                    if('{!Taskrec.id}' != '') {
+                        submitPayment();
+                    }
+                }
+                function testCloseTab() {
+                    if(sforce.console.isInConsole()){
+                        sforce.console.getEnclosingTabId(closeSubtab);
+                    }
+                    else{
+                        window.location = "/{!JSENCODE(userInputFields.Billing_Account__c)}";
+                    }
+                }
+            
+                var closeSubtab = function closeSubtab(result) {
+                    var tabId = result.id;
+                    sforce.console.closeTab(tabId);
+                };
+                
+            </script>
+            <apex:actionFunction action="{!submitPayment}" name="submitPayment"/>
+            <apex:actionFunction action="{!Redirect}" name="Redirect"/>              
+            <apex:actionFunction action="{!Timeout}" name="Timeout"/>              
+        </apex:outputPanel>
+        
+        <c:EnhancedActionStatus BackColor="#ffffff"
+                                borderColor="#6B6B6B"
+                                borderSize="1"
+                                height="50px"
+                                width="120px"
+                                margintop="-25px"
+                                marginleft="-60px"
+                                ImageUrl="{!$Resource.AjaxAnimation}"
+                                Message="Processing..."
+                                rendered="{!submitting}"/>
+
+    </apex:form>
+</apex:page>

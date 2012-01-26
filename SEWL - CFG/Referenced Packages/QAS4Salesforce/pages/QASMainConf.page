@@ -1,0 +1,277 @@
+<apex:page controller="experianqas.QASMainConfController" showHeader="true"
+	action="{!AutoRun}" title="QAS for salesforce.com Configuration"
+	tabStyle="QAS_for_salesforce_com__tab" >
+
+	<style>
+.activeTab {
+	background-color: #236FBD;
+	color: white;
+	background-image: none
+}
+
+.inactiveTab {
+	background-color: lightgrey;
+	color: black;
+	background-image: none
+}
+</style>
+	<apex:sectionHeader title="QAS for salesforce.com"
+		subtitle="Configuration" help="https://services3.ondemand.qas.com/SalesForce/HostedPopup/V3/Help/main.htm" />
+
+	<apex:pageMessages id="msgs" />
+
+	<apex:tabPanel switchType="client" value="{!TabToView}"
+		id="AccountTabPanel"
+		 tabClass="activeTab" inactiveTabClass="inactiveTab">
+		<apex:tab label="Main" name="Main" id="tabMain">
+
+			<apex:outputPanel id="outMainSettings">
+				<apex:actionstatus id="statusMainSettings" startText="working..." />
+				<apex:outputText value="{!MainSettingsValidation}" />
+			</apex:outputPanel>
+
+			<apex:form >
+				<apex:pageBlock title="QAS On Demand Settings" mode="edit" helpUrl="https://services3.ondemand.qas.com/SalesForce/HostedPopup/V3/Help/main.htm" helpTitle="Help on Main Settings">
+					<apex:pageBlockButtons >
+						<apex:commandButton action="{!ResetToDefault}"
+							value="Reset All Other Settings to Defaults"
+							title="Reset all settings to sensible default values"
+							reRender="outMainSettings,msgs" status="statusMainSettings"
+							onclick="if (false == confirm('Please confirm resetting all settings to defaults.')) return false;" />
+						<apex:commandButton action="{!SaveMainSettings}" value="Save"
+							reRender="outMainSettings,msgs" status="statusMainSettings" />						
+						<apex:commandButton action="{!Cancel}" value="Cancel" immediate="true"/>
+					</apex:pageBlockButtons>
+					<apex:pageBlockSection columns="1" collapsible="false">
+						<strong>Minimum first time setup:</strong>
+Please enter and Save your main/only QAS On Demand Web Service username and password,
+and select your QAS On Demand Data Centre from the list.
+<p />You will then need to add the custom links/buttons and New button
+						overrides manually to the Account, Contact, Contract and Lead
+						objects, as detailed in the Customisation Guide.
+						<p /><apex:pageBlockSectionItem >
+							<apex:outputLabel value="QAS On Demand Web Service Username"
+								for="def_odwebserviceusername" />
+							<apex:inputText value="{!DefaultODUsername}" size="50"
+								id="def_odwebserviceusername" />
+						</apex:pageBlockSectionItem> <apex:pageBlockSectionItem >
+							<apex:outputLabel value="QAS On Demand Web Service Password"
+								for="def_odwebservicepassword" />
+							<apex:inputSecret value="{!DefaultODpassword}" redisplay="true"
+								size="30" id="def_odwebservicepassword" />
+						</apex:pageBlockSectionItem> <apex:pageBlockSectionItem >
+							<apex:outputLabel value="QAS On Demand Data Centre"
+								for="def__datacentre" />
+							<apex:selectList value="{!SelectedDataCentre}"
+								multiselect="false" size="1" id="def__datacentre"
+								onchange="checkCustomDatacentreVisibility();"
+								onselect="checkCustomDatacentreVisibility();">
+								<apex:selectOptions value="{!ODDataCentresWithCustom}" />
+								<script>
+function addLoadEvent(func) {
+	var oldonload = window.onload;
+	if (typeof window.onload != 'function') {
+		window.onload = func;
+	} else {
+		window.onload = function() {
+			oldonload();
+			func();
+		}
+	}
+}
+
+function checkCustomDatacentreVisibility() {
+	var theDCSelector = document.getElementById('{!$Component.def__datacentre}');
+	var theDiv = document.getElementById('{!$Component.def__customdc}');
+	
+	var val = theDCSelector.value;
+	var inputs = theDiv.getElementsByTagName('INPUT');
+	var vals = val.split(',');
+	for (var i = 0; i < inputs.length; ++i) {
+		if (vals.length >= 3) {
+			inputs[i].value = vals[i];
+			inputs[i].readOnly = true;
+			inputs[i].disabled = true;
+		} else {
+			inputs[i].readOnly = false;
+			inputs[i].disabled = false;
+		}
+	}
+}
+
+addLoadEvent(checkCustomDatacentreVisibility);
+
+</script>
+							</apex:selectList>
+						</apex:pageBlockSectionItem>
+					</apex:pageBlockSection>
+
+					<apex:pageBlockSection title="QAS On Demand Data Center URLs"
+						id="def__customdc" columns="1" collapsible="false">
+
+						<apex:pageBlockSectionItem >
+							<apex:outputLabel value="QAS On Demand Web Service URL"
+								for="def_odwebserviceurl" />
+							<apex:inputText value="{!DefaultODWebserviceUrl}" size="100"
+								id="def_odwebserviceurl" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem >
+							<apex:outputLabel value="QAS On Demand Address Search URL"
+								for="def_odpopupurl" />
+							<apex:inputText value="{!DefaultODPopupUrl}" size="100"
+								id="def_odpopupurl" />
+						</apex:pageBlockSectionItem>
+						<apex:pageBlockSectionItem >
+							<apex:outputLabel value="QAS On Demand Token Service URL"
+								for="def_odtokenserviceurl" />
+							<apex:inputText value="{!DefaultODTokenserviceUrl}" size="100"
+								id="def_odtokenserviceurl" />
+						</apex:pageBlockSectionItem>
+
+					</apex:pageBlockSection>
+
+				</apex:pageBlock>
+			</apex:form>
+
+			<apex:pageBlock title="QAS On Demand Portal">
+Your QAS On Demand account can be managed via the Experian QAS On Demand Portal by clicking on the link below. The Web Service credentials required in the QAS On Demand settings above can be set in the Portal.
+<p />&nbsp;&nbsp;&nbsp;<apex:outputLink value="https://ondemand.qas.com/" target="_blank">https://ondemand.qas.com/</apex:outputLink>
+				<p />Note: the QAS On Demand Portal login requires your management
+				username and password, NOT the Web Service credentials required in
+				the QAS On Demand settings above.
+			</apex:pageBlock>
+			<apex:pageBlock title="Import and Export Settings">
+			
+			<apex:actionstatus id="importexport_status" startText="working...">
+			<apex:facet name="stop">
+			<apex:pageBlockSection id="ImportExport" >			
+			<apex:form >
+			<table width="100%" align="center">
+			<tr>						
+			<td>
+				<apex:outputLabel value="Document to Export to:" for="def_fileexport" />
+			</td>
+			<td>
+				<apex:inputText value="{!ExportFileName}" maxlength="250" style="width:300px;" id="def_fileexport" />				
+			</td>
+			<td></td>
+			<td>
+				<apex:commandButton action="{!ExportSettings}" value="Export" rerender="ImportExport,msgs" status="importexport_status"/>
+			</td>
+			</tr>
+			<tr>
+			<td>
+				<apex:outputLabel value="Document to Import from:" for="def_fileimport" />
+			</td>
+			<td>
+				<apex:selectList value="{!ImportFileId}" multiselect="false" size="1" style="width:300px;" id="def_fileimport">					 
+					<apex:selectOptions value="{!AllPersonalDocuments}" />
+					<apex:actionSupport event="onchange" action="{!ChangeImportFile}" rerender="txtImportFileId" />
+				</apex:selectList>				
+			</td>
+			<td>
+				<apex:outputText id="txtImportFileId" value="{!ImportFileDate}" />
+			</td>
+			<td>
+				<apex:commandButton action="{!ImportSettings}" value="Import" onclick="if (false == confirm('Please confirm importing file will overwrite all settings.')) return false;"/>
+			</td>
+			</tr>
+			</table>
+			</apex:form>
+			
+			</apex:pageBlockSection>
+			</apex:facet>
+			</apex:actionstatus>
+			</apex:pageBlock>
+
+		</apex:tab>
+
+		<apex:tab label="Touchpoints" name="Touchpoints" id="tabTouchpoints">
+
+			<apex:form >
+				<apex:pageBlock title="Touchpoints" mode="edit"
+					helpUrl="https://services3.ondemand.qas.com/SalesForce/HostedPopup/V3/Help/touchpoints.htm"
+					helpTitle="Help on Touchpoints">
+					This sub-tab controls how to map address data fields between Salesforce and QAS On Demand. Standard Touchpoint settings for Accounts, Contacts, Contracts and Leads are pre-configured. For additional areas, it is recommended that you configure one Touchpoint for each separate address in your data schema.				<p />
+					More detailed settings regarding the search behaviour can be
+					controlled in <strong>Advanced Settings</strong> if required.
+					<p />
+					<apex:panelGrid columns="2" id="tp_grid">
+						<apex:selectList value="{!SelectedSettingId}" id="tp_sellist"
+							multiselect="false" size="10">
+							<apex:selectOptions value="{!TouchpointSelectOptions}" />
+						</apex:selectList>
+						<apex:panelGroup >
+							<apex:commandButton value="Add new Touchpoint"
+								action="{!AddNewTouchpoint}" />
+							<p />
+							<apex:commandButton value="Edit Touchpoint"
+								action="{!EditTouchpoint}" />
+							<p />
+							<apex:commandButton value="Delete Touchpoint" action="{!DeleteTouchpoint}"
+							 onclick="return confirm('Please confirm deletion of the Touchpoint.');"/>
+						</apex:panelGroup>
+					</apex:panelGrid>
+				</apex:pageBlock>
+			</apex:form>
+		</apex:tab>
+
+		<apex:tab label="Advanced Settings" name="Settings" id="tabSettings">
+			<apex:form >
+
+				<apex:pageBlock title="Advanced Settings" mode="edit"
+					helpUrl="https://services3.ondemand.qas.com/SalesForce/HostedPopup/V3/Help/advanced.htm"
+					helpTitle="Help on Advanced Settings">
+
+This sub-tab controls advanced search behaviour settings. A hierarchy is applied in which Advanced Touchpoint settings override the Default settings and User Profile settings override Advanced Touchpoint settings.
+<p />See <strong>Touchpoints</strong> to control how to map address
+					data fields between Salesforce and QAS On Demand.
+					<p /><apex:pageBlockSection title="Defaults" columns="1"
+						collapsible="false">
+Click this button to set the default values for all settings. <apex:commandButton value="Edit Default Settings" action="{!EditDefaultSettings}" />
+
+					</apex:pageBlockSection>
+					 <apex:pageBlockSection title="Settings when using a specific Touchpoint" columns="1" collapsible="false">
+You may want to control the Advanced Settings to be different for each Touchpoint and override the Default Settings.
+This is not normally necessary – for example, the standard Touchpoints that are pre-configured inherit the Default Settings.
+
+<apex:panelGrid columns="2" id="ts_grid">
+							<apex:selectList value="{!SelectedTouchpointSettingId}"
+								multiselect="false" size="10">
+								<apex:selectOptions value="{!TouchpointSelectOptions}" />
+							</apex:selectList>
+							<apex:commandButton value="Edit Touchpoint Settings"
+								action="{!EditTouchpointSetting}"/>
+						</apex:panelGrid>
+
+					</apex:pageBlockSection>
+					<apex:pageBlockSection title="Settings applying to users of a specific User Profile"
+						columns="1" collapsible="false">
+The highest priority class of settings are ones that apply to User Profiles.
+Use these if you want your users to have different access to data or search engines,
+for example due to licensing restrictions or to lower training requirements.
+
+						<apex:panelGrid columns="2" id="ups_grid">
+							<apex:selectList value="{!SelectedUserProfileSettingId}"
+								multiselect="false" size="5">
+								<apex:selectOptions value="{!UserProfileSettingsSelectOptions}" />
+							</apex:selectList>
+							<apex:panelGroup >
+								<apex:commandButton value="Add new User Profile Setting"
+									action="{!AddNewSetting}"/>
+								<p /><apex:commandButton value="Edit User Profile Setting"
+									action="{!EditUserProfileSetting}" />
+								<p /><apex:commandButton value="Delete User Profile Setting" action="{!DeleteUserProfileSetting}"
+								  onclick="return confirm('Please confirm deletion of the User Profile Setting.');"/>
+							</apex:panelGroup>
+						</apex:panelGrid>
+
+					</apex:pageBlockSection>
+				</apex:pageBlock>
+
+			</apex:form>
+		</apex:tab>
+
+	</apex:tabPanel>
+
+</apex:page>

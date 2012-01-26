@@ -1,0 +1,42 @@
+<apex:page standardController="Billing_Account__c" extensions="BillViewExCon" showHeader="false">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Calls View Bill
+    ---------------------------------------------------------------
+    History:
+ -->
+
+    <script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            BillView();
+       }
+    </script>
+   	&nbsp;
+    <apex:pageMessages id="messages" />
+    <apex:form id="theForm">
+        <apex:actionFunction name="BillView"
+                                action="{!billView}"
+                                status="loading"
+                                rerender="theForm,messages"/>
+
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                        borderColor="#6B6B6B"
+                                        borderSize="1"
+                                        height="50px"
+                                        width="120px"
+                                        margintop="-25px"
+                                        marginleft="-60px"
+                                        ImageUrl="{!$Resource.AjaxAnimation}"
+                                        Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+
+</apex:page>

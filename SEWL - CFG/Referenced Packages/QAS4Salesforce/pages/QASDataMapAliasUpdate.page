@@ -1,0 +1,6 @@
+<apex:page showHeader="false" sidebar="false">
+<script>
+self.parent.dataAliasUpdated("{!JSENCODE($CurrentPage.parameters.DMAlias)}");
+self.parent.jQuery("#TB_closeWindowButton").trigger("click");
+</script>
+</apex:page>

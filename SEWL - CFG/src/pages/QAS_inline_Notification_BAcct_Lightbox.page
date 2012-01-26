@@ -1,0 +1,9 @@
+<apex:page showHeader="false" sidebar="false" standardController="Billing_Account__c" extensions="experianqas.QASOverridePopupController" action="{!DetermineRedirect}"> 
+    <script> 
+        // the following code is run via javascript instead of an action on the page 
+        // because it is reloading the parent window not the embedded visualforce page itself 
+        if ({!isUpdated} && {!isAllNotLicensed}==false) {
+            window.parent.location='{!RNextUrl}';
+        } 
+    </script> 
+</apex:page>

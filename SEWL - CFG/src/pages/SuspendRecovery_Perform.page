@@ -1,0 +1,40 @@
+<apex:page standardController="Case" extensions="SuspendRecovery_View_Extension">
+
+    <!--
+        Description: Used as a redirector to validate the suspend recovery request using the validate
+                     action of the SuspendRecovery_View_Extension class. This will validate the suspend
+                     recovery request via web service and populates the alert messages
+
+        History:
+            17-Aug-2011 J.Pe (Davanti)    Created
+    -->
+
+    <script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            PerformSuspendRecovery();
+       }
+    </script>
+
+    <apex:form id="theForm">
+        <apex:pageMessages id="messages" />
+        <apex:commandLink value="<-- Back to Case" action="{!back}" />
+        <apex:actionFunction name="PerformSuspendRecovery"
+                            action="{!perform}"
+                            status="loading"
+                            rerender="theForm,messages"/>
+
+        <apex:outputField rendered="false" value="{!Case.Billing_Account__r.Name}"/>
+        <apex:outputField rendered="false" value="{!Case.Billing_Account__r.Customer__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Billing_Account__r.Direct_Debit__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Billing_Account__r.Recovery_Next_Action__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Billing_Account__r.Is_Payment_Plan__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Is_Suspend_Recovery_Validated__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Suspend_To_Date__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Information_Int_Long__c}"/>
+        <apex:outputField rendered="false" value="{!Case.Alerts_Int_Long__c}"/>
+    </apex:form>
+</apex:page>

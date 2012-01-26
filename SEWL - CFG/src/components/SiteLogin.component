@@ -1,0 +1,47 @@
+<apex:component controller="SiteLoginController" id="loginComponent">
+
+    <!--
+        Description: Site login component rebranded for SEW
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:form id="loginForm" forceSSL="true">
+        <div style="color: #000;">
+            <apex:outputPanel layout="block">
+                <apex:pageMessages id="error"/>
+                <apex:panelGrid columns="2" style="margin-top:1em;">
+                    <apex:outputLabel value="{!$Label.site.username}" for="username"/>
+                    <apex:outputPanel >
+                        <apex:inputText id="username" value="{!username}" style="width:155px"/>&nbsp;
+                        <!--  @portal.sewl.com.au{!IF(ISNULL($Setup.PortalSettings__c.Sandbox_Name__c),'','.'+$Setup.PortalSettings__c.Sandbox_Name__c)}-->
+                    </apex:outputPanel>
+                    <apex:outputLabel value="{!$Label.site.password}" for="password"/>
+                    <apex:outputPanel >
+                        <apex:inputSecret id="password" value="{!password}" style="width:155px"/>&nbsp;&nbsp;
+                        <apex:commandButton action="{!login}" value="{!$Label.site.login_button}" id="loginButton" styleClass="btnGreen"/>
+                    </apex:outputPanel>
+                    <apex:outputText value=""/>
+                    <apex:outputPanel layout="block" style="padding-top:5px; color:#005F98">
+                        <apex:commandlink action="{!ForgotPwd}" value="Forgotten Password" id="forgotpwdLink" style="font-size:10pt"/>&nbsp;|&nbsp;
+                        <apex:commandlink action="{!ForgotUsername}" value="Forgotten Username" id="forgotusrLink" style="font-size:10pt"/>
+                    </apex:outputPanel>
+                    <apex:outputText value=""/>
+                    <!--
+                    <apex:outputPanel layout="block" style="padding-top:5px">
+                        <apex:outputLink value="{!$Page.SiteNewPortalUserRegistration}" id="newUserLink" style="font-size:10pt">New User Registration</apex:outputLink>
+                    </apex:outputPanel>
+                    -->
+                    <!--
+                    <apex:panelGroup id="theLinks">
+                            <apex:outputText value=" | " rendered="{!$Site.RegistrationEnabled}" />
+                            <apex:outputLink value="{!$Page.SiteNewPortalUserRegistration}" rendered="{!$Site.RegistrationEnabled}">{!$Label.site.new_user_q}</apex:outputLink>
+                    </apex:panelGroup>
+                    -->
+                    </apex:panelGrid>
+            </apex:outputPanel>
+        </div>
+    </apex:form>
+
+</apex:component>

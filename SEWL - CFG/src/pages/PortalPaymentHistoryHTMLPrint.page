@@ -1,0 +1,17 @@
+<apex:page sidebar="false" showHeader="false" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PaymentHistoryExCon">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+
+    <style>
+        .headerRowRight {
+            text-align: right !important;
+        }
+    </style>
+
+    <apex:sectionHeader title="Payment History Details" subtitle="Account no. {!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}"/>
+    <apex:include pageName="PortalPaymentHistoryPrintView"/>
+    <script>
+        window.print();
+    </script>
+</apex:page>

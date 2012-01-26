@@ -1,0 +1,30 @@
+<apex:page id="loginPage" showHeader="false" title="Customer Portal - Login">
+    <!--
+        Description: Site login paged rebranded for SEW
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+    <head>
+        <title>South East Water Customer Portal - Login</title>
+        <link rel="shortcut icon" href="https://southeastwater.secure.force.com/portal/favicon.ico" />
+		<!-- <apex:includeScript value="{!$Resource.GoogleAnalyticsTracker}"/> -->
+    </head>
+
+
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="body">
+            <div style="margin: auto; width: 600px; display: block" >
+                <div class="sitePanel" style="width: 600px">
+                    <div style="margin: auto; width: 450px">
+                        <br/>
+                        <apex:outputText styleClass="siteTitle" value="{!$Label.site.login}"/>
+                        <br/>
+                        <c:SiteLogin id="siteLogin"/>
+                        <br/>
+                    </div>
+                </div>
+            </div>
+        </apex:define>
+    </apex:composition>
+</apex:page>

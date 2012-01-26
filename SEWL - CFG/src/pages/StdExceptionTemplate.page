@@ -1,0 +1,33 @@
+<apex:page showHeader="false" title="{!$Label.site.site_under_construction}" id="StdExceptionTemplate" cache="false">
+    <apex:stylesheet value="{!URLFOR($Resource.SiteSamples, 'SiteStyles.css')}"/>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.SiteStyles}"/>
+    <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+
+    <style type="text/css">
+        BODY {
+            background-color: #005f98;
+        }
+    </style>
+    <apex:insert name="header">
+        <c:SiteHeader />
+    </apex:insert>
+    <div style="margin: auto; width: 700px; display: block" >
+        <div class="sitePanel" style="width: 700px">
+            <div style="margin: auto; width: 680px; padding: 15px 0px">
+                <apex:panelGrid width="670px" cellpadding="5" cellspacing="0" bgcolor="white" columns="2">
+                    <apex:insert name="icon"/>
+                    <apex:insert name="error"/>
+                </apex:panelGrid>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <site:previewAsAdmin />
+    <br/>
+    <apex:insert name="footer">
+        <c:SiteFooter />
+    </apex:insert>
+</apex:page>

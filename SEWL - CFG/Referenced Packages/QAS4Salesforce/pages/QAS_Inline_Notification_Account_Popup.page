@@ -1,0 +1,12 @@
+<apex:page showHeader="false" sidebar="false"  standardController="Account"  extensions="experianqas.QASOverridePopupController" action="{!DetermineRedirect}">
+<script>
+// the following code is run via javascript instead of an action on the page
+// because it is reloading the parent window not the embedded visualforce page itself
+if ({!isUpdated} && {!isAllNotLicensed}==false) {
+ window.parent.location='{!RNextUrl}';
+//popupWin = window.open('{!RNextUrl}',
+//		'_blank', 'width=775,height=400,status=yes,toolbar=no,menubar=no');
+
+}
+</script>
+</apex:page>

@@ -1,0 +1,145 @@
+<!-- 
+    Type:       VF page
+    Purpose:    List all billing account(s) under a customer 
+                
+    Used By:    DirectDebit button of Billing Account,
+                DirectDebit button of Customer 
+    ---------------------------------------------------------------
+    History:
+    
+    21-11-2011 Ji Zhang (Coretec Solutions)   Created
+
+ -->
+<apex:page controller="DirectDebitController" tabstyle="Billing_Account__c">
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <script type="text/javascript">
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Direct Debit');
+       } 
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) { 
+                previousOnload(); 
+            }
+            setTabTitle(); 
+       }
+    </script>
+
+    <apex:sectionHeader title="Direct Debit"/>
+    <apex:form id="form">
+    <apex:pagemessages id="messages" />
+    <apex:outputPanel rendered="{!gatewayStatus}">         
+        <apex:pageblock mode="edit" title="Customer Details" id="pb1">
+            <apex:pageBlockSection columns="1" id="pbs1">
+                <apex:inputField value="{!userInputFields.Customer_Account__c}" required="true"/>
+                <apex:inputField value="{!userInputFields.Person__c}" required="true"/>
+            </apex:pageBlockSection>
+        </apex:pageblock>
+        
+        <apex:actionRegion >      
+        <apex:pageblock title="Existing Accounts Details" id="pb2">
+            <apex:pageBlockTable value="{!billingAccList}" var="BillingAccWrap">
+                <apex:column headervalue="Select" style="width:20px"><apex:inputCheckbox value="{!BillingAccWrap.isSelected}"/></apex:column>
+                <apex:column headerValue="Billing Account #" style="width:100px"><apex:outputLink value="javascript:goToAccount('/{!BillingAccWrap.billingAccount.Id}')">
+                    <apex:outputText value="{!BillingAccWrap.billingAccount.Name}"/>
+                    <script type="text/javascript">
+                        var sccUrl;
+                    
+                        function goToAccount(url) {
+                            if(sforce.console.isInConsole()){
+                                try {
+                                    sccUrl = url;
+                                    sforce.console.getEnclosingPrimaryTabId(openAcct);
+                                }
+                                catch(e) {
+                                    alert(e.toString());
+                                }
+                            }
+                            else {
+                                window.open(url);
+                            }
+                        }
+                        var openAcct = function openAcct (result) {
+                            sforce.console.openSubtab(result.id , sccUrl, true, '', null);
+                        }
+
+                    </script>
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headervalue="Existing" style="width:40px;text-align:center"><apex:inputCheckbox value="{!BillingAccWrap.billingAccount.Direct_Debit__c}" disabled="true"/></apex:column>
+                <apex:column headervalue="Property Address" style="width:250px"><apex:outputText value="{!BillingAccWrap.billingAccount.Property_Address__c}" escape="false"/></apex:column>
+                <apex:column headerValue="Account Details"><apex:outputText value="{!BillingAccWrap.billingAccount.Direct_Debit_Details__c}"/></apex:column>
+                <apex:column headervalue="Payment Plan" style="width:80px;text-align:center" ><apex:inputCheckbox value="{!BillingAccWrap.billingAccount.Is_Payment_Plan__c}" disabled="true"/></apex:column>
+            </apex:pageBlockTable>
+             
+            <apex:outputPanel >
+                  <table width="100%">
+                      <tr>
+                          <td width="25%">
+                              <apex:commandLink value="Select All" action="{!selectAllRecords}" status="selectUnselectStatus" rerender="pb2,messages"/>&nbsp;
+                              <apex:commandLink value="Unselect All" action="{!unselectAllRecords}" status="selectUnselectStatus" rerender="pb2,messages"/>&nbsp;                         
+                              <apex:actionStatus id="selectUnselectStatus">
+                                  <apex:facet name="start">
+                                      <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                                  </apex:facet>
+                              </apex:actionStatus>
+                          </td>
+                      </tr>
+                  </table>
+            </apex:outputPanel>
+            
+            <apex:pageBlockButtons location="bottom">
+                <apex:actionRegion >
+                    <apex:commandButton action="{!amend}"  value="Add/Amend Selected" />
+                    <apex:commandButton action="{!remove}"  value="Remove Selected" />
+                    <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+                </apex:actionRegion>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+       
+        </apex:actionRegion>
+        
+        </apex:outputPanel>
+        <!-- gateway service down to display close button-->
+        <apex:pageBlock rendered="{!IF(gateWayStatus, false, true)}">
+             <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>  
+                
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+        <script type="text/javascript">
+            function testCloseTab() {
+                if(sforce.console.isInConsole()){
+                    sforce.console.getEnclosingTabId(closeSubtab);
+                }
+                else{
+                    if ('{!billAcctId}' != '') 
+                        window.location = "/{!billAcctId}";
+                    else
+                        window.location = "/{!JSENCODE(userInputFields.Customer_Account__c)}";
+                }
+            }
+
+            var closeSubtab = function closeSubtab(result) {
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };
+         </script>
+    </apex:form>
+</apex:page>

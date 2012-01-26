@@ -1,0 +1,32 @@
+<apex:page showHeader="false" id="SiteTemplate">
+    <!--
+        Description: Site template with SEW branding
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+
+	<head>
+		<apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+	</head>
+
+    <apex:stylesheet value="{!URLFOR($Resource.SiteSamples, 'SiteStyles.css')}"/>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.SiteStyles}"/>
+
+    <style type="text/css">
+        BODY {
+            background-color: #005f98;
+        }
+    </style>
+
+    <apex:insert name="header">
+        <c:SiteHeader />
+    </apex:insert>
+
+    <apex:insert name="body"/>
+
+    <apex:insert name="footer">
+        <c:SiteFooter />
+    </apex:insert>
+</apex:page>

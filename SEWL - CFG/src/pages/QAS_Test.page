@@ -1,0 +1,41 @@
+<apex:page showHeader="false" sidebar="false"  standardController="Account"  extensions="experianqas.QASOverridePopupController" action="{!DetermineRedirect}">
+XYZ
+<script>
+// the following code is run via javascript instead of an action on the page
+// because it is reloading the parent window not the embedded visualforce page itself
+
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+
+    if ({!isUpdated} && {!isAllNotLicensed}==false) {
+        alert('x');
+        testOpenSubtab();
+
+        function testOpenSubtab() {
+            //First find the ID of the primary tab to put the new subtab in
+            sforce.console.getEnclosingPrimaryTabId(openSubtab);
+        }
+        
+        var openSubtab = function openSubtab(result) {
+            //Now that we've got the primary tab ID, we can open a new subtab in it
+            var primaryTabId = result.id;
+            try {
+                sforce.console.openSubtab(primaryTabId , 'http://www.google.com', false, 
+                'google', null, openSuccess, 'googleSubtab');
+            } catch (e) {
+                alert(e.toString());
+            }
+        };
+        
+        var openSuccess = function openSuccess(result) {
+            //Report whether we succeeded in opening the subtab
+            if (result.success == true) {
+                alert('subtab successfully opened');
+            } else {
+                alert('subtab cannot be opened');
+            }
+        };
+        //window.parent.location='{!RNextUrl}';
+    }
+
+</script>
+</apex:page>

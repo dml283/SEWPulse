@@ -1,0 +1,348 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="BillHistoryExCon">
+<!-- 
+    Type:       VF page
+    Purpose:    Displays Bill History For Portal User
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+    <head>
+		<apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+    
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <style>
+        .ui-widget {
+            font-size:9pt;
+            color: #333;
+        }
+    </style>
+    <!--<apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>-->
+    <!-- extra, page specific css - example below increase width of label for this page only -->
+    
+ <!--    <style type="text/css">
+
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+
+        #kbaitextblock td.labelCol {
+            width: 20% !important;
+        }
+        #kbaitextblock td.dataCol {
+            width: auto !important;
+        }
+
+        .waterUseHeading {
+            padding-left: 30px !important;
+        }
+
+    </style>  -->
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}"/>
+
+    <apex:form >
+        <!-- hidden outputfields or input fields go here -->
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c }"/>
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:PortalSidebar id="sidebar" groupName="Billing_Account__c" currentAccRecordType="{!Billing_Account__c.Customer__r.RecordType.DeveloperName}" currentDevName="PortalBillHistory" title="Menu">
+                        <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                            <apex:outputText value="{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}"/>
+                            <br/>
+                            <apex:outputText value="{!Billing_Account__c.Property_Address__c}" escape="false"/>
+                        </apex:outputPanel>
+                    </c:PortalSidebar>
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:outputPanel layout="none" rendered="{!ISNULL(Billing_Account__c.Id)}">
+                        <c:PortalSelectBillAcctForOperation groupName="Billing_Account__c" currentDevName="PortalBillHistory"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                        <apex:pageBlock id="pageblock">
+    
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">View Bill History</span>
+                                </div>
+                            </apex:facet> 
+    
+                            <!--  TOP BUTTONS -->
+                            <!--
+                            <div style="vertical-align: text-top; height: 40px;">
+                                <div style="float:left">
+                                    <apex:commandButton value="Top left button - light blue"/>
+                                    <apex:commandButton value="Top left button - dark blue" styleClass="btnDarkBlue"/>
+                                </div>
+                                <span style="float:right;">
+                                    <apex:commandButton value="Top right button - green" styleClass="btnGreen"/>
+                                </span>
+                            </div>
+                            -->
+                            <!--  PAGE MESSAGES -->
+                            <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+    
+                            <!-- CONTENT -->
+                            <!-- use the outputpanel below for words that goes across the whole content page-->
+                            <apex:outputPanel >
+                                <h1>Recent billing details for {!Billing_Account__c.HiAF_Account_Number_Check_Digit__c} - {!Billing_Account__c.Customer__r.Name}</h1>
+                                <div class="exportToolbarContainer">
+                                	<span class="exportToolbarItem">
+	                                    <a title="Export to Excel" href='{!$Page.PortalBillHistoryExcel}?id={!Billing_Account__c.Id}' 
+	                                    		target="_blank"
+	                                    		onclick="_gaq.push(['_trackPageview', '{!$Page.PortalBillHistoryExcel}'])">
+	                                    	<img src="{!URLFOR($Resource.Icons, 'Icons/Excel.png')}" />
+	                                    </a>
+	                                </span>
+                                	<span class="exportToolbarItem">
+	                                    <a title="View as PDF" href='{!$Page.PortalBillHistoryPDF}?id={!Billing_Account__c.Id}' 
+	                                    		target="_blank"
+	                                    		onclick="_gaq.push(['_trackPageview', '{!$Page.PortalBillHistoryPDF}'])">
+	                                    	<img src="{!URLFOR($Resource.Icons, 'Icons/adobepdf.png')}" />
+	                                   	</a>
+	                                </span>
+                                	<span class="exportToolbarItem">
+	                                    <a title="Printable View" href='{!$Page.PortalBillHistoryHTMLPrint}?id={!Billing_Account__c.Id}' 
+	                                    		target="_blank">
+	                                    	<img src="{!URLFOR($Resource.Icons, 'Icons/Printer.png')}" />
+	                                    </a>
+	                                </span>
+                                </div>
+                            </apex:outputPanel>
+                            <br/> <!-- another way to add spaces - <br/> leaves more space than <p/> -->
+                            <!-- use the structure below for fields -->
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!billNum==0}"><i>No records to display</i></apex:outputPanel>
+                            <apex:outputPanel rendered="{!billNum!=0}"> 
+                            <apex:pageBlockSection id="billHistorySection" columns="1">
+                                <apex:pageblockTable id="billHistoryTable" value="{!bills}" var="bill" style="margin-bottom:10px; font-size: 9pt; border-bottom: #595959 solid 1px;">
+                                    <apex:column headervalue="Action">
+                                        <a href="{!$Page.BillView}?CustNumber={!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}&UserId=SEWUSER&Password=sewuser&billNumber1={!bill.BillNumber}" 
+                                                id="viewBill" target="_Bill">View Bill</a>
+                                    </apex:column>
+                                    <apex:column headervalue="Bill Number">
+                                        <apex:outputLink value="#">
+                                            <apex:outputText value="{!bill.BillNumber}" />
+                                            <apex:actionSupport oncomplete="ShowBillLines()" event="onclick"
+                                                action="{!refreshBillLines}" rerender="billLinesPanel, errors"
+                                                status="loading">
+                                                <apex:param assignTo="{!currentBillNumber}"
+                                                    value="{!bill.BillNumber}" name="selBillNumber" />
+                                            </apex:actionSupport>
+                                        </apex:outputLink>
+                                    </apex:column>
+                                    <apex:column headervalue="Billed Date" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{0,date,dd-MMM-yyyy}">
+                                            <apex:param value="{!bill.BilledDate}" />
+                                        </apex:outputText>
+                                    </apex:column>
+                                    <apex:column headervalue="Printed Date" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{0,date,dd-MMM-yyyy}">
+                                            <apex:param value="{!bill.PrintedDate}" />
+                                        </apex:outputText>
+                                    </apex:column>
+                                    <apex:column headervalue="B/F Amount" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{!bill.BroughtForwardAmount}" />
+                                    </apex:column>
+                                    <apex:column headervalue="Billed Amount" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{!bill.BilledAmount}" />
+                                    </apex:column>
+                                    <apex:column headervalue="Bill Total" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{!bill.BillTotal}" />
+                                    </apex:column>
+                                </apex:pageblockTable>
+                            </apex:pageBlockSection>                    
+                            </apex:outputPanel>
+                            <div class="pbSectionDivider"></div>
+                            <br/>
+                            
+                            <!--  BOTTOM BUTTONS -->
+                           <!-- 
+                            <div style="vertical-align: text-top">
+                                <div style="float:left">
+                                    <apex:commandButton value="Bottom left button - light blue"/>
+                                    <apex:commandButton value="Bottom left button - dark blue" styleClass="btnDarkBlue"/>
+                                </div>
+                                <span style="float:right;">
+                                    <apex:commandButton value="Bottom right button - green" styleClass="btnGreen"/>
+                                </span>
+                            </div>-->
+                            <br/>
+                        </apex:pageBlock>
+                        
+                        <!-- BillLines section -->
+                        <div id="billdetail-popup" title="Bill Detail - {!Billing_Account__c.Name}" >
+                            <apex:outputPanel id="billLinesPanel">
+                                <apex:pageblock title="Bill Lines for Bill Number: {!currentBillNumber}">
+                                    <apex:outputPanel layout="block" style="height:200px;width:100%;overflow:auto;align:bottom;">
+                                        <apex:pageblockTable id="billLinesTable" value="{!billLines}" var="bLine" style="width:790px;">
+                                            <apex:column headervalue="Tarrif Desc" style="text-align:left;">
+                                                <apex:outputText value="{!bLine.TariffDescription}" />
+                                            </apex:column>
+                                            <apex:column headervalue="Basis" style="text-align:right;">
+                                                <apex:outputText value="{!bLine.Basis}" />
+                                            </apex:column>
+                                            <apex:column headervalue="Unit Cost" style="text-align:right;">
+                                                <apex:outputText value="{!bLine.UnitCost}" />
+                                            </apex:column>
+                                            <apex:column headervalue="Charge" style="text-align:right;">
+                                                <apex:outputText value="{!bLine.LineNet}" />
+                                            </apex:column>
+                                            <apex:column headervalue="Tax" style="text-align:right;">
+                                                <apex:outputText value="{!bLine.LineVAT}" />
+                                            </apex:column>
+                                            <apex:column headervalue="Total" style="text-align:right;">
+                                                <apex:outputText value="{!bLine.LineTotal}" />
+                                            </apex:column>
+                                            <apex:column headervalue="Period From" style="text-align:right;">
+                                                <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                                    <apex:param value="{!bLine.PeriodFrom}" />
+                                                </apex:outputText>
+                                            </apex:column>
+                                            <apex:column headervalue="Period To" style="text-align:right;">
+                                                <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                                    <apex:param value="{!bLine.PeriodTo}" />
+                                                </apex:outputText>
+                                            </apex:column>
+                                        </apex:pageblockTable>
+                                    </apex:outputPanel>
+                                    <!--
+                                    <apex:pageblockButtons >
+                                        <apex:commandButton id="closebtn"
+                                            onclick="return CloseBillLines(); return false;" value="Close" />
+                                    </apex:pageblockButtons> 
+                                    -->
+                                </apex:pageblock> 
+                            </apex:outputPanel> 
+                        </div> 
+                        <!-- end BuillLines section -->
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+
+        <!--  FLOATING PANELS - use below for styling examples -->
+        <!--
+        <apex:outputPanel id="kbaichartpanel">
+        -->
+            <!-- Panel that blurs the background -->
+        <!--
+            <div id="kbaiblur" style="display:none; position:fixed; left:1px; top:1px; width:100%; height:100%; text-align:center; vertical-align: middle; background-color: #dcdcdc; opacity:0.6;filter:alpha(opacity=60); z-index: 2;"></div>
+
+            <div id="kbaichartdiv" style="display:none; position:fixed; border-right: 2px solid #595959; border-bottom: 2px solid #595959; border-top: 1px solid #7e7e7e; border-left: 1px solid #7e7e7e; margin-left:-325px; margin-top:-275px; left:50%; top: 50%; width:650px; height:550px; background-color: white; padding:10px; z-index:3;">
+
+                <apex:commandButton style="background: transparent; height: 24px; clear: left; width: 24px; padding: 0; float: right;"
+                                        onclick="return CloseKBAIChart(); return false;"
+                                        action="{!NoOp}"
+                                        image="{!URLFOR($Resource.Icons, 'Icons/CloseWindow.png')}"/>
+                <center>
+                    <c:WaterMAP_KBAI_Preview_Chart recentYrKBAIs="{!kbaiTableUnwrapped}"
+                                        wmapSub="{!waterMAPSub}"
+                                        id="kbaiChart"/>
+                </center>
+                <br/>
+                <apex:commandButton id="closebtn" onclick="return CloseKBAIChart(); return false;"
+                            action="{!NoOp}" value="Close" style="position:absolute; float: left; margin-left:50px;"/>
+            </div>
+        </apex:outputPanel>
+        -->
+        
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <!--  Action Functions for floating panel on open -->
+        <!--
+        <apex:actionFunction name="RefreshKBAIChart" action="{!NoOp}" rerender="kbaiChart" status="loading"/>
+        -->
+    </apex:form>
+    <!-- javascript for floating panel -->
+    <!--
+    <script type="text/javascript">
+        function ShowKBAIChart(closebtnid) {
+            // refresh the data
+            RefreshKBAIChart();
+
+            // show the blur
+            var blur = document.getElementById("kbaiblur");
+            blur.style.display = "block";
+            blur.style.zindex="2";
+            blur.style.height = window.screen.availHeight + "px";
+            blur.style.width = window.screen.availWidth + "px";
+
+            // show the popup
+            var form = document.getElementById("kbaichartdiv");
+            try {
+                //AlignToCenter(form);
+            } catch(e) {
+                alert(e.toString());
+            }
+            form.style.display = "block";
+
+            try {
+                document.getElementById(closebtnid).focus();
+            } catch (e) { alert(e.toString()); }
+
+        }
+
+        function CloseKBAIChart() {
+            // hide the blur
+            var blur = document.getElementById("kbaiblur");
+            blur.style.display = "none";
+
+            // hide the popup
+            var form = document.getElementById("kbaichartdiv");
+            form.style.display = "none";
+
+            return false;
+        }
+
+    </script>
+    -->
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(function() {
+            j$( "#billdetail-popup").dialog({
+                dialogClass: 'ui-dropshadow',
+                autoOpen: false,
+                height: 370,
+                width: 860,
+                modal: true,
+                resizable: false
+            });
+            //j$("#billdetail-popup").siblings("div.ui-dialog-titlebar").remove();
+        });         
+
+        function ShowBillLines() {
+            try {
+                j$("#billdetail-popup").dialog("open");
+
+            } catch (e) { alert(e.toString()); }
+        }
+
+        function CloseBillLines() {
+            try {
+                j$("#billdetail-popup").dialog("close");
+
+            } catch (e) { alert(e.toString()); }
+            return false;
+        }
+     </script>
+
+</apex:page>

@@ -1,0 +1,462 @@
+<apex:page standardController="Account" extensions="CreateCustomerAndPersonWizardExCon">
+<!-- 
+    Type:       VF page
+    Purpose:    Creates customer and corresponding persons in SFDC
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+    <!-- HIDDEN FIELDS START -->
+    <apex:outputField rendered="false" value="{!Account.RecordType.DeveloperName}"/>
+    <apex:outputField rendered="false" value="{!Account.RecordType.Name}"/>
+    <!-- HIDDEN FIELDS END -->
+    <apex:sectionHeader title="Create Customer & Person Wizard" subtitle="New Customer and Person"/>
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <apex:includeScript value="{!$Resource.experianqas__PopupHelperJS}"/>
+         <script type="text/javascript">
+
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('New Customer');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+       function validateAddress(obj){
+           popupWin = window.open('/apex/experianqas__QASPopup?id='+obj.id+'&navUrl=x,' + encodeURIComponent('{!getCompletedCustomerPageURL}') +'&isLaunchButton=true' +'&tp='+obj.touchpoint,
+               '_blank', 'width=775,height=420,status=yes,toolbar=no,menubar=no');
+       }                    
+   </script>
+    <apex:form >
+        <apex:outputPanel id="wholePage">
+            <apex:pagemessages rendered="{!NOT(createSuccessful)}"/>
+            <apex:outputPanel rendered="{!ISNULL(Account.RecordTypeId)}">
+                <apex:pageBlock title="Customer Record Type Selection">
+                    <apex:pageBlockSection >
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.Account.fields.RecordTypeId.label}"/>
+                            <apex:outputPanel >
+                                <apex:selectList size="1" value="{!Account.RecordTypeId}">
+                                    <apex:selectOptions value="{!customerRecordTypeSelections}"/>
+                                    <apex:actionSupport event="onchange" action="{!updateCustRecordType}" status="recordTypeSelectStatus" reRender="wholePage"/>
+                                </apex:selectList>
+                                &nbsp;&nbsp;
+                                <apex:actionStatus id="recordTypeSelectStatus">
+                                    <apex:facet name="start">
+                                        <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+            <apex:outputPanel id="custInfoEntryOP" rendered="{!NOT(ISNULL(Account.RecordTypeId))}">
+                <apex:pageblock title="1. New {!Account.RecordType.Name} Details" mode="edit">
+                    <apex:pageblockSection />
+                    <apex:pageblockSection rendered="{!NOT(isNonResCompany) && ISNULL(createdCustomerId)}">
+                         <!--<apex:inputField value="{!Account.Title__c}"/>
+                        <apex:inputField value="{!Account.Initials__c}"/>-->
+                        <apex:pageblockSectionItem helpText="Firstname Lastname">
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!isResidential}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Contact.fields.Name.label}"/>
+                            </apex:outputPanel>
+                            <apex:panelGrid columns="2" cellpadding="0px" cellspacing="0px">
+                                <apex:inputField value="{!firstCurrentPersonWrapper.person.FirstName}"/>
+                                <apex:inputField value="{!firstCurrentPersonWrapper.person.LastName}" required="false"/>
+                            </apex:panelGrid>
+                        </apex:pageblockSectionItem>
+                        <apex:outputPanel />
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel />
+                            <apex:panelGrid columns="2" cellpadding="0px" cellspacing="0px">
+                                <apex:inputText value="{!fakeSecondCurrentPersonFirstName}"/>
+                                <apex:inputText value="{!fakeSecondCurrentPersonLastName}"/>
+                            </apex:panelGrid>
+                        </apex:pageblockSectionItem>
+                        <apex:outputPanel />
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel />
+                            <apex:panelGrid columns="3" cellpadding="0px" cellspacing="0px">
+                                <apex:inputText value="{!fakeThirdCurrentPersonFirstName}"/>
+                                <apex:inputText value="{!fakeThirdCurrentPersonLastName}"/>
+                                <apex:outputPanel ><apex:inputCheckbox value="{!isAndOthers}"/>&nbsp;and others</apex:outputPanel>
+                            </apex:panelGrid>
+                        </apex:pageblockSectionItem>
+                        <!--
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!isResidential}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Contact.fields.LastName.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!firstCurrentPersonWrapper.person.LastName}" required="false"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Date of Birth"/>
+                            <apex:outputPanel >
+                                <apex:inputfield id="customerDOBField" value="{!firstCurrentPersonWrapper.person.Birthdate}" required="{!isResidential}"/>
+                                <script>
+                                    var customerDOBText = document.getElementById("{!$Component.customerDOBField}");
+                                    customerDOBText.nextSibling.style.display="none";
+                                </script>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Driver's License Number"/>
+                            <apex:panelGrid columns="2">
+                                <apex:inputfield value="{!firstCurrentPersonWrapper.person.Drivers_License_Number__c}" required="false"/>
+                                <apex:outputPanel >
+                                    &nbsp;&nbsp;<apex:inputCheckbox value="{!noInfoForLicence}"/>&nbsp;No Info
+                                </apex:outputPanel>
+                            </apex:panelGrid>
+                        </apex:pageBlockSectionItem>
+                        -->
+                    </apex:pageblockSection>
+                    <apex:pageblockSection rendered="{!isResidential && NOT(ISNULL(createdCustomerId))}">
+                         <!--<apex:outputField value="{!Account.Title__c}"/>
+                        <apex:outputField value="{!Account.Initials__c}"/>-->
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:outputLabel value="{!$ObjectType.Account.fields.Name.label}"/>
+                            </apex:outputPanel>
+                            <apex:panelGrid columns="2" cellpadding="0px" cellspacing="0px">
+                                <apex:outputField value="{!Account.Name}"/>
+                            </apex:panelGrid>
+                        </apex:pageblockSectionItem>
+                    </apex:pageblockSection>
+                    <apex:pageblockSection rendered="{!isNonResIndividual} && ISNULL(createdCustomerId)">
+                        <apex:pageblockSectionItem >
+                            <apex:outputLabel value="or"/>
+                            <apex:outputPanel />
+                        </apex:pageblockSectionItem>
+                    </apex:pageblockSection>
+                    <apex:pageblockSection rendered="{!NOT(isResidential) && ISNULL(createdCustomerId)}">
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!isNonResCompany}"/>&nbsp;
+                                <apex:outputLabel value="Company Name"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Account.Name}" required="false"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.Account.fields.Trading_Name__c.label}"/>
+                            <apex:inputField value="{!Account.Trading_Name__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!isNonResCompany}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Account.fields.ACN__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Account.ACN__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!isNonResCompany}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Account.fields.ABN__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Account.ABN__c}"/>
+                        </apex:pageblockSectionItem>
+                    </apex:pageblockSection>
+                    <apex:pageblockSection rendered="{!NOT(isResidential) && NOT(ISNULL(createdCustomerId))}">
+                        <apex:outputField value="{!Account.Name}"/>
+                        <apex:outputField value="{!Account.Trading_Name__c}"/>
+                        <apex:outputField value="{!Account.ACN__c}"/>
+                        <apex:outputField value="{!Account.ABN__c}"/>
+                    </apex:pageblockSection>
+                    <apex:pageblocksection title="Contact Details" rendered="{!ISNULL(createdCustomerId)}">
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Account.fields.Phone.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Account.Phone}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:inputField value="{!Account.Additional_Phone__c}"/>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Account.fields.Preferred_Contact_Type__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Account.Preferred_Contact_Type__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:outputPanel />
+                    </apex:pageblockSection>
+                    <apex:pageblocksection title="Contact Details" rendered="{!NOT(ISNULL(createdCustomerId))}">
+                        <apex:outputField value="{!Account.Phone}"/>
+                        <apex:outputField value="{!Account.Additional_Phone__c}"/>
+                        <apex:outputField value="{!Account.Preferred_Contact_Type__c}"/>
+                    </apex:pageblockSection>
+                    <apex:pageblocksection title="Addresses" rendered="{!ISNULL(createdCustomerId)}">
+                        <apex:pageblocksection columns="1">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                    <apex:outputLabel value="{!$ObjectType.Account.fields.BillingStreet.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField value="{!Account.BillingStreet}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                    <apex:outputLabel value="{!$ObjectType.Account.fields.BillingCity.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField value="{!Account.BillingCity}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                    <apex:outputLabel value="{!$ObjectType.Account.fields.BillingState.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField value="{!Account.BillingState}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                    <apex:outputLabel value="{!$ObjectType.Account.fields.BillingPostalCode.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField value="{!Account.BillingPostalCode}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                    <apex:outputLabel value="{!$ObjectType.Account.fields.BillingCountry.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField value="{!Account.BillingCountry}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageblocksection>
+                        <apex:pageblocksection columns="1">
+                            <apex:inputField value="{!Account.ShippingStreet}"/>
+                            <apex:inputField value="{!Account.ShippingCity}"/>
+                            <apex:inputField value="{!Account.ShippingState}"/>
+                            <apex:inputField value="{!Account.ShippingPostalCode}"/>
+                            <apex:inputField value="{!Account.ShippingCountry}"/>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:commandLink action="{!copyPrimaryAddressFromMailingAddress}" value="Copy from Mailing Address" reRender="custInfoEntryOP" status="copyAddressStatus"/>
+                                    &nbsp;&nbsp;
+                                    <apex:actionStatus id="copyAddressStatus">
+                                        <apex:facet name="start">
+                                            <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageblocksection>
+                    </apex:pageblockSection>
+                    <apex:pageblocksection title="Addresses" rendered="{!NOT(ISNULL(createdCustomerId))}">
+                        <apex:outputField value="{!Account.BillingStreet}"/>
+                        <apex:outputField value="{!Account.ShippingStreet}"/>
+                        <apex:outputField value="{!Account.BillingCity}"/>
+                        <apex:outputField value="{!Account.ShippingCity}"/>
+                        <apex:outputField value="{!Account.BillingState}"/>
+                        <apex:outputField value="{!Account.ShippingState}"/>
+                        <apex:outputField value="{!Account.BillingPostalCode}"/>
+                        <apex:outputField value="{!Account.ShippingPostalCode}"/>
+                        <apex:outputField value="{!Account.BillingCountry}"/>
+                        <apex:outputField value="{!Account.ShippingCountry}"/>
+                    </apex:pageblockSection>
+                    <apex:pageblocksection title="Additional Notes" rendered="{!ISNULL(createdCustomerId)}" columns="1">
+                        <apex:inputField value="{!Account.Description}" style="width:500px;height:100px"/>
+                    </apex:pageblocksection>
+                    <apex:pageblocksection title="Additional Notes" rendered="{!NOT(ISNULL(createdCustomerId))}" columns="1">
+                        <apex:outputField value="{!Account.Description}"/>
+                    </apex:pageblocksection>
+                </apex:pageblock>
+                <apex:pageBlock id="assocPplListPB" title="2. List of Associated People">
+                    <apex:pageblockButtons location="top">
+                        <apex:commandButton action="{!updateMainPersonInfoFromCustomer}" value="Copy Info from Above" disabled="{!NOT(ISNULL(createdCustomerId))}" status="copyInfoAboveStatus" reRender="assocPplListPB"/>
+                        &nbsp;&nbsp;
+                        <apex:actionStatus id="copyInfoAboveStatus">
+                            <apex:facet name="start">
+                                <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:pageblockButtons>
+                    <apex:pageblocktable value="{!currentPersonWrappers}" var="personWrapper" >
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.FirstName.label}">
+                            <apex:inputField value="{!personWrapper.person.FirstName}" style="width:85px" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.FirstName}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.LastName.label}">
+                            <apex:inputField value="{!personWrapper.person.LastName}" required="false" style="width:85px" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.LastName}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Birthdate.label}">
+                            <apex:outputPanel rendered="{!ISNULL(createdCustomerId)}">
+                                <apex:inputField id="personDOBField" value="{!personWrapper.person.Birthdate}" style="width:70px"/>&nbsp;
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!personWrapper.uniqueId==firstCurrentPersonWrapper.uniqueId && isResidential}"/>
+                                <script>
+                                    var personDOBText{!personWrapper.uniqueId} = document.getElementById("{!$Component.personDOBField}");
+                                    personDOBText{!personWrapper.uniqueId}.nextSibling.style.display="none";
+                                </script>
+                            </apex:outputPanel>
+                            <apex:outputField value="{!personWrapper.person.Birthdate}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="Drivers L/N">
+                            <apex:outputPanel rendered="{!ISNULL(createdCustomerId)}">
+                                <apex:inputfield value="{!personWrapper.person.Drivers_License_Number__c}" required="false" style="width:70px"/>&nbsp;
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!personWrapper.uniqueId==firstCurrentPersonWrapper.uniqueId && isResidential}"/>
+                                <!--
+                                <apex:outputPanel layout="none" rendered="{!personWrapper.uniqueId==firstCurrentPersonWrapper.uniqueId && NOT(isNonResCompany)}">
+                                    &nbsp;<apex:inputCheckbox value="{!noInfoForLicence}"/>&nbsp;<apex:outputLabel value="No Info"/>
+                                </apex:outputPanel>
+                                -->
+                            </apex:outputPanel>
+                            <apex:outputField value="{!personWrapper.person.Drivers_License_Number__c}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.MobilePhone.label}">
+                            <apex:inputField value="{!personWrapper.person.MobilePhone}" style="width:85px" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.MobilePhone}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Phone.label}">
+                            <apex:inputField value="{!personWrapper.person.Phone}" style="width:85px" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.Phone}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.HomePhone.label}" rendered="{!NOT(isNonResCompany)}">
+                            <apex:inputField value="{!personWrapper.person.HomePhone}" style="width:85px" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.HomePhone}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <!--
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.OtherPhone.label}">
+                            <apex:inputField value="{!personWrapper.person.OtherPhone}" style="width:85px"/>
+                        </apex:column>
+                        -->
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Email.label}">
+                            <apex:inputField value="{!personWrapper.person.Email}" style="width:100px" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.Email}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Preferred_Contact_Type__c.label}">
+                            <apex:inputField value="{!personWrapper.person.Preferred_Contact_Type__c}" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.Preferred_Contact_Type__c}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Preferred_Phone_Type__c.label}">
+                            <apex:inputField value="{!personWrapper.person.Preferred_Phone_Type__c}" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.Preferred_Phone_Type__c}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <!--
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Preferred_Contact_Type__c.label}">
+                            <apex:outputPanel rendered="{!ISNULL(createdCustomerId)}">
+                                <apex:inputField id="contactType" value="{!personWrapper.person.Preferred_Contact_Type__c}" onchange="showTextboxForCallType{!personWrapper.uniqueID}();"/>
+                                <apex:outputPanel id="contactTypeCall">
+                                    <br/><apex:inputField value="{!personWrapper.person.Preferred_Phone_Type__c}"/>
+                                </apex:outputPanel>
+                                <script>
+                                    showTextboxForCallType{!personWrapper.uniqueID}();
+                                    function showTextboxForCallType{!personWrapper.uniqueID}() {
+                                        var picklistSelect = document.getElementById("{!$Component.contactType}");
+                                        var picklistChoice = picklistSelect.options[picklistSelect.selectedIndex].value;
+                                        if("Call"==picklistChoice){
+                                            document.getElementById("{!$Component.contactTypeCall}").style.display="inline";
+                                        }else{
+                                            document.getElementById("{!$Component.contactTypeCall}").style.display="none";
+                                        }
+                                    }
+                                </script>
+                            </apex:outputPanel >
+                            <apex:outputField value="{!personWrapper.person.Preferred_Contact_Type__c}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        -->
+                        <apex:column headerValue="{!$ObjectType.Contact.fields.Primary_Secondary_Contact__c.label}">
+                            <apex:inputField id="thridPartyType" value="{!personWrapper.person.Primary_Secondary_Contact__c}" rendered="{!ISNULL(createdCustomerId)}"/>
+                            <apex:outputField value="{!personWrapper.person.Primary_Secondary_Contact__c}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        <!--
+                        <apex:column headerValue="{!$ObjectType.Person_Customer_Relationship__c.fields.Third_Party_Type__c.label}">
+                            <apex:outputPanel rendered="{!ISNULL(createdCustomerId)}">
+                                <apex:inputField id="thridPartyType" value="{!personWrapper.thirdPartyRel.Third_Party_Type__c}" onchange="showTextboxForOtherType{!personWrapper.uniqueID}();"/>
+                                <apex:outputPanel id="thridPartyTypeOther">
+                                    <br/><apex:inputField value="{!personWrapper.thirdPartyRel.Specify_Other__c}"/>
+                                </apex:outputPanel>
+                                <script>
+                                    showTextboxForOtherType{!personWrapper.uniqueID}();
+                                    function showTextboxForOtherType{!personWrapper.uniqueID}() {
+                                        var picklistSelect = document.getElementById("{!$Component.thridPartyType}");
+                                        var picklistChoice = picklistSelect.options[picklistSelect.selectedIndex].value;
+                                        if("Other"==picklistChoice){
+                                            document.getElementById("{!$Component.thridPartyTypeOther}").style.display="inline";
+                                        }else{
+                                            document.getElementById("{!$Component.thridPartyTypeOther}").style.display="none";
+                                        }
+                                    }
+                                </script>
+                            </apex:outputPanel >
+                            <apex:outputField value="{!personWrapper.thirdPartyRel.Third_Party_Type__c}" rendered="{!NOT(ISNULL(createdCustomerId))}"/>
+                        </apex:column>
+                        -->
+                    </apex:pageblocktable>
+                </apex:pageBlock>
+                <apex:pageBlock title="3. Create Records">
+                    <apex:pageblockSection columns="1">
+                        <apex:pageblockSectionItem >
+                            <apex:outputLabel />
+                            <apex:outputPanel >
+                                Is the customer a tenant for an NSM property?&nbsp;&nbsp;
+                                <apex:inputCheckbox value="{!isNSM}" disabled="{!NOT(ISNULL(createdCustomerId))}"/>
+                            </apex:outputPanel>
+                        </apex:pageblockSectionItem>
+                    </apex:pageblockSection>
+                    <apex:pageblockButtons location="bottom">
+                        <apex:actionStatus id="createRecordStatus">
+                            <apex:facet name="start">
+                                <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                            </apex:facet>
+                            <apex:facet name="stop">
+                                <apex:outputPanel >
+                                    <apex:commandButton action="{!submit}" value="Create Records" disabled="{!createSuccessful}"/>
+                                    <apex:commandButton value="Cancel" onclick="testCloseTab();return false" disabled="{!createSuccessful}"/>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:pageblockButtons>
+                </apex:pageBlock>
+                <apex:pageblock title="Record Creation Successful" rendered="{!createSuccessful}">
+                    <apex:pageBlockSection columns="1">
+                        <apex:pagemessages />
+                        <apex:panelGrid columns="6" cellpadding="0px" cellspacing="0px" style="vertical-align:middle;">
+                            <apex:commandButton value="Validate Mailing Address" onclick="QASDisplayPopup({ id: '{!createdCustomerId}', touchpoint: 'AccountBillingAddress'});"/>
+                            <apex:commandButton value="Validate Primary Address" onclick="QASDisplayPopup({ id: '{!createdCustomerId}', touchpoint: 'AccountShippingAddress'});"/>
+                            <apex:commandButton value="Segmentation" onclick="OpenSegmentation(); return false;"/>
+                            <apex:outputPanel rendered="{!NOT(isNSM)}">&nbsp;&nbsp;<apex:commandButton value="Create Billing Account" action="{!createBillAcc}"/></apex:outputPanel>
+                            <apex:outputPanel >&nbsp;&nbsp;<apex:commandButton value="View Record" action="{!viewCreatedRecord}"/></apex:outputPanel>
+                            <apex:outputPanel >&nbsp;&nbsp;<apex:commandButton value="Close Page" onclick="testCloseTab();return false"/></apex:outputPanel>
+                        </apex:panelGrid>
+                    </apex:pageBlockSection>
+                </apex:pageblock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <script type="text/javascript">
+			function testCloseTab() {
+			    if(sforce.console.isInConsole()){
+			        sforce.console.getEnclosingTabId(closeSubtab);
+			    }
+			    else{
+			        window.location = "{!JSENCODE(retURL)}";
+			    }
+			}
+			
+			var closeSubtab = function closeSubtab(result) {
+			    var tabId = result.id;
+			    sforce.console.closeTab(tabId);
+			};
+
+			function OpenSegmentation() {
+				if(sforce.console.isInConsole()){
+					sforce.console.getEnclosingPrimaryTabId(OpenSegmentationTab);
+				} else {
+					window.open("/apex/CustomerSegmentEntry?id={!Account.Id}", "_new");
+				}
+			}
+	
+			var OpenSegmentationTab = function OpenSegmentationTab (result) {
+				sforce.console.openSubtab(result.id , '/apex/CustomerSegmentEntry?id={!Account.Id}', true, '', null);
+	        }
+        </script>
+    </apex:form>
+</apex:page>

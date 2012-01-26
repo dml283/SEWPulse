@@ -1,0 +1,286 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PortalManageConcessionExCon">
+
+    <head>
+        <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+    
+    <script>
+        var isConsentGrantedCheckbox;
+        var submitBtn;
+    </script>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    
+    <style type="text/css">
+
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+
+    </style>
+    <apex:form id="wholePage">
+        <!-- hidden outputfields or input fields go here -->
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:PortalSidebar id="sidebar" groupName="Billing_Account__c" currentAccRecordType="{!Billing_Account__c.Customer__r.RecordType.DeveloperName}" currentDevName="PortalManageConcession" title="Menu">
+                        <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                            <apex:outputText value="{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}"/>
+                            <br/>
+                            <apex:outputText value="{!Billing_Account__c.Property_Address__c}" escape="false"/>
+                        </apex:outputPanel>
+                    </c:PortalSidebar>
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:outputPanel layout="none" rendered="{!ISNULL(Billing_Account__c.Id)}">
+                        <c:PortalSelectBillAcctForOperation groupName="Billing_Account__c" currentDevName="PortalManageConcession"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                        <apex:outputfield rendered="false" value="{!Billing_Account__c.Customer__c}"/>
+                        <apex:outputfield rendered="false" value="{!Billing_Account__c.Customer__r.Name}"/>
+                        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c }"/>
+                        <apex:pageBlock id="pageblock">
+    
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Manage Concession</span>
+                                </div>
+                            </apex:facet>
+    
+                            <!--  TOP BUTTONS -->
+                            <!--
+                            <div style="vertical-align: text-top; height: 40px;">
+                                <div style="float:left">
+                                    <apex:commandButton value="Top left button - light blue"/>
+                                    <apex:commandButton value="Top left button - dark blue" styleClass="btnDarkBlue"/>
+                                </div>
+                                <span style="float:right;">
+                                    <apex:commandButton value="Top right button - green" styleClass="btnGreen"/>
+                                </span>
+                            </div>
+                            -->
+                            <!--  PAGE MESSAGES -->
+                            <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+    
+                            <!-- CONTENT -->
+                            <!-- use the outputpanel below for words that goes across the whole content page-->
+                            <apex:outputPanel >
+                                <h1>Account Details</h1>
+                            </apex:outputPanel>
+                            <br/> 
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:outputField value="{!currentCase.Account.Name}"/>
+                                <apex:pageblockSectionItem >
+                                    <apex:outputLabel value="Customer Number"/>
+                                    <apex:outputField value="{!currentCase.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                                </apex:pageblockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:outputPanel layout="none" rendered="{!Billing_Account__c.Valid_Concession__c}">
+                                <p style="text-align: justify;font-weight:bold;">
+                                    Concession card details:
+                                </p>
+                                <p/>
+                                <apex:pageBlockSection columns="1" showHeader="false">
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Card Type"/>
+                                        <apex:outputField value="{!Billing_Account__c.Card_Type__c}"/>
+                                    </apex:pageblockSectionItem>
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Card Number"/>
+                                        <apex:outputField value="{!Billing_Account__c.Concession_Number__c}"/>
+                                    </apex:pageblockSectionItem>
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Firstname on Card"/>
+                                        <apex:outputField value="{!Billing_Account__c.Card_Firstname__c}"/>
+                                    </apex:pageblockSectionItem>
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Lastname on Card"/>
+                                        <apex:outputField value="{!Billing_Account__c.Card_Lastname__c}"/>
+                                    </apex:pageblockSectionItem>
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Start Date"/>
+                                        <apex:outputField value="{!Billing_Account__c.Concession_Start_Date__c}"/>
+                                    </apex:pageblockSectionItem>
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Expiry Date"/>
+                                        <apex:outputField value="{!Billing_Account__c.Concession_End_Date__c}"/>
+                                    </apex:pageblockSectionItem>
+                                </apex:pageBlockSection>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{!isRemoveConcession}">
+                                <br/> 
+                                <h1>Remove Concession Details</h1>
+                                <br/>
+                                <apex:pageMessage strength="1" severity="info" summary="Click on the 'Remove Concession Details' button to remove the details from this account."/>
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="none" rendered="{!NOT(Billing_Account__c.Valid_Concession__c)&&NOT(isSubmitSuccessful)}">
+                                <br/> 
+                                <h1>Add Concession Details</h1>
+                                <apex:outputPanel layout="none" rendered="{!ISNULL(isAccHolder)}">
+                                    <p style="text-align: justify">
+                                        <apex:panelgrid columns="2">
+                                            <apex:panelGroup >
+                                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                                <b>Are you the Account Holder of the account displayed above?</b>
+                                            </apex:panelGroup>
+                                            <apex:SelectRadio value="{!isAccHolder}">
+                                                <apex:selectOption itemLabel="Yes" itemValue="true"/>
+                                                <apex:selectOption itemLabel="No" itemValue="false"/>
+                                            </apex:SelectRadio>
+                                        </apex:panelgrid>
+                                    </p>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!isAccHolder=='false'}">
+                                    <p style="text-align: justify">
+                                        <b>Are you the Account Holder of the account displayed above?</b>&nbsp;&nbsp;No
+                                    </p>
+                                    <br/>
+                                    <apex:pageMessage strength="3" severity="error" summary="Only account holders can add concession details to their own account. For others, such as partner of the account holder, please contact South East Water directly."/>
+                                </apex:outputPanel>
+                                <apex:outputPanel layout="none" rendered="{!isAccHolder=='true'}">
+                                    <p style="text-align: justify">
+                                        <b>Are you the Account Holder of the account displayed above?</b>&nbsp;&nbsp;Yes
+                                    </p>
+                                    <p style="text-align: justify;font-weight:bold;">
+                                        Please provide your concession card details:
+                                    </p>
+                                    <p/>
+                                    <apex:pageBlockSection columns="1" showHeader="false">
+                                        <apex:pageblockSectionItem >
+                                            <apex:outputPanel layout="none">
+                                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                                <apex:outputLabel value="Card Type"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none">
+                                                <apex:inputField value="{!currentCase.Concession_Card_Type__c}"/>
+                                                &nbsp;&nbsp;<a href="http://www.southeastwater.com.au/myaccount/Payment/Pages/Concessions.aspx" target="_new">What concession cards are eligible?</a>
+                                            </apex:outputPanel>
+                                        </apex:pageblockSectionItem>
+                                        <apex:pageblockSectionItem >
+                                            <apex:outputPanel layout="none">
+                                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                                <apex:outputLabel value="Card Number"/>
+                                            </apex:outputPanel>
+                                            <apex:inputField value="{!currentCase.Concession_Card_Number__c}"/>
+                                        </apex:pageblockSectionItem>
+                                        <apex:pageblockSectionItem >
+                                            <apex:outputPanel layout="none">
+                                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                                <apex:outputLabel value="Firstname on Card"/>
+                                            </apex:outputPanel>
+                                            <apex:inputField value="{!currentCase.Concession_Card_Firstname__c}"/>
+                                        </apex:pageblockSectionItem>
+                                        <apex:pageblockSectionItem >
+                                            <apex:outputPanel layout="none">
+                                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                                <apex:outputLabel value="Lastname on Card"/>
+                                            </apex:outputPanel>
+                                            <apex:inputField value="{!currentCase.Concession_Card_Lastname__c}"/>
+                                        </apex:pageblockSectionItem>
+                                    </apex:pageBlockSection>
+                                    <p style="text-align: justify;font-weight:bold;">
+                                        Privacy Statement
+                                    </p>
+                                    <p style="text-align: justify;">
+                                        The information on this form is required to assess your eligibility for a concession. 
+                                        The information will not be used for any other purpose without your consent. The 
+                                        information will only be retained for the period required by the Public Records Act 
+                                        1973. You are entitled to access your personal information held by South East Water 
+                                        and seek to correct this information.
+                                    </p>
+                                    <p style="text-align: justify;font-weight:bold;">
+                                        Statement of Declaration and Consent
+                                    </p>
+                                    <p style="text-align: justify;">
+                                        I declare that the above information is correct to the best of my knowledge. I further 
+                                        declare that this is the principal place of residence and is used for residential 
+                                        purposes.
+                                    </p>
+                                    <p style="text-align: justify;">
+                                        I authorise Centrelink to confirm with South East Water the current status of my 
+                                        Commonwealth Benefit and other details as they pertain to my concessional entitlement. 
+                                        This involves electronically matching details I have provided to South East Water with 
+                                        Centrelink or Department of Veterans’ Affairs (DVA) records to confirm whether or not 
+                                        I am currently receiving a Centrelink or DVA benefit.
+                                    </p>
+                                    <p style="text-align: justify;">
+                                        I understand that this consent, once signed, is effective only for the period I am a 
+                                        customer of South East Water. I also understand that this consent, which is ongoing, 
+                                        can be revoked any time by giving written notice to South East Water. I understand that 
+                                        if I withdraw my consent I may not be eligible for the concession provided by South 
+                                        East Water.
+                                    </p>
+                                    <p style="text-align: justify">
+                                        <apex:panelgrid columns="2">
+                                            <apex:panelGroup >
+                                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                                <b>I have read the statement above and I authorise South East Water to check my details.</b>&nbsp;&nbsp;
+                                            </apex:panelGroup>
+                                            <apex:inputField id="isConsentGrantedCheckbox" value="{!currentCase.Privacy_Statement__c}" onclick="checkConsentGranted();">
+                                                <script>
+                                                    isConsentGrantedCheckbox = document.getElementById("{!$Component.isConsentGrantedCheckbox}");
+                                                </script>
+                                            </apex:inputField>
+                                        </apex:panelgrid>
+                                    </p>
+                                </apex:outputPanel>
+                            </apex:outputPanel>
+                            <apex:pageMessage strength="1" severity="confirm" summary="Concession Details have been updated for this account." rendered="{!isSubmitSuccessful}"/>
+                            <br/> 
+                            <div class="pbSectionDivider"></div>
+                            <br/>
+                            <!--  BOTTOM BUTTONS -->
+                            <div style="vertical-align: text-top">
+                                <div style="float:left">
+                                    <apex:commandButton value="Return to Account Details" action="{!returnToAccountDetailsPage}"/>
+                                </div>
+                                <span style="float:right;">
+                                    <apex:commandButton id="submitBtn" value="{!IF(isRemoveConcession,'Remove Concession Details',IF(isAccHolder=='true','Submit Concession Details','Next'))}" styleClass="btnDarkBlue" action="{!Next}" rendered="{!isAccHolder<>'false'||NOT(isSubmitSuccessful)}" status="loading" rerender="wholePage"/>
+                                    <script>
+                                        submitBtn = document.getElementById("{!$Component.submitBtn}");
+                                    </script>
+                                </span>
+                            </div>
+                            <br/>
+                        </apex:pageBlock>
+                        <script>
+                            function checkConsentGranted(){
+                                submitBtn.disabled=!isConsentGrantedCheckbox.checked;
+                                if(submitBtn.disabled){
+                                    submitBtn.setAttribute("class", "btnDarkGray");
+                                    submitBtn.setAttribute("className", "btnDarkGray");
+                                    submitBtn.style.cursor = 'default';
+                                }else{
+                                    submitBtn.setAttribute("class", "btnGreen");
+                                    submitBtn.setAttribute("className", "btnGreen");
+                                    submitBtn.style.cursor = 'pointer';
+                                }
+                            }
+                            if({!JSENCODE(IF(isAccHolder=='true'||isRemoveConcession,'true','false'))}){
+                                checkConsentGranted();
+                            }
+                        </script>
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+
+    </apex:form>
+</apex:page>

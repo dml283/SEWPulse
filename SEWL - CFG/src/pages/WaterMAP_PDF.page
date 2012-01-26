@@ -1,0 +1,918 @@
+<apex:page standardcontroller="WaterMAP_Submission__c"
+            extensions="WaterMAP_Pg2_Comp_Site_Info_Con,WaterMAP_Pg3_Water_Consump_Con,WaterMAP_Pg4_Indicators_Targets_Con,WaterMAP_Pg6_Action_Plan_Con"
+            sidebar="false" showHeader="false" renderAs="pdf" standardStylesheets="false">
+    <html>
+        <head>
+            <style>
+                <apex:stylesheet value="{!$Resource.PDFDocumentStyle}" />
+                <apex:stylesheet value="{!$Resource.WaterMAP_PDF_Style}"/>
+            </style>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+        </head>
+        <body>
+            <c:PDFHeaderFooter type="header" position="center">
+                <apex:image url="{!$Resource.WaterMAPHomeBanner}" style="width:693px; padding-top: 15px;"/>
+                <p style="text-align:left;">
+
+                </p>
+            </c:PDFHeaderFooter>
+            <c:PDFHeaderFooter type="header" position="center">
+                <apex:image value="{!$Resource.SEWLogo_HorizontalPanel}" alt="pdfHeader" style="width: 700px; padding-top: 15px;"/>
+            </c:PDFHeaderFooter>
+            <c:PDFHeaderFooter type="footer" position="left">
+                <apex:outputPanel style="font-size:10px;">
+                    Printed on&nbsp;
+                    <apex:outputText value="{0,date,dd MMM yyyy}">
+                        <apex:param value="{!TODAY()}" />
+                    </apex:outputText>
+                </apex:outputPanel>
+            </c:PDFHeaderFooter>
+            <!-- Activate hidden fields for the controller -->
+            <apex:outputField rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Company_Site_Info_Complete__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Year__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}"/>
+<!--            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.ANZSIC_Code__c}"/> -->
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Site_Manager__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Primary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Secondary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.waterMAP__r.Preferred_Postal_Contact_Type__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Water_Consumption_Complete__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}"/>
+<!--            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.ANZSIC_Code__c}"/> -->
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Site_Manager__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Primary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Secondary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Water_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Water_Use_KL_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Sewage_Disposal_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Trade_Waste_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Water_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Water_Use_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Id}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Indicators_Targets_Complete__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.ANZSIC__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.ANZSIC_Benchmark_Indicator__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.KBAI_Type__c}"/>
+
+            <table maxwidth="900px">
+                <tr>
+                    <td class="contentCell">
+                    <!-- Start of real page content here-->
+                        <apex:pageBlock >
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">{!WaterMAP_Submission__c.Year__c} Annual waterMAP Submission<p/>{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}</span>
+                                    <br/><h2>{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}</h2>
+                                </div>
+                            </apex:facet>
+                            <p/><p/>
+                            <!-- COMPANY INFORMATION SECTION -->
+                            <table style="margin-left:100px;">
+                                <tr>
+                                    <td colspan="2" style="padding-bottom:15px;">
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:pageBlockSectionItem >
+                                                <h2>Company Information</h2>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel value="Address"/>
+                                                <apex:outputPanel >
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Organisation_Name__c}"/><br/>
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Street_Address__c}"/><br/>
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Suburb__c}"/><br/>
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.State__c}"/>&nbsp;
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Postal_Code__c}"/>
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="phone" value="Phone"/>
+                                                <apex:outputField id="phone" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Phone}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="fax" value="Fax"/>
+                                                <apex:outputField id="fax" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Fax}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="Website" value="Website"/>
+                                                <apex:outputField id="website" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.website}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <!--
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="email" value="Email"/>
+                                                <apex:outputField id="email" value="{!waterMAP_Submission__c.Watermap__r.Customer__r.Email_Address__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem helpText="EREP is a regulatory program introduced by the EPA that helps businesses meet climate
+                                            change and resource scarcity challenges by
+                                            implementing actions that achieve environmental benefits and direct cost savings in a short timeframe.
+                                            The EREP program applies to large energy and water using sites –
+                                            ie. those using more than 100 TJ of energy and/or 120 ML of water per annum.">
+                                                <apex:outputLabel for="IsEREP" value="Does your business participate in EREP?"/>
+                                                <apex:outputField id="iserp" value="{!waterMAP_Submission__c.Watermap__r.EREP__c}" style="vertical-align: middle"/>
+                                            </apex:pageBlockSectionItem>
+                                            -->
+                                        </apex:pageBlockSection>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="border-bottom:solid 1px #005F98; height: 50px;"/>
+                                </tr>
+                                <tr style="font-size:0.8em;">
+                                    <td>
+                                        <!-- PREPARED BY SECTION -->
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:pageBlockSectionItem >
+                                                <h2>Prepared By</h2>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyname" value="Name"/>
+                                                <apex:outputField value="{!WaterMAP_Submission__c.Prepared_By__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyorgname" value="Organisation"/>
+                                                <apex:outputField id="preparedbyorgname" value="{!WaterMAP_Submission__c.Prepared_By__r.Organisation_Name__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbytitle" value="Title"/>
+                                                <apex:outputField id="preparedbytitle" value="{!WaterMAP_Submission__c.Prepared_By__r.Title}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyphone" value="Phone"/>
+                                                <apex:outputField id="preparedbyphone" value="{!WaterMAP_Submission__c.Prepared_By__r.Phone}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyemail" value="Email"/>
+                                                <apex:outputField id="preparedbyemail" value="{!WaterMAP_Submission__c.Prepared_By__r.Email}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbysig" value="Signature"/>
+                                                <apex:outputText id="preparedbysig" value=""/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel value=""/>
+                                                <apex:outputText value="______________________"/>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </td>
+                                    <td>
+                                        <!-- AUTHORISED BY SECTION -->
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:pageBlockSectionItem >
+                                                <h2>Authorised By</h2>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyname" value="Name"/>
+                                                <apex:outputField value="{!WaterMAP_Submission__c.Authorised_By__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyorgname" value="Organisation"/>
+                                                <apex:outputField id="authbyorgname" value="{!WaterMAP_Submission__c.Authorised_By__r.Organisation_Name__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbytitle" value="Title"/>
+                                                <apex:outputField id="authbytitle" value="{!WaterMAP_Submission__c.Authorised_By__r.Title}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyphone" value="Phone"/>
+                                                <apex:outputField id="authbyphone" value="{!WaterMAP_Submission__c.Authorised_By__r.Phone}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyemail" value="Email"/>
+                                                <apex:outputField id="authbyemail" value="{!WaterMAP_Submission__c.Authorised_By__r.Email}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbysig" value="Signature"/>
+                                                <apex:outputText id="authbysig" value=""/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel value=""/>
+                                                <apex:outputText value="______________________"/>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding-bottom:15px;border-bottom:solid 1px #005F98;"/>
+                                </tr>
+                            </table>
+                        </apex:pageBlock>
+                        <div style="page-break-after:always;"/>
+                        <apex:pageBlock >
+
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Company &amp; Site Information</span>
+                                </div>
+                            </apex:facet>
+
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <h1>Company Information</h1>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.About_Your_Site__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="custOrgName" value="{!$ObjectType.Account.fields.Name.label}"/>
+                                    <apex:outputField id="custOrgName" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Name}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="custOpName" value="{!$ObjectType.Account.fields.Trading_Name__c.label}"/>
+                                    <apex:outputField id="custOpName" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Trading_Name__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="custABN" value="{!$ObjectType.Account.fields.ABN__c.label}"/>
+                                    <apex:outputField id="custABN" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.ABN__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="custAccNo" value="{!$ObjectType.Account.fields.Customer_Number2__c.label}"/>
+                                    <apex:outputField id="custAccNo" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="propRefNo" value="Property Ref"/>
+                                    <apex:outputField id="propRefNo" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.CIS_Property_Id__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Primary Site Address"/>
+                                    <apex:outputPanel >
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Organisation_Name__c}"/><br/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Street_Address__c}"/><br/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Suburb__c}"/><br/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.State__c}"/>&nbsp;
+                                        <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Postal_Code__c}"/>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem rendered="{!consolidatedAccounts.size>0}">
+                                    <apex:outputLabel value="List of Combined Sites for Usage"/>
+                                    <apex:pageblocktable value="{!consolidatedAccounts}" var="consolAcct" style="width:500px;margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                        <apex:column headerValue="{!$ObjectType.Account.fields.Customer_Number2__c.label}" headerClass="headerRowLGBack headerRowPeriod">
+                                            <apex:outputField value="{!consolAcct.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="{!$ObjectType.WaterMAP_Consolidated_Accounts__c.fields.Site_Address__c.label}" headerClass="headerRowLGBack headerRowPeriod">
+                                            <apex:outputtext escape="false" value="{!consolAcct.Site_Address__c}"/>
+                                        </apex:column>
+                                    </apex:pageblocktable>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <h1>Contact Details</h1>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Site Manager {!IF(WaterMAP_Submission__c.waterMAP__r.Site_Manager__c==WaterMAP_Submission__c.waterMAP__r.Primary_Contact__c,' & Primary Contact','')}"/>
+                                    <apex:outputPanel >
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Name}"/><br/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Title}"/>
+                                        <apex:outputText rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Title))&&NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Organisation_Name__c))}" value=" - "/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Organisation_Name__c}"/>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Title))||NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Organisation_Name__c))}">
+                                            <br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Email))}">
+                                            <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Email}"/><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Phone))}">
+                                            Phone:&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Phone}"/><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.MobilePhone))}">
+                                            Mobile:&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.MobilePhone}"/>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem rendered="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__c<>WaterMAP_Submission__c.waterMAP__r.Primary_Contact__c&&NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r))}">
+                                    <apex:outputLabel value="Primary Contact"/>
+                                    <apex:outputPanel >
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Name}"/><br/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Title}"/>
+                                        <apex:outputText rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Title))&&NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Organisation_Name__c))}" value=" - "/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Organisation_Name__c}"/>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Title))||NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Organisation_Name__c))}">
+                                            <br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Email))}">
+                                            <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Email}"/><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Phone))}">
+                                            Phone:&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Phone}"/><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.MobilePhone))}">
+                                            Mobile:&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.MobilePhone}"/>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__c))}">
+                                    <apex:outputLabel value="Secondary Contact"/>
+                                    <apex:outputPanel >
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Name}"/><br/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Title}"/>
+                                        <apex:outputText rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Title))&&NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Organisation_Name__c))}" value=" - "/>
+                                        <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Organisation_Name__c}"/>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Title))||NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Organisation_Name__c))}">
+                                            <br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Email))}">
+                                            <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Email}"/><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Phone))}">
+                                            Phone:&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Phone}"/><br/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.MobilePhone))}">
+                                            Mobile:&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.MobilePhone}"/>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Postal Address"/>
+                                    <apex:outputPanel >
+                                        <apex:outputText value="{!postalAddress.name}"/><br/>
+                                        <apex:outputText value="{!postalAddress.street}"/><br/>
+                                        <apex:outputText value="{!postalAddress.suburb}"/><br/>
+                                        <apex:outputText value="{!postalAddress.state}"/>
+                                        <apex:outputText value="{!postalAddress.postalCode}"/>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <h1>Site Industry Data</h1>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="anzsicCode" value="{!$ObjectType.WaterMAP__c.fields.ANZSIC__c.label}"/>
+                                    <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.ANZSIC__r.Name}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="peakIndustryBody" value="{!$ObjectType.WaterMAP__c.fields.Peak_industry_body__c.label}"/>
+                                    <apex:outputField id="peakIndustryBody" value="{!WaterMAP_Submission__c.waterMAP__r.Peak_industry_body__c}"/>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Site Water Balance</h1>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="prevYrWaterConsume" value="Water consumption {!previousYear} (KL/yr)"/>
+                                    <apex:outputPanel >
+                                        <apex:outputText value="{0, number, ###,###,##0}" style="width:50px">
+                                            <apex:param value="{!totalWaterConsumption}" />
+                                        </apex:outputText>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="prevYrWasteWater" value="Waste-water volume {!previousYear} (KL/yr)"/>
+                                    <apex:outputText value="{0, number, ###,###,##0}" style="width:50px">
+                                        <apex:param value="{!totalSewageDisposalVolume}" />
+                                    </apex:outputText>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="prevYrTradeWaste" value="Trade waste volume {!previousYear} (KL/yr)"/>
+                                    <apex:outputText value="{0, number, ###,###,##0}" style="width:50px">
+                                        <apex:param value="{!totalTradeWasteVolume}" />
+                                    </apex:outputText>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="processBreakdownList" value="List of major water using equipment/process"/>
+                                    <apex:outputPanel id="processBreakdownList">
+                                        <apex:pageblocktable value="{!readOnlyProcessEquipBreakdowns}" var="breakdownWrapper" style="width:500px;margin-bottom:10px; font-size: 0.85em;">
+                                            <apex:column headerValue="{!$ObjectType.Activity_Process_Equipment_Breakdown__c.fields.Activity_Process_Equipment__c.label}" headerClass="headerRowLGBack">
+                                                <apex:outputField value="{!breakdownWrapper.breakdown.Activity_Process_Equipment__c}"/>
+                                                <apex:outputPanel rendered="{!breakdownWrapper.breakdown.Activity_Process_Equipment__c=='Other (please specify)'}">
+                                                    <br/>&nbsp;&nbsp;&nbsp;&nbsp;<apex:outputField value="{!breakdownWrapper.breakdown.Specify_Other__c}"/>
+                                                </apex:outputPanel>
+                                            </apex:column>
+                                            <apex:column headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight" style="width:70px">
+                                                <apex:facet name="header">% of Water<br/>Use</apex:facet>
+                                                <apex:outputField id="pctWaterUse" value="{!breakdownWrapper.breakdown.Percentage_of_Water_Use__c}"/>
+                                            </apex:column>
+                                            <apex:column headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight" style="width:70px">
+                                                <apex:facet name="header">KL of Water<br/>Used</apex:facet>
+                                                <apex:outputText value="{0, number, ###,###,##0}">
+                                                    <apex:param value="{!breakdownWrapper.waterUsedKL}" />
+                                                </apex:outputText>
+                                            </apex:column>
+                                        </apex:pageblocktable>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem rendered="{!NOT(ISNULL(googleProcessBreakdownPieChartURL))}">
+                                    <apex:outputPanel >
+                                        <center>
+                                            <apex:image id="processBreakdownPieChartImg" value="{!googleProcessBreakdownPieChartURL}"/>
+                                        </center>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Water Management Team</h1>
+                                        The Water Management Team will be dedicated to improve water efficiency on site.<p/>
+                                        The Water Management Team for {!WaterMAP_Submission__c.watermap__r.Customer__r.Name} consists of:
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Team_Members__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" showHeader="false" rendered="{!NOT(ISNULL(WaterMAP_Submission__c.waterMAP__r.Additional_Comments__c))}">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Additional Comments</h1>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Additional_Comments__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                        <div style="page-break-after:always;"/>
+                        <apex:pageBlock >
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Water Consumption</span>
+                                </div>
+                            </apex:facet>
+
+                            <!-- CONTENT -->
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Baseline Water Use</h1>
+                                        The following tables provide monthly/quarterly water use data and associated costs.<p/>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="baselineWaterUseLists" value="Baseline water use"/>
+                                    <apex:outputPanel id="baselineWaterUseLists">
+                                        <apex:repeat value="{!baselineWaterUseTables}" var="table">
+                                            <div style="width:500px;border-top: #595959 solid 1px; border-bottom: none; padding: 1px 0px; color: #005f98; background-color: #e5f1f8;">
+                                                <h3 style="padding-left:5px">Year {!table.financialYear}</h3>
+                                            </div>
+                                            <apex:pageblocktable value="{!table.chargesWithTotal}" rendered="{!table.size>0}" var="charge" style="width:500px;margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                                <apex:column headerValue="Period" headerClass="headerRowLGBack headerRowPeriod" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')}; white-space:nowrap;">
+                                                    <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')};"><apex:outputField value="{!charge.Name}"/></span>
+                                                </apex:column>
+                                                <apex:column headerValue="Water used (kL)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                    <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Water_Volume__c}"/></span>
+                                                </apex:column>
+                                                <apex:column headerValue="Water used ($)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                    <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Water_Cost__c}"/></span>
+                                                </apex:column>
+                                                <apex:column headerValue="Sewage disposal ($)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                    <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Sewage_Disposal_Cost__c}"/></span>
+                                                </apex:column>
+                                                <apex:column headerValue="Trade waste ($)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                    <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Trade_Waste_Cost__c}"/></span>
+                                                </apex:column>
+                                            </apex:pageblocktable>
+                                            <apex:outputPanel rendered="{!table.size=0}" layout="block" style="font-size: 0.85em;width:500px;border-top: #595959 solid 1px; border-bottom: #595959 solid 1px; padding: 10px 0px; margin-bottom: 10px;">
+                                                <i style="padding-left:5px">No usage for this year</i>
+                                            </apex:outputPanel>
+                                        </apex:repeat>
+                                        <div style="width:500px;border-top: #595959 solid 1px; border-bottom: none; padding: 1px 0px; color: #005f98; background-color: #e5f1f8;">
+                                            <h3 style="padding-left:5px">Summary</h3>
+                                        </div>
+                                        <apex:pageblocktable value="{!baselineSummaryCurrentYr}" var="summary" style="width:500px;margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                            <apex:column headerValue="Value" headerClass="headerRowLGBack headerRowPeriod" style="width:98px">
+                                                <span style="font-weight:bold"><apex:outputText value="{!IF(ISNULL(summary.id),'Actual % Changes between Last Two Years','Proposed % Changes from Last waterMAP')}"/></span>
+                                            </apex:column>
+                                            <apex:column headerValue="Water used (kL)"
+                                                            headerClass="headerRowRight headerRowLGBack"
+                                                            style="text-align: right" styleclass="dataRowRight">
+                                                <apex:outputText value="{!summary.Prior_Yr_Fcst_Water_Use_KL_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Water_Use_KL_Pct__c))}"/>
+                                                <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Water_Use_KL_Pct__c))}"/>
+                                            </apex:column>
+                                            <apex:column headerValue="Water used ($)"
+                                                            headerClass="headerRowRight headerRowLGBack"
+                                                            style="text-align: right" styleclass="dataRowRight">
+                                                <apex:outputText value="{!summary.Prior_Yr_Fcst_Water_Cost_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Water_Cost_Pct__c))}"/>
+                                                <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Water_Cost_Pct__c))}"/>
+                                            </apex:column>
+                                            <apex:column headerValue="Sewage disposal ($)"
+                                                            headerClass="headerRowRight headerRowLGBack"
+                                                            style="text-align: right" styleclass="dataRowRight">
+                                                <apex:outputText value="{!summary.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c))}"/>
+                                                <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c))}"/>
+                                            </apex:column>
+                                            <apex:column headerValue="Trade waste ($)"
+                                                            headerClass="headerRowRight headerRowLGBack"
+                                                            style="text-align: right" styleclass="dataRowRight">
+                                                <apex:outputText value="{!summary.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c))}"/>
+                                                <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c))}"/>
+                                            </apex:column>
+                                        </apex:pageblocktable>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <center>
+                                            <c:WaterMAP_Baseline_Usage_Chart wmapSub="{!waterMAPSub}" id="kbaiChart"/>
+                                        </center>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="waterUseComment" value="{!$ObjectType.WaterMAP__c.fields.Water_Use_Comments__c.label}"/>
+                                    <apex:outputField id="waterUseComment" value="{!WaterMAP_Submission__c.waterMAP__r.Water_Use_Comments__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Water Use Areas</h1>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+        <!--
+                            <apex:pageBlockSection id="majorwaterareasection" collapsible="false" columns="1">
+                                <apex:iframe src="{!$Page.waterMAP_Pg3_MajorWaterAreaFrame}?id={!waterMAP_Submission__c.id}" height="120px" scrolling="false"/>
+                            </apex:pageBlockSection>
+        -->
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="influencingFactors" value="{!$ObjectType.WaterMAP__c.fields.Water_Use_Influencing_Factors__c.label}"/>
+                                    <apex:outputField id="influencingFactors" value="{!WaterMAP_Submission__c.waterMAP__r.Water_Use_Influencing_Factors__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Water Use Outlook</h1>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="forecastTable" value="Next year's water use forecast"/>
+                                    <apex:pageblocktable id="forecastTable" value="{!baselineForecastNextYr}" var="forecast" style="width:500px;margin-bottom:10px; font-size: 0.85em;">
+                                        <apex:column headerValue="Value" headerClass="headerRowLGBack headerRowPeriod">
+                                            <span style="font-weight:bold"><apex:outputText value="Forecast % change"/></span>
+                                        </apex:column>
+                                        <apex:column headerValue="Water used (kL)" headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                                            <apex:outputField value="{!forecast.Forecast_Water_Use_Pct__c}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="Water used ($)" headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                                            <apex:outputField value="{!forecast.Forecast_Water_Cost_Pct__c}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="Sewage disposal ($)" headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                                            <apex:outputField value="{!forecast.Forecast_Sewage_Disposal_Pct__c}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="Trade waste ($)" headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                                            <apex:outputField value="{!forecast.Forecast_Trade_Waste_Cost_Pct__c}"/>
+                                        </apex:column>
+                                    </apex:pageblocktable>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="outlookDescription" value="{!$ObjectType.WaterMAP__c.fields.Water_Use_Outlook__c.label}"/>
+                                    <apex:outputField id="outlookDescription" value="{!WaterMAP_Submission__c.waterMAP__r.Water_Use_Outlook__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                        <div style="page-break-after:always;"/>
+                        <apex:pageBlock >
+
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Indicators &amp; Targets</span>
+                                </div>
+                            </apex:facet>
+                            <!-- CONTENT -->
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Business Water Use Indicator</h1>
+                                        <p>
+                                        A business water use indicator is a measure of water use efficiency and takes into account
+                                        core business operations specific to the site. It considers how variables such as production
+                                        rates, number of staff or the number of customers affect water use when setting water-saving
+                                        targets. Examples of water use indicators include water used per customer or water used
+                                        per tonne of product produced.
+                                        </p>
+                                        <p>
+                                        Determining a Key Business Activity Indicator (KBAI) allows measurable targets for water
+                                        efficiency to be set, and enables comparison of water use across years.
+                                        </p>
+                                        <p>
+                                        For {!WaterMAP_Submission__c.WaterMap__r.Customer__r.Name} the Key Business Activity
+                                        Indicator is the volume of water used per unit of measure (e.g. number of visitors,
+                                        tonne of product, square metres irrigated, etc). Monthly/quarterly data in terms of
+                                        the indicator is presented below.</p>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="kbaiTable" value="Water consumption estimated breakdown"/>
+                                    <apex:outputPanel >
+                                        <apex:repeat value="{!kbaiTablebyYears}" var="table">
+                                            <div style="width:500px;border-top: #595959 solid 1px; border-bottom: none; padding: 1px 0px; color: #005f98; background-color: #e5f1f8;">
+                                                <h3 style="padding-left:5px">Year {!table.year}</h3>
+                                            </div>
+                                            <apex:pageBlockTable rendered="{!table.kbaiLines.size>0}" id="kbaiTable" value="{!table.kbaiLines}" var="kbaiLineItem" style="width:500px;margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                                <apex:column value="{!kbaiLineItem.kbai.Period__c}" headerClass="headerRowLGBack headerRowPeriod"/>
+                                                <apex:column headervalue="Water Use (KL)" headerClass="headerRowLGBack waterUseHeading headerRowRight"
+                                                                    styleClass="dataRowRight">
+                                                    <apex:outputText value="{0, number, ###,###,##0}" id="klwaterusage">
+                                                        <apex:param value="{!kbaiLineItem.usage}" />
+                                                    </apex:outputText>
+                                                </apex:column>
+                                                <apex:column headerClass="headerRowLGBack waterUseHeading headerRowRight"
+                                                        style="padding: 3px 3px 2px 30px; text-align: right">
+                                                    <apex:facet name="header">
+                                                        <div style="padding-left:25px">
+                                                            Count {!IF(WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c==null,'',' ('&WaterMAP_Submission__c.WaterMAP__r.KBAI_Description__c&')')}
+                                                        </div>
+                                                    </apex:facet>
+                                                    <apex:outputField value="{!kbaiLineItem.kbai.Count__c}"
+                                                                        id="kbaicount2"/>
+                                                </apex:column>
+                                                <apex:column headervalue="KL per {!IF(WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c)}"
+                                                                headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight" >
+                                                    <apex:outputText value="{0, number, ###,###,##0.00}">
+                                                        <apex:param value="{!kbaiLineItem.klperkbai}" />
+                                                    </apex:outputText>
+                                                </apex:column>
+                                            </apex:pageBlockTable>
+                                            <apex:outputPanel rendered="{!table.kbaiLines.size=0}" layout="block" style="font-size: 0.85em;width:500px;border-top: #595959 solid 1px; border-bottom: #595959 solid 1px; padding: 10px 0px; margin-bottom: 10px;">
+                                                <i style="padding-left:5px">No usage for this year</i>
+                                            </apex:outputPanel>
+                                        </apex:repeat>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Average KBAI"/>
+                                    <apex:outputPanel >
+                                        <apex:outputText value="{0, number, ###,###,##0.00} KL per {!IF(WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c)} per year" style="width:50px">
+                                            <apex:param value="{!averageKBAI}" />
+                                        </apex:outputText>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <center>
+                                            <c:WaterMAP_KBAI_Preview_Chart recentYrKBAIs="{!kbaiTableUnwrapped}"
+                                                            wmapSub="{!waterMAPSub}"
+                                                            id="kbaiChart"/>
+                                        </center>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+
+        <!--
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel />
+                                    <apex:outputPanel >
+                                        <p/>
+                                        Click&nbsp;
+                                        <apex:outputlink value="javascript:ShowKBAIChart('{!$Component.closebtn}')">here</apex:outputlink>
+                                        To preview the graph of this information. It shows changes in water efficiency over time.
+                                        <p/>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+        -->
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel for="waterEfficiencyDesc" value="{!$ObjectType.WaterMAP__c.fields.Efficiency_Change_Comments__c.label}"/>
+                                    <apex:outputField id="waterEfficiencyDesc" value="{!WaterMAP_Submission__c.waterMAP__r.Efficiency_Change_Comments__c}"/>
+                                </apex:pageBlockSectionItem>
+
+
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Water Efficiency Targets</h1>
+                                        Based on the Average KBAI of
+                                        <apex:outputText value="{0, number, ###,###,##0.00}" style="width:50px">
+                                            <apex:param value="{!averageKBAI}" />
+                                        </apex:outputText>
+                                        KL per {!IF(WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c)} per year:
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h2>Short term water efficiency targets</h2>
+                                        <p>{!WaterMAP_Submission__c.watermap__r.Customer__r.Name} has set a short term (1-2 year) water efficiency target of&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Short_Term_Conservation_Target__c}"/>&nbsp;KL per {!IF(WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c)} per year.</p>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h2>Long term water efficiency targets</h2>
+                                        <p>{!WaterMAP_Submission__c.watermap__r.Customer__r.Name} has set a long term (3-5 year) water efficiency target of&nbsp;<apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Long_Term_Conservation_Target__c}"/>&nbsp;KL per {!IF(WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c==null,'KBAI Count',WaterMAP_Submission__c.waterMAP__r.KBAI_Description__c)} per year.</p>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                        <div style="page-break-after:always;"/>
+                        <apex:pageBlock >
+
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Opportunities to save water</span>
+                                </div>
+                            </apex:facet>
+                            <!-- CONTENT -->
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        Potential water saving ideas not yet suitable for inclusion in our waterMAP action plan include:
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>People and Culture</h1>
+                                        Other ways to promote water efficient behaviour to raise awareness include consideration of:
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+        <!--                        <apex:outputLabel for="peopleAndCultureText" value="{!$ObjectType.waterMAP__c.fields.People_and_Culture__c.label}"/>-->
+                                    <apex:outputField id="peopleAndCultureText" value="{!WaterMAP_Submission__c.waterMAP__r.People_and_Culture__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputPanel >
+                                        <h1>Equipment, Infrastructure and Processes</h1>
+                                        To achieve best practice in water efficency we would need to also consider:
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+        <!--                        <apex:outputLabel for="equipText" value="{!$ObjectType.waterMAP__c.fields.Equipment_Infrastructure_Processes__c.label}"/>-->
+                                    <apex:outputField id="equipText" value="{!WaterMAP_Submission__c.waterMAP__r.Equipment_Infrastructure_Processes__c}"/>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                        <div style="page-break-after:always;"/>
+                        <apex:pageBlock >
+
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Action Plan</span>
+                                </div>
+                            </apex:facet>
+                            <!-- CONTENT -->
+                            <apex:pageblocksection columns="1" showHeader="false">
+                                <apex:pageblocksectionitem >
+                                    <apex:outputPanel >
+                                        Our company will improve its water efficiency by undertaking the following actions:
+                                        <h1>Specific Actions or Projects</h1>
+                                    </apex:outputPanel>
+                                </apex:pageblocksectionitem>
+                                <apex:pageblocksectionitem rendered="{!readOnlyNonOngoingActions.size == 0}">
+                                    <apex:outputLabel />
+                                    <apex:outputPanel >
+                                        <apex:outputText value="There are no specific actions or projects."/>
+                                    </apex:outputPanel>
+                                </apex:pageblocksectionitem>
+                            </apex:pageblocksection>
+                            <apex:repeat rendered="{!readOnlyNonOngoingActions.size <> 0}" value="{!readOnlyNonOngoingActions}" var="actionItemWrapper">
+                                <apex:pageBlockSection columns="1" showHeader="false">
+                                    <br/>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Item {!actionItemWrapper.itemNo}" style="font-size:1.2em;color:#005F98"/>
+                                        <apex:outputPanel />
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Action Category"/>
+                                        <apex:outputPanel >
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action_Category__c<>'Other (please specify)'}">
+                                                <apex:outputField value="{!actionItemWrapper.actionItem.Action_Category__c}"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action_Category__c=='Other (please specify)'}">
+                                                Other
+                                            </apex:outputPanel>
+                                            &nbsp;-&nbsp;
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action__c<>'Other (please specify)'}">
+                                                <apex:outputField value="{!actionItemWrapper.actionItem.Action__c}"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action__c=='Other (please specify)'}">
+                                                Other
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action_Category__c=='Other (please specify)'||actionItemWrapper.actionItem.Action__c=='Other (please specify)'}">
+                                                {!IF(NOT(ISNULL(actionItemWrapper.actionItem.Action__c)),' - ','')}
+                                                <apex:outputField value="{!actionItemWrapper.actionItem.Other_Action_Type__c}" style="margin-top:5px;width:100%;"/>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Action Description"/>
+                                        <apex:outputPanel >
+                                            <apex:outputField value="{!actionItemWrapper.actionItem.Description__c}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Action Status"/>
+                                        <apex:outputPanel >
+                                            <apex:outputField value="{!actionItemWrapper.actionItem.Status__c}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="SEWL funding?"/>
+                                        <apex:outputPanel >
+                                            <apex:outputField value="{!actionItemWrapper.actionItem.Funding_Required__c}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="Action Cost & Savings"/>
+                                        </apex:outputPanel>
+                                        <apex:pageblocktable value="{!actionItemWrapper.actionItemListWrapper}" var="actionItem" style="width:520px;margin-bottom:10px; font-size: 0.85em;">
+                                            <apex:column headervalue="Cost ($)" style="width:70px;" headerClass="headerRowLGBack headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:outputField id="costText" value="{!actionItem.Cost__c}"/>
+                                            </apex:column>
+                                            <apex:column style="width:90px;" headerClass="headerRowLGBack headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Water (Kl/year)
+                                                </apex:facet>
+                                                <apex:outputField value="{!actionItem.Estimated_Savings_Water_Usage_Per_Yr__c}"/>
+                                            </apex:column>
+                                            <apex:column style="width:120px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                        <center>Estimated Savings</center>
+                                                        <center>Water ($/year)</center>
+                                                </apex:facet>
+                                                <apex:outputField id="waterCostSavingText" value="{!actionItem.Estimated_Savings_Water_Cost_Per_Yr__c}"/>
+                                            </apex:column>
+                                            <apex:column style="width:90px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Other ($/year)
+                                                </apex:facet>
+                                                <apex:outputField id="otherCostSavingText" value="{!actionItem.Estimated_Savings_Other_Cost_Per_Yr__c}" style="width:70px"/>
+                                            </apex:column>
+                                            <apex:column style="width:50px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Payback<br/>
+                                                    (years)
+                                                </apex:facet>
+                                                <apex:outputField id="paybackYrText" value="{!actionItem.Payback_Years_Calc__c}" style="padding-right: 15px !important"/>
+                                            </apex:column>
+                                            <apex:column style="width:80px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Scheduled<br/>
+                                                    Completion Date
+                                                </apex:facet>
+                                                <apex:outputField id="scheduledCompletionDate" value="{!actionItem.Scheduled_Completion_Date__c}"/>
+                                            </apex:column>
+                                        </apex:pageblocktable>
+                                    </apex:pageBlockSectionItem>
+                                    <p/>
+                                </apex:pageBlockSection>
+                            </apex:repeat>
+                            <apex:pageblocksection >
+                                <apex:pageblocksectionitem >
+                                    <apex:outputPanel >
+                                        <h1>Ongoing Actions</h1>
+                                    </apex:outputPanel>
+                                </apex:pageblocksectionitem>
+                            </apex:pageblocksection>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel />
+                                     <apex:outputPanel >
+                                        <apex:repeat value="{!readOnlyOngoingActionslist}" var="itemCheck">
+                                            <apex:outputPanel rendered="{!itemCheck.isHeader}">
+                                                <br/>
+                                                <apex:outputText value="{!itemCheck.actionCategoryStr}" style="font-weight:bold"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!NOT(itemCheck.isHeader)}">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<apex:outputText value="{!itemCheck.actionStr}"/>
+                                            </apex:outputPanel>
+                                            <br/>
+                                        </apex:repeat>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <apex:pageblocksection rendered="{!nonDeletedCompletedActionItems.size<>0}">
+                                <apex:pageblocksectionitem >
+                                    <apex:outputPanel >
+                                        <h1>Completed Actions</h1>
+                                        Our company has undertaken the following actions to improve its water efficiency over the last few years:<p/>
+                                    </apex:outputPanel>
+                                </apex:pageblocksectionitem>
+                            </apex:pageblocksection>
+                            <apex:pageBlockSection columns="1" showHeader="false" rendered="{!nonDeletedCompletedActionItems.size<>0}">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Completed Actions" />
+                                    <apex:outputPanel >
+                                        <apex:repeat value="{!nonDeletedCompletedActionItems}" var="itemYearWrapper">
+                                            <div style="width:500px;border-bottom: #bbb0A6 1px solid;border-top: #595959 solid 1px; padding: 3px 0px; color: #005f98; background-color: #e5f1f8;">
+                                                <h3>Year {!itemYearWrapper.year}</h3>
+                                            </div>
+                                            <apex:pageblocktable value="{!itemYearWrapper.itemWrappers}" var="itemWrapper" style="width:500px;margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                                <apex:column headerValue="Action Category" headerClass="headerRowLeft headerRowLGBack" style="border-top:0; width: 200px;" styleclass="dataRowLeft">
+                                                    <apex:outputField value="{!itemWrapper.actionitem.Action_Category__c}"/><br/>&nbsp;-&nbsp;<apex:outputField value="{!itemWrapper.actionitem.Action__c}"/>
+                                                </apex:column>
+                                                <apex:column headerValue="Action Description" headerClass="headerRowLeft headerRowLGBack" style="border-top:0; width: 300px;" styleclass="dataRowLeft">
+                                                    <apex:outputField value="{!itemWrapper.actionitem.Description__c}"/>
+                                                </apex:column>
+                                            </apex:pageblocktable>
+                                        </apex:repeat>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                        </apex:pageBlock>
+                    </td>
+                </tr>
+            </table>
+        </body>
+    </html>
+</apex:page>

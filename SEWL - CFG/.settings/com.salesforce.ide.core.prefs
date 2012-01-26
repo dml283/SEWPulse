@@ -1,0 +1,15 @@
+#Mon Dec 19 13:55:25 EST 2011
+ExecuteAnonymousApex_code=Finest
+ExecuteAnonymousWorkflow=Finest
+eclipse.preferences.version=1
+endpointApiVersion=23.0
+endpointEnvironment=Sandbox
+endpointServer=test.salesforce.com
+httpsProtocol=true
+ideVersion=23.0
+keependpoint=false
+metadataFormatVersion=23.0
+namespacePrefix=
+packageName=unpackaged
+readTimeout=400
+username=dthong@sewl.com.au.cfg

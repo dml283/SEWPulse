@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Image to be used in email letterhead</description>
+    <internalUseOnly>false</internalUseOnly>
+    <name>Email banner with times 72dpi</name>
+    <public>true</public>
+</Document>

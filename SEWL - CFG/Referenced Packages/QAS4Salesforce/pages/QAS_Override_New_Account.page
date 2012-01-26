@@ -1,0 +1,4 @@
+<apex:page standardController="Account" extensions="experianqas.QASOverrideController" action="{!autoRun}">
+<c:QASRedirectComponent ErrorCondition="{!ErrorCondition}" NoSuccess="{!NoSuccess}" SomeSuccess="{!SomeSuccess}"
+    FormData="{!FormData}" RNextUrl="{!RNextUrl}"/>
+</apex:page>

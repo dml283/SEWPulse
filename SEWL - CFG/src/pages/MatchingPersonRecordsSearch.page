@@ -1,0 +1,161 @@
+<apex:page standardController="Contact"
+	extensions="MatchingPersonRecordsSearchExCon">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Searches for duplicate contacts
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+	<apex:sectionHeader title="Matching Person Records Search"
+		subtitle="Search Duplicate Records of {!Contact.Name}" />
+	<apex:includeScript value="/support/console/22.0/integration.js" />
+	<script type="text/javascript">
+
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Search Duplicates');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+   </script>
+	<apex:outputPanel id="wholePage">
+		<apex:pageblock title="Person Detail" mode="maindetail">
+			<apex:pageblockSection >
+				<apex:outputField value="{!Contact.Name}" />
+				<apex:outputField value="{!Contact.Birthdate}" />
+				<apex:outputField value="{!Contact.AccountId}" />
+				<apex:outputField value="{!Contact.Drivers_License_Number__c}" />
+				<apex:outputField value="{!Contact.Email}" />
+				<apex:outputField value="{!Contact.Preferred_Phone_Number__c}" />
+				<apex:pageblockSectionItem >
+					<apex:outputLabel value="Mailing Address" />
+					<apex:outputText >
+                      {!Contact.MailingStreet}<br />{!Contact.MailingCity}{!IF(NOT(ISNULL(Contact.MailingCity))&&(NOT(ISNULL(Contact.MailingState))||NOT(ISNULL(Contact.MailingPostalCode))),', ','')}{!Contact.MailingState}&nbsp;{!Contact.MailingPostalCode}<br />{!Contact.MailingCountry}
+                  </apex:outputText>
+				</apex:pageblockSectionItem>
+				<apex:outputField value="{!Contact.DP_Key__r.Name}" />
+				</apex:pageblocksection>
+		</apex:pageblock>
+		<apex:form >
+			<apex:pageblock title="Search Duplicate Records" mode="edit">
+				<apex:pagemessages />
+				<apex:pageblocksection columns="1"
+					rendered="{!NOT(ISNULL(personWrapRecords))&&personWrapRecords.size>0}">
+					<apex:pageblockTable value="{!personWrapRecords}"
+						var="personWrapRec">
+						<apex:column >
+							<apex:inputcheckbox value="{!personWrapRec.isSelected}"
+								rendered="{!personWrapRec.isSelectable}" />
+							<apex:image rendered="{!NOT(personWrapRec.isSelectable)}"
+								value="{!URLFOR($Resource.Icons, 'Icons/Warning_Icon.png')}"
+								title="This person is already matched elsewhere." />
+						</apex:column>
+						<apex:column value="{!personWrapRec.personlink.ContactId}" />
+						<apex:column value="{!personWrapRec.person.AccountId}" />
+						<apex:column value="{!personWrapRec.person.Birthdate}" />
+						<apex:column value="{!personWrapRec.person.Drivers_License_Number__c}" />
+						<apex:column value="{!personWrapRec.person.Email}" />
+						<apex:column value="{!personWrapRec.person.Preferred_Phone_Number__c}" />
+						<apex:column headervalue="Mailing Address">
+							<apex:outputText >
+                              {!personWrapRec.person.MailingStreet}<br />{!personWrapRec.person.MailingCity}{!IF(NOT(ISNULL(personWrapRec.person.MailingCity))&&(NOT(ISNULL(personWrapRec.person.MailingState))||NOT(ISNULL(personWrapRec.person.MailingPostalCode))),', ','')}{!personWrapRec.person.MailingState}&nbsp;{!personWrapRec.person.MailingPostalCode}<br />{!personWrapRec.person.MailingCountry}
+                          </apex:outputText>
+						</apex:column>
+						<apex:column headervalue="{!$ObjectType.Duplicate_Person_Key__c.fields.Name.label}"
+							value="{!personWrapRec.person.DP_Key__r.Name}" />
+					</apex:pageblockTable>
+					<apex:outputPanel >
+						<table width="100%">
+							<tr>
+								<td width="25%"><apex:commandLink value="Select All"
+										action="{!selectAllRecords}" status="selectUnselectStatus"
+										reRender="wholePage" />&nbsp; <apex:commandLink value="Unselect All" action="{!unselectAllRecords}"
+										status="selectUnselectStatus" reRender="wholePage" />&nbsp; <apex:actionStatus id="selectUnselectStatus">
+										<apex:facet name="start">
+											<apex:image value="{!$Resource.AjaxAnimation}"
+												alt="Loading..." />
+										</apex:facet>
+									</apex:actionStatus>
+								</td>
+								<td width="23%" style="text-align: right"><apex:commandLink action="{!stdSetCon.first}"
+										rendered="{!stdSetCon.hasPrevious}" value="<< First" />&nbsp;&nbsp;
+									<apex:commandLink action="{!stdSetCon.previous}"
+										rendered="{!stdSetCon.hasPrevious}" value="< Previous" />
+								</td>
+								<td width="4%"></td>
+								<td width="23%"><apex:commandLink action="{!stdSetCon.next}" rendered="{!stdSetCon.hasNext}"
+										value="Next >" />&nbsp;&nbsp; <apex:commandLink action="{!stdSetCon.last}" rendered="{!stdSetCon.hasNext}"
+										value="Last >>" />
+								</td>
+								<td width="25%" style="text-align: right">Page
+									{!stdSetCon.pageNumber}</td>
+							</tr>
+						</table>
+					</apex:outputPanel>
+				</apex:pageblocksection>
+				<apex:outputPanel style="text-align:center"
+					rendered="{!ISNULL(personWrapRecords)||personWrapRecords.size==0}">
+                  No search results returned based on search criteria.
+              </apex:outputPanel>
+
+				<apex:pageblockButtons location="top">
+					<b>Keyword:</b>&nbsp;
+                  <apex:inputText value="{!searchStr}" />
+					<apex:actionStatus id="searchStatus">
+						<apex:facet name="start">
+							<apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..." />
+						</apex:facet>
+						<apex:facet name="stop">
+							<apex:outputPanel >
+								<apex:commandButton action="{!search}" value="Search"
+									reRender="wholePage" status="searchStatus" />
+							</apex:outputPanel>
+						</apex:facet>
+					</apex:actionStatus>
+				</apex:pageblockButtons>
+				<apex:pageblockButtons location="bottom">
+					<apex:actionStatus id="linkStatus">
+						<apex:facet name="start">
+							<apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..." />
+						</apex:facet>
+						<apex:facet name="stop">
+							<apex:outputPanel >
+								<apex:commandButton action="{!linkSelectedRecords}"
+									value="Link Selected Records" reRender="wholePage"
+									status="linkStatus" />
+								<apex:commandButton value="Close Page"
+									onclick="testCloseTab();return false" />
+							</apex:outputPanel>
+						</apex:facet>
+					</apex:actionStatus>
+				</apex:pageblockButtons>
+
+			</apex:pageblock>
+			<script type="text/javascript">
+              function testCloseTab() {
+                  if(sforce.console.isInConsole()){
+                      sforce.console.getEnclosingTabId(closeSubtab);
+                  }
+                  else{
+                      window.location = "{!JSENCODE(retURL)}";
+                  }
+              }
+            
+              var closeSubtab = function closeSubtab(result) {
+                  var tabId = result.id;
+                  sforce.console.closeTab(tabId);
+              };
+          </script>
+		</apex:form>
+	</apex:outputPanel>
+</apex:page>

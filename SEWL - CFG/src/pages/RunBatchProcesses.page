@@ -1,0 +1,27 @@
+<apex:page controller="RunBatchProcessController" title="Run Batch Processes" id="RBPage">
+<!-- 
+    Type:       VF page
+    Purpose:    General page to run batch processes
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+    <apex:form >
+        <apex:pageBlock id="RBPageBlock">
+            <apex:pageBlockSection title="Consumption Current Year Flag" columns="1" collapsible="false">
+                Update the <b><u>Is Current Year Flag</u></b> on the consumption record to be the same as the <b><u>SystemSetting.Financial_Year</u></b> custom setting field
+                <apex:commandButton value="Execute" action="{!consumptionCurrentYrFlagExecute}"></apex:commandButton>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Refresh Customer Segment" columns="1" collapsible="false">
+                Refresh all customer segment details
+                <apex:commandButton value="Execute" action="{!refreshCustomerSegmentExecute}"></apex:commandButton>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Copy Group Billing Address" columns="1" collapsible="false">
+                Copy all group billing account address to billing accounts
+                <apex:commandButton value="Execute" action="{!copyGroupBillingAddressExecute}"></apex:commandButton>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

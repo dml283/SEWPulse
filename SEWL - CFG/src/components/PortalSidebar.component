@@ -1,0 +1,59 @@
+<apex:component controller="PortalSidebarController">
+
+    <!--
+        Description: side bar for portal
+
+        History:
+            13-Dec-2011 J.Pe (Davanti)    Created
+    -->
+
+    <apex:attribute: name="title" type="String" required="false" description="Sidebar title" default="Content"/>
+    <apex:attribute: name="groupName" type="String" required="true" description="Group name (e.g. 'Billing_Account__c')" assignTo="{!groupName}"/>
+    <apex:attribute: name="currentDevName" type="String" required="false" default="null" description="Current developer name (to match with the item's Name field in the PortalSidebarItem Custom Settings)" assignTo="{!currentDevName}"/>
+    <apex:attribute: name="currentAccRecordType" type="String" description="Current account record's developer name (to match with the Visible Account Record Types field in the PortalSidebarItem Custom Settings)" assignTo="{!currentAccRecordType}"/>    
+
+    <apex:stylesheet value="{!$Resource.PortalSidebar_Styles}"/>
+    <style type="text/css">
+        .bPageBlock .pbBody {
+            padding-left: 5px;
+            padding-right: 0px;
+        }
+        .popup {width: 130px;}
+
+    </style>
+
+    <table style="padding:0px 2px 0px 0px; margin:0px; table-layout:fixed; width:100%">
+        <tr style="padding:0px; margin:0px">
+            <td style="padding:0px; margin:0px">
+            <apex:pageBlock id="sidebarpb">
+                <apex:facet name="header">
+                    <div class="pageBlockHeader">
+                        <span class="pageBlockTitle">{!title}</span>
+                        </div>
+                    </apex:facet>
+                    <table style="width:100%; margin:0px; padding:0px; border:none"
+                            cellspacing="0" id="portalcontentstable">
+                        <tr>
+                            <td id="portalInfocell" class="contentsAddressCell">
+                                <apex:componentBody />
+                            </td>
+                        </tr>
+                        <apex:repeat value="{!filteredPortalSidebarItemWrappers}" var="item">
+                            <tr>
+                                <td id="portalhomecell{!item.name}" class="contentsLinkCell">
+                                    <apex:outputLink value="{!item.linkURL}" styleclass="{!IF(currentDevName==item.name, 'contentsLinkActive', 'contentsLink')}" target="_top">
+                                        {!item.label}
+                                        <!--use below if you want to remind user to save before navigate-->
+                                        <!--<span class="popup" >Please save your work before navigating</span>-->
+                                    </apex:outputLink>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                </apex:pageBlock>
+            </td>
+        </tr>
+    </table>
+
+
+</apex:component>

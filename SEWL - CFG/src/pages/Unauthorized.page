@@ -1,0 +1,30 @@
+<apex:page showHeader="false" title="{!$Label.site.authorization_required}" id="Unauthorized" cache="false">
+
+    <apex:composition template="{!$Site.Template}">
+        <apex:define name="body">
+            <div style="margin: auto; width: 600px; display: block" >
+                <div class="sitePanel" style="width: 600px">
+                    <div style="margin: auto; width: 390px">
+                        <br/>
+                        <apex:image url="{!URLFOR($Resource.SiteSamples, 'img/unauthorized.gif')}" style="padding-right: 15px;"/>
+                        <apex:panelGroup >
+                            <apex:outputText styleClass="title" value="{!$Label.site.authorization_required}"/>
+                            <br/>
+                            <br/>
+                            <apex:outputText value="{!$Label.site.login_or_register_first}"/>
+                            <br/>
+                            <apex:outputText value="{!$Label.site.click_forget_password}"/>
+                            <br/>
+                            <br/>
+                        </apex:panelGroup>
+                        <apex:outputText value=""/>
+                        <apex:outputText value=""/>
+                        <c:SiteLogin rendered="{!$Site.LoginEnabled && ISPICKVAL($User.UserType,'Guest')}" id="siteLogin"/>
+                        <br/>
+                    </div>
+                </div>
+            </div>
+        </apex:define>
+    </apex:composition>
+    <site:previewAsAdmin />
+</apex:page>

@@ -1,0 +1,67 @@
+<apex:page sidebar="false" showHeader="false" tabstyle="My_Accounts_Portal__tab" 
+	standardController="Billing_Account__c" extensions="PortalMeterReadingsHistoryExCon" standardStylesheets="false">
+<!-- 
+    Type:       VF page
+    Purpose:    Displays Meter Readings History For Portal User
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+        <!-- hidden outputfields or input fields go here -->
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.Id}"/>
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c}"/>
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.Property__c}"/>      
+        <table maxwidth="900px">
+            <tr>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                        <apex:pageBlock id="pageblock">
+   
+                            <!-- CONTENT -->
+                            <!-- use the outputpanel below for words that goes across the whole content page-->
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!meterListNum==0}"><i>No records to display</i></apex:outputPanel>
+                           <!-- <apex:pageBlockSection id="meterReadings" columns="1" rendered="{!meterListNum!=0}">
+                            
+                            <apex:pageBlockSectionItem >
+                                 <apex:outputLabel >Meter Serial Number:</apex:outputLabel>
+                                 <apex:selectList value="{!currentMeterId}" multiselect="false" size="1">
+                                        <apex:selectOptions value="{!MeterListOption}"/>
+                                        <apex:actionSupport event="onchange" status="loading" rerender="pageblock"/>
+                                 </apex:selectList>
+                            </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>   -->  
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!meterReadings==''&& meterListNum!=0}"><i>No meter readings history to display</i></apex:outputPanel>
+                            <apex:pageBlockSection id="meterHistory" rendered="{!meterReadings!=''}">
+                                 <apex:pageblockTable value="{!meterReadings}" var="read">
+                                  <apex:column headervalue="Read Date">
+                                      <apex:outputText value="{0,date,dd/MM/yyyy}">
+                                          <apex:param value="{!read.readDate}" /> 
+                                      </apex:outputText>
+                                  </apex:column>
+                                  <apex:column headervalue="Reading" style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.reading}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="Consumption" style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.consumption}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="No. of Days"  style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.noOfDays}"/>
+                                  </apex:column>
+                                 <apex:column headervalue="Average Daily Consumption(Litres)"  style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.averageConsumption}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="Reading Method" style="text-align:center;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.readingMethod}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="Estimated" style="text-align:center;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.estimated}"/>
+                                  </apex:column>
+                              </apex:pageblockTable>
+                            </apex:pageBlockSection>                           
+                        </apex:pageBlock>                
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+</apex:page>

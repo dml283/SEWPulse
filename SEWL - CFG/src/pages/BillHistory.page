@@ -1,0 +1,236 @@
+<apex:page standardController="Billing_Account__c"
+                extensions="BillHistoryExCon"
+                title="{!Billing_Account__c.Name} - Billing History">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Displays Bill History and supports View Bill and Print Bill
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+    <apex:outputField rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c}" />
+    <apex:sectionHeader title="Billing History" subtitle="{!Billing_Account__c.HiAF_Account_Number__c}" />
+    <apex:includeScript value="/support/console/22.0/integration.js" />
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}"/>
+
+    <style>
+        .ui-dialog .ui-dialog-title {
+            font-size: 1.1em;
+        }
+        .headerRowRight {
+            text-align: right;
+        }
+    </style>
+
+    <script type="text/javascript">      
+       
+       function setTabTitle() {
+         if (sforce.console.isInConsole())
+           sforce.console.setTabTitle('{!JSINHTMLENCODE(Billing_Account__c.HiAF_Account_Number__c)} - Billing History');
+       }       
+      
+       var previousOnload = window.onload;        
+       window.onload = function() { 
+            if (previousOnload) { 
+                previousOnload();
+            }
+            setTabTitle();                
+       }
+   </script>
+    <!--  <p> -->
+    <!--      Below is the most recent billing details for {!$ObjectType.Billing_Account__c.fields.Name.label} {!Billing_Account__c.Name}. -->
+    <!--  </p> -->
+    <apex:pagemessages id="messages" />
+    <apex:form >
+        <!-- Bill History Page -->
+        <apex:pageblock id="billHistoryPage" title="Recent billing details for {!Billing_Account__c.Name}">
+            <apex:pageBlockSection id="billHistorySection" columns="1">
+                <apex:pageblockTable id="billHistoryTable" value="{!bills}"
+                    var="bill">
+                    <apex:column headervalue="Select">
+                        <apex:inputCheckbox value="{!bill.selected}" />
+                    </apex:column>
+                    <apex:column headervalue="Action">
+                    	<a href="/apex/BillView?CustNumber={!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}&UserId=SEWUSER&Password=sewuser&billNumber1={!bill.BillNumber}" 
+                    				id="viewBill"
+                            		target="_Bill">
+                        View Bill
+                    </a>
+                    </apex:column>
+                    <apex:column headervalue="Bill Number">
+                        <apex:outputLink value="#">
+                            <apex:outputText value="{!bill.BillNumber}" />
+                            <apex:actionSupport oncomplete="ShowBillLines()" event="onclick"
+                                action="{!refreshBillLines}" rerender="billLinesPanel, errors"
+                                status="loading">
+                                <apex:param assignTo="{!currentBillNumber}"
+                                    value="{!bill.BillNumber}" name="selBillNumber" />
+                            </apex:actionSupport>
+                        </apex:outputLink>
+                    </apex:column>
+                    <apex:column headervalue="Reason">
+                        <apex:outputText value="{!bill.Reason}" />
+                    </apex:column>
+                    <apex:column headervalue="Billed Date" style="text-align:right;" headerClass="headerRowRight">
+                        <apex:outputText value="{0,date,dd-MM-yyyy}">
+                            <apex:param value="{!bill.BilledDate}" />
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headervalue="Printed Date" style="text-align:right;" headerClass="headerRowRight">
+                        <apex:outputText value="{0,date,dd-MM-yyyy}">
+                            <apex:param value="{!bill.PrintedDate}" />
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headervalue="B/F Amount" style="text-align:right;" headerClass="headerRowRight">
+                        <apex:outputText value="{!bill.BroughtForwardAmount}" />
+                    </apex:column>
+                    <apex:column headervalue="Billed Amount" style="text-align:right;" headerClass="headerRowRight">
+                        <apex:outputText value="{!bill.BilledAmount}" />
+                    </apex:column>
+                    <apex:column headervalue="Bill Total" style="text-align:right;" headerClass="headerRowRight">
+                        <apex:outputText value="{!bill.BillTotal}" />
+                    </apex:column>
+                </apex:pageblockTable>
+            </apex:pageBlockSection>
+
+            <apex:pageblockButtons location="top">
+                <apex:commandButton value="Close Page"
+                    onclick="testCloseTab();return false" />
+                <apex:commandButton value="Print Selected" action="{!printBill}"
+                    status="loading" rerender="messages" />
+                <apex:selectList value="{!selectedPrintOption}" size="1">
+                    <apex:selectOption itemValue="Local Print" itemLabel="Local Print" />
+                    <apex:selectOption itemValue="Printing House"
+                        itemLabel="Printing House" />
+                <!-- Removed option following 27/11/2011 alpha review 
+                    <apex:selectOption itemValue="Send to Bin" itemLabel="Send to Bin"/>
+                -->
+                </apex:selectList>
+                <script type="text/javascript">
+                  function testCloseTab() {
+                      if(sforce.console.isInConsole()){
+                          sforce.console.getEnclosingTabId(closeSubtab);
+                      }
+                      else{
+                          <!--back to the original record-->
+                          window.location = "/{!Billing_Account__c.id}";
+                      }
+                  }
+                  
+                  var closeSubtab = function closeSubtab(result) {
+                      var tabId = result.id;
+                      sforce.console.closeTab(tabId);
+                  };
+              </script>
+            </apex:pageblockButtons>
+        </apex:pageblock>
+        <!-- End Bill History Page -->
+
+        <!--  FLOATING PANELS -->
+            <!-- Panel that blurs the background -->
+            <!--        <div id="bLineBlur" style="display:none; position:fixed; left:1px; top:1px; width:100%; height:100%; text-align:center; vertical-align: middle; background-color: #dcdcdc; opacity:0.6;filter:alpha(opacity=60); z-index: 98;"></div>
+<!--        <!-- Popup -->
+            <!--        <div id="bLinesDiv" style="display:none; position:fixed; border-right: 2px solid #595959; border-bottom: 2px solid #595959; border-top: 1px solid #7e7e7e; border-left: 1px solid #7e7e7e; margin-left:-420px; margin-top:-160px; left:50%; top:50%; width:840px; height:315px; background-color: white; padding:10px; z-index:99;">
+-->
+            <!--            <apex:commandButton style="background: transparent; height: 24px; clear: left; width: 24px; padding: 0; float: right;" -->
+            <!--                                    onclick="return CloseBillLines(); return false;"                                -->
+            <!--                                    image="{!URLFOR($Resource.Icons, 'Icons/CloseWindow.png')}"/> -->
+
+
+            <!-- BillLines section -->
+            <div id="billdetail-popup" title="Bill Detail - {!Billing_Account__c.Name}" >
+                <apex:outputPanel id="billLinesPanel">
+                    <apex:pageblock title="Bill Lines for Bill Number: {!currentBillNumber}">
+                        <apex:outputPanel layout="block" style="height:200px;width:100%;overflow:auto;align:bottom;">
+                            <apex:pageblockTable id="billLinesTable" value="{!billLines}" var="bLine" style="width:790px;">
+                                <apex:column headervalue="Tarrif Desc" style="text-align:left;">
+                                    <apex:outputText value="{!bLine.TariffDescription}" />
+                                </apex:column>
+                                <apex:column headervalue="Basis" style="text-align:right;">
+                                    <apex:outputText value="{!bLine.Basis}" />
+                                </apex:column>
+                                <apex:column headervalue="Unit Cost" style="text-align:right;">
+                                    <apex:outputText value="{!bLine.UnitCost}" />
+                                </apex:column>
+                                <apex:column headervalue="Charge" style="text-align:right;">
+                                    <apex:outputText value="{!bLine.LineNet}" />
+                                </apex:column>
+                                <apex:column headervalue="Tax" style="text-align:right;">
+                                    <apex:outputText value="{!bLine.LineVAT}" />
+                                </apex:column>
+                                <apex:column headervalue="Total" style="text-align:right;">
+                                    <apex:outputText value="{!bLine.LineTotal}" />
+                                </apex:column>
+                                <apex:column headervalue="Period From" style="text-align:right;">
+                                    <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                        <apex:param value="{!bLine.PeriodFrom}" />
+                                    </apex:outputText>
+                                </apex:column>
+                                <apex:column headervalue="Period To" style="text-align:right;">
+                                    <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                        <apex:param value="{!bLine.PeriodTo}" />
+                                    </apex:outputText>
+                                </apex:column>
+                            </apex:pageblockTable>
+                        </apex:outputPanel>
+                        <apex:pageblockButtons >
+                            <apex:commandButton id="closebtn"
+                                onclick="return CloseBillLines(); return false;" value="Close" />
+                        </apex:pageblockButtons>
+                    </apex:pageblock>
+                    <!-- end BuillLines section -->
+                </apex:outputPanel> 
+            </div> 
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                               borderColor="#6B6B6B"
+                               borderSize="1"
+                               height="50px"
+                               width="120px"
+                               margintop="-25px"
+                               marginleft="-60px"
+                               ImageUrl="{!$Resource.AjaxAnimation}"
+                               messageStyle="font-weight:bold"
+                               Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+
+    <script type="text/javascript">
+
+        var j$ = jQuery.noConflict();
+        j$(function() {
+            j$( "#billdetail-popup").dialog({
+                dialogClass: 'ui-dropshadow',
+                autoOpen: false,
+                height: 370,
+                width: 860,
+                modal: true,
+                resizable: false
+            });
+            //j$("#billdetail-popup").siblings("div.ui-dialog-titlebar").remove();
+        });         
+
+        function ShowBillLines() {
+            try {
+                j$("#billdetail-popup").dialog("open");
+
+            } catch (e) { alert(e.toString()); }
+        }
+
+        function CloseBillLines() {
+            try {
+                j$("#billdetail-popup").dialog("close");
+
+            } catch (e) { alert(e.toString()); }
+            return false;
+        }
+    </script>
+
+</apex:page>

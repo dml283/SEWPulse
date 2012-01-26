@@ -1,0 +1,10 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false">
+<!-- 
+    Type:       VF page
+    Purpose:    Displays the console toolbar component
+    ---------------------------------------------------------------
+    History:
+ -->
+
+    <c:ConsoleToolBar recordId="{!$CurrentPage.parameters.id}"/>
+</apex:page>

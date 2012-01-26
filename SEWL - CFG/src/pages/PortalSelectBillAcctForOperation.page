@@ -1,0 +1,10 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" controller="PortalSidebarController">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:form >
+        <c:PortalSelectBillAcctForOperation groupName="Billing_Account__c" currentDevName="TestActive"/>
+    </apex:form>
+</apex:page>

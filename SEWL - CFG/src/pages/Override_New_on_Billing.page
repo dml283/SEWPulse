@@ -1,0 +1,14 @@
+<apex:page standardController="Billing_Account__c" tabstyle="Billing_Account__c">
+    <div class="bPageTitle">
+        <apex:sectionHeader title="Billing Account" subtitle="Attention">
+            <div class="ptBreadcrumb">
+                &nbsp;«&nbsp;<apex:outputLink value="/a08/o">Back to List: Billing Account</apex:outputLink> 
+            </div>
+        </apex:sectionHeader>
+    </div>
+    <p/>
+    <apex:pageBlock >
+        <span style="color:red">You will need to create the Group Account from the Billing Account related list on the Customer page.</span>
+    </apex:pageBlock>
+
+</apex:page>

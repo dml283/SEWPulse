@@ -1,0 +1,983 @@
+<apex:page standardController="Case" extensions="ManagePaymentPlanExCon"
+    title="Manage Payment Plan">
+    <apex:outputField rendered="false"
+        value="{!Case.Billing_Account__r.HiAF_Account_Number__c}" />
+    <apex:outputField rendered="false"
+        value="{!Case.Billing_Account__r.Property__r.CIS_Property_Id__c}" />
+
+    <apex:includeScript value="/support/console/22.0/integration.js" />
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}" />
+    <script type="text/javascript">      
+       
+       function setTabTitle() {
+         if (sforce.console.isInConsole())
+           sforce.console.setTabTitle('Manage Payment Plans');
+       }       
+      
+       var previousOnload = window.onload;        
+       window.onload = function() { 
+            if (previousOnload) { 
+                previousOnload();
+            }
+            setTabTitle();                
+       }
+   </script>
+    <!--  <p> -->
+    <!--      Below is the most recent billing details for {!$ObjectType.Billing_Account__c.fields.Name.label} {!Case.Billing_Account__r.Name}. -->
+    <!--  </p> -->
+    <apex:form id="theForm">
+        <apex:outputPanel id="wholePage">
+            <apex:outputField rendered="false"
+                value="{!Case.Billing_Account__r.Status__c}" />
+            <apex:sectionHeader title="Manage Payment Plan"
+                subtitle="{!IF(ISNULL(Case.Billing_Account__r.HiAF_Account_Number__c),'',('Manage Payment Plan for Account No. - '+Case.Billing_Account__r.HiAF_Account_Number__c))}" />
+            <apex:pageblock title="1. Customer Details" mode="edit">
+                <apex:pageblocksection columns="1"
+                    rendered="{!ISNULL(Case.AccountId)||ISNULL(Case.Billing_Account__c)}">
+                    <apex:inputField value="{!Case.AccountId}" required="true" />
+                    <apex:inputField value="{!Case.Billing_Account__c}" required="true" />
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1"
+                    rendered="{!NOT(ISNULL(Case.AccountId))&&NOT(ISNULL(Case.Billing_Account__c))}">
+                    <apex:outputField value="{!Case.AccountId}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Property__c}" />
+                    <apex:outputField value="{!Case.Billing_Account__c}" />
+                </apex:pageblocksection>
+                <apex:pageblocksection title="Billing Account Details" columns="2"
+                    rendered="{!NOT(ISNULL(Case.AccountId))&&NOT(ISNULL(Case.Billing_Account__c))}">
+                    <apex:outputField value="{!Case.Billing_Account__r.Status__c}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Payment_Plan_Number_of_Payments__c}"
+                        rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                    <apex:outputPanel rendered="{!NOT(Case.Billing_Account__r.Is_Payment_Plan__c)}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Balance__c}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Payment_Plan_Start_Date__c}"
+                        rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                    <apex:outputPanel rendered="{!NOT(Case.Billing_Account__r.Is_Payment_Plan__c)}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Risk_Factor__c}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Payment_Plan_End_Date__c}"
+                        rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                    <apex:outputPanel rendered="{!NOT(Case.Billing_Account__r.Is_Payment_Plan__c)}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Payment_Plan_Frequency__c}"
+                        rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                    <apex:outputPanel rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                    <apex:outputField value="{!Case.Billing_Account__r.Payment_Plan_Amount__c}"
+                        rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c}" />
+                </apex:pageblocksection>
+                <apex:pageblockButtons location="bottom">
+                    <apex:outputPanel rendered="{!ISNULL(managePaymentPlanMode)&&NOT(ISNULL(Case.AccountId))&&NOT(ISNULL(Case.Billing_Account__c))}">
+                        <apex:pageMessage rendered="{!Case.Billing_Account__r.Status__c=='Pending'}"
+                            strength="1" severity="info"
+                            summary="This is a pending account - No payment plans can be created." />
+                        <apex:pageMessage rendered="{!isCentrePay}" strength="1"
+                            severity="info"
+                            summary="The account has a Classification Code of CL which is Active - Please refer to the Credit Team." />
+                        <apex:outputPanel rendered="{!Case.Billing_Account__r.Status__c<>'Pending'&&NOT(isCentrePay)}">
+                        <apex:pageMessage rendered="{!Case.Billing_Account__r.Risk_Factor__c=='H'&&NOT(isSEWCreditUserProfile)}"
+                                strength="3" severity="error"
+                                summary="This is a high risk account - Please refer to the Credit Team right away." />
+                            <apex:outputPanel rendered="{!Case.Billing_Account__r.Risk_Factor__c<>'H'||isSEWCreditUserProfile}">
+                            <apex:pageMessage rendered="{!Case.Billing_Account__r.Risk_Factor__c=='H'}"
+                                    strength="2" severity="warning"
+                                    summary="Please take note that this is a high risk account." />
+                                <apex:pageMessage rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c&&isClosedOrAdHoc&&Case.Billing_Account__r.Balance__c<>0.0}" strength="2" severity="warning" summary="The payment plan cannot be modified or removed because the account is closed - Please refer to the Credit Team."/>
+                            <apex:pageMessage rendered="{!isClosedOrAdHoc&&Case.Billing_Account__r.Balance__c==0.0}"
+                                        strength="1" severity="info"
+                                        summary="This is a closed account without a debt - no payment plans can be created/modified." />
+                                    <apex:outputPanel rendered="{!NOT(isClosedOrAdHoc)||Case.Billing_Account__r.Balance__c<>0.0}">
+                                <apex:commandbutton value="New Payment Plan" action="{!setModeToAdd}"
+                                            reRender="wholePage" status="loading"
+                                            rendered="{!NOT(Case.Billing_Account__r.Is_Payment_Plan__c)}" />
+                                        <!--<apex:commandbutton value="Modify Existing Plan"
+                                            action="{!setModeToModify}" reRender="wholePage"
+                                            status="loading"
+                                            rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c&&NOT(isClosedOrAdHoc)}" />-->
+                                        <apex:commandbutton value="Remove Plan"
+                                            action="{!setModeToRemove}" reRender="wholePage"
+                                            status="loading"
+                                            rendered="{!Case.Billing_Account__r.Is_Payment_Plan__c&&NOT(isClosedOrAdHoc)}" />
+                                    </apex:outputPanel>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!ISNULL(managePaymentPlanMode)&&(ISNULL(Case.AccountId)||ISNULL(Case.Billing_Account__c))}">
+                        <apex:commandbutton value="Next" reRender="wholePage"
+                            status="loading" action="{!refreshCustomerDetails}" />
+                    </apex:outputPanel>
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <apex:pageblock title="2. Remove Plan Confirmation"
+                rendered="{!managePaymentPlanMode==MANAGE_PAYMENT_PLAN_MODE_REMOVE && managePaymentPlanStepNo>=1}"
+                mode="edit">
+                <apex:pageblockbuttons location="top"
+                    rendered="{!managePaymentPlanStepNo==1}">
+                    <apex:commandbutton value="Back" action="{!backOneStep}"
+                        reRender="wholePage" status="loading" />
+                </apex:pageblockbuttons>
+                <apex:pageblocksection columns="1">
+                    <apex:inputField value="{!Case.RemovePaymentPlan_Letter_Type__c}" required="true"/>
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="Recovery Path" />
+                        <apex:selectList value="{!Case.Recovery_Path__c}" size="1">
+                            <apex:selectoption itemlabel="D1 - RESIDENTIAL 1"
+                                itemvalue="D1 - RESIDENTIAL 1" />
+                            <apex:selectoption itemlabel="D2 - RESIDENTIAL 2"
+                                itemvalue="D2 - RESIDENTIAL 2" />
+                            <apex:selectoption itemlabel="D3 - TENANT USAGE – RES"
+                                itemvalue="D3 - TENANT USAGE – RES" />
+                            <apex:selectoption itemlabel="N1 - NON RESIDENTIAL"
+                                itemvalue="N1 - NON RESIDENTIAL" />
+                            <apex:selectoption itemlabel="N3 - NON RES USAGE"
+                                itemvalue="N3 - NON RES USAGE" />
+                        </apex:selectList>
+                    </apex:pageblockSectionItem>
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel />
+                        <apex:outputPanel >
+                            <apex:pageMessage rendered="{!managePaymentPlanStepNo==1}"
+                                strength="1" severity="info"
+                                summary="Are you sure? Click the 'Remove Payment Plan' button below to confirm the removal." />
+                            <apex:pageMessage rendered="{!managePaymentPlanStepNo>1}"
+                                strength="1" severity="confirm" summary="Payment Plan removed." />
+                        </apex:outputPanel>
+                    </apex:pageblockSectionItem>
+                </apex:pageblocksection>
+                <apex:pageblockButtons location="bottom"
+                    rendered="{!managePaymentPlanStepNo==1}">
+                    <apex:commandbutton value="Remove Payment Plan"
+                        action="{!removePaymentPlan}" reRender="wholePage"
+                        status="loading" />
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <apex:pageblock title="2. Payment Calculation"
+                id="addPlanStepOneAdHoc"
+                rendered="{!managePaymentPlanMode==MANAGE_PAYMENT_PLAN_MODE_ADD && managePaymentPlanStepNo==1 && isClosedOrAdHoc}"
+                mode="edit">
+                <apex:pageblockSection columns="1">
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel />
+                        <apex:outputPanel >
+                            <apex:outputPanel rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                            This is a closed / ad-hoc account - the payment plan must balance to the outstanding amount of&nbsp;<apex:outputField value="{!Case.Billing_Account__r.Balance__c}" />
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!Case.Billing_Account__r.Balance__c==0.0}">
+                            This is a closed / ad-hoc account - There are no remaining balance to pay off.
+                        </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:pageblockSectionItem>
+                </apex:pageblockSection>
+                <script>
+                var noOfPaymentsInputField;
+                var onePaymentAdhocPBS;
+                var onePaymentAdhocLabel;
+                var repayFreqAdhocLabel;
+                var adhocRepayFreqInputField;
+                var adhocStartingOnOutputPanel;
+                var adhocToPayOnOutputPanel;
+                var onePaymentBalanceOutputField;
+                var onePaymentAmountOutputPanel;
+                var twoPaymentAdhocPBS;
+                var threePaymentAdhocPBS;
+                var fourOrMorePaymentAdhocPBS;
+            </script>
+                <apex:pageblockSection columns="1"
+                    rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                <apex:inputField id="noOfPaymentsInputField"
+                        value="{!Case.Adhoc_Number_of_Payments__c}"
+                        onkeyup="changePaymentLayout();">
+                        <script>
+                       noOfPaymentsInputField = document.getElementById('{!$Component.noOfPaymentsInputField}');
+                    </script>
+                    </apex:inputField>
+                </apex:pageblockSection>
+                <apex:pageblockSection columns="1" id="onePaymentAdhocPBS"
+                    rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                <apex:pageblocksectionItem >
+                        <apex:outputPanel >
+                            <apex:outputLabel id="onePaymentAdhocLabel"
+                                value="{!$ObjectType.Case.fields.Adhoc_First_Payment_Amount__c.label}">
+                                <script>
+                                onePaymentAdhocLabel = document.getElementById('{!$Component.onePaymentAdhocLabel}');
+                            </script>
+                            </apex:outputLabel>
+                            <apex:outputLabel id="repayFreqAdhocLabel"
+                                value="{!$ObjectType.Case.fields.Repayment_Frequency__c.label}">
+                                <script>
+                                repayFreqAdhocLabel = document.getElementById('{!$Component.repayFreqAdhocLabel}');
+                            </script>
+                            </apex:outputLabel>
+                        </apex:outputPanel>
+                        <apex:outputPanel >
+                            <apex:outputPanel id="onePaymentAmountOutputPanel">
+                            $<apex:inputField value="{!Case.Adhoc_First_Payment_Amount__c}" />
+                                <script>
+                                onePaymentAmountOutputPanel = document.getElementById('{!$Component.onePaymentAmountOutputPanel}');
+                            </script>
+                            </apex:outputPanel>
+                            <apex:outputField id="onePaymentBalanceOutputField"
+                                value="{!Case.Billing_Account__r.Balance__c}">
+                                <script>
+                                onePaymentBalanceOutputField = document.getElementById('{!$Component.onePaymentBalanceOutputField}');
+                            </script>
+                            </apex:outputField>
+                            <apex:inputField id="adhocRepayFreqInputField"
+                                value="{!Case.Repayment_Frequency__c}">
+                                <script>
+                                adhocRepayFreqInputField = document.getElementById('{!$Component.adhocRepayFreqInputField}');
+                            </script>
+                            </apex:inputField>
+                            <apex:outputText id="adhocStartingOnOutputPanel"
+                                value=", starting on ">
+                                <script>
+                                adhocStartingOnOutputPanel = document.getElementById('{!$Component.adhocStartingOnOutputPanel}');
+                            </script>
+                            </apex:outputText>
+                            <apex:outputText id="adhocToPayOnOutputPanel"
+                                value=", to pay on ">
+                                <script>
+                                adhocToPayOnOutputPanel = document.getElementById('{!$Component.adhocToPayOnOutputPanel}');
+                            </script>
+                            </apex:outputText>
+                            <apex:inputField value="{!Case.Adhoc_First_Payment_Date__c}" />
+                            <script>
+                           onePaymentAdhocPBS = document.getElementById('{!$Component.onePaymentAdhocPBS}');
+                        </script>
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                </apex:pageblockSection>
+                <apex:pageblockSection columns="1" id="twoPaymentAdhocPBS"
+                    rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                <apex:pageblocksectionItem >
+                        <apex:outputLabel value="Second Payment Amount" />
+                        <apex:outputPanel >
+                        $<apex:inputField value="{!Case.Adhoc_Second_Payment_Amount__c}" />
+                        , to pay on&nbsp;<apex:inputField value="{!Case.Adhoc_Second_Payment_Date__c}" />
+                            <script>
+                           twoPaymentAdhocPBS = document.getElementById('{!$Component.twoPaymentAdhocPBS}');
+                        </script>
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                </apex:pageblockSection>
+                <apex:pageblockSection columns="1" id="threePaymentAdhocPBS"
+                    rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                <apex:pageblocksectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Adhoc_Last_Payment_Amount__c.label}" />
+                        <apex:outputPanel >
+                        $<apex:inputField value="{!Case.Adhoc_Last_Payment_Amount__c}" />
+                        , to pay on&nbsp;<apex:inputField value="{!Case.Adhoc_Last_Payment_Date__c}" />
+                            <script>
+                           threePaymentAdhocPBS = document.getElementById('{!$Component.threePaymentAdhocPBS}');
+                        </script>
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                </apex:pageblockSection>
+                <script>
+                var repeatFirstPaymentInputField;
+                var repeatLastPaymentInputField;
+                var firstPaymentWarningMsg;
+                var lastPaymentWarningMsg;
+            </script>
+                <apex:pageblockSection columns="1" id="fourOrMorePaymentAdhocPBS"
+                    rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.VF_ONLY_Adhoc_First_Payment_Amount__c.label}" />
+                        <apex:panelGrid columns="2">
+                            <apex:inputField id="repeatFirstPaymentInputField"
+                                value="{!Case.VF_ONLY_Adhoc_First_Payment_Amount__c}"
+                                onkeyup="firstOrLastPaymentOnly();">
+                                <script>
+                                repeatFirstPaymentInputField = document.getElementsByName('{!$Component.repeatFirstPaymentInputField}')[0]; 
+                            </script>
+                            </apex:inputField>
+                            <apex:pageMessage id="firstPaymentWarningMsg" strength="2"
+                                severity="warning"
+                                summary="First Payment Amount cannot be used when Last Payment Amount is filled.">
+                                <script>
+                                firstPaymentWarningMsg = document.getElementById('{!$Component.firstPaymentWarningMsg}'); 
+                            </script>
+                            </apex:pageMessage>
+                        </apex:panelGrid>
+                    </apex:pageblockSectionItem>
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Adhoc_Regular_Payment_Amount__c.label}" />
+                        <apex:panelGrid >
+                            <apex:inputField value="{!Case.Adhoc_Regular_Payment_Amount__c}" />
+                        </apex:panelGrid>
+                    </apex:pageblockSectionItem>
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.VF_ONLY_Adhoc_Last_Payment_Amount__c.label}" />
+                        <apex:panelGrid columns="2">
+                            <apex:inputField id="repeatLastPaymentInputField"
+                                value="{!Case.VF_ONLY_Adhoc_Last_Payment_Amount__c}"
+                                onkeyup="firstOrLastPaymentOnly();">
+                                <script>
+                                repeatLastPaymentInputField = document.getElementsByName('{!$Component.repeatLastPaymentInputField}')[0]; 
+                            </script>
+                            </apex:inputField>
+                            <apex:pageMessage id="lastPaymentWarningMsg" strength="2"
+                                severity="warning"
+                                summary="Last Payment Amount cannot be used when First Payment Amount is filled.">
+                                <script>
+                                lastPaymentWarningMsg = document.getElementById('{!$Component.lastPaymentWarningMsg}'); 
+                            </script>
+                            </apex:pageMessage>
+                        </apex:panelGrid>
+                    </apex:pageblockSectionItem>
+                </apex:pageblockSection>
+                <script>
+                function firstOrLastPaymentOnly(){
+                    if(repeatFirstPaymentInputField.value != ""){
+                        repeatLastPaymentInputField.value = "";
+                        repeatLastPaymentInputField.style.display = "none";
+                        lastPaymentWarningMsg.style.display = "inline";
+                    }else{
+                        repeatLastPaymentInputField.style.display = "inline";
+                        lastPaymentWarningMsg.style.display = "none";
+                    }
+                    if(repeatLastPaymentInputField.value != ""){
+                        repeatFirstPaymentInputField.value = "";
+                        repeatFirstPaymentInputField.style.display = "none";
+                        firstPaymentWarningMsg.style.display = "inline";
+                    }else{
+                        repeatFirstPaymentInputField.style.display = "inline";
+                        firstPaymentWarningMsg.style.display = "none";
+                    }
+                }
+                firstOrLastPaymentOnly();
+            </script>
+                <script>
+               fourOrMorePaymentAdhocPBS = document.getElementById('{!$Component.fourOrMorePaymentAdhocPBS}');
+            </script>
+                <script>
+               function changePaymentLayout(){
+                   onePaymentAdhocPBS.style.display = 'none';
+                   twoPaymentAdhocPBS.style.display = 'none';
+                   threePaymentAdhocPBS.style.display = 'none';
+                   onePaymentAdhocLabel.style.display = 'none';
+                   repayFreqAdhocLabel.style.display = 'none';
+                   adhocRepayFreqInputField.style.display = 'none';
+                   adhocStartingOnOutputPanel.style.display = 'none';
+                   adhocToPayOnOutputPanel.style.display = 'none';
+                   onePaymentBalanceOutputField.style.display = 'none';
+                   onePaymentAmountOutputPanel.style.display = 'none';
+                   fourOrMorePaymentAdhocPBS.style.display = 'none';
+                   if(noOfPaymentsInputField.value==1){
+                       onePaymentAdhocPBS.style.display = 'inline';
+                       onePaymentAdhocLabel.style.display = 'inline';
+                       adhocToPayOnOutputPanel.style.display = 'inline';
+                       onePaymentBalanceOutputField.style.display = 'inline';
+                   }else if(noOfPaymentsInputField.value==2){
+                       onePaymentAdhocPBS.style.display = 'inline';
+                       onePaymentAdhocLabel.style.display = 'inline';
+                       adhocToPayOnOutputPanel.style.display = 'inline';
+                       onePaymentAmountOutputPanel.style.display = 'inline';
+                       twoPaymentAdhocPBS.style.display = 'inline';
+                   }else if(noOfPaymentsInputField.value==3){
+                       onePaymentAdhocPBS.style.display = 'inline';
+                       onePaymentAdhocLabel.style.display = 'inline';
+                       adhocToPayOnOutputPanel.style.display = 'inline';
+                       onePaymentAmountOutputPanel.style.display = 'inline';
+                       twoPaymentAdhocPBS.style.display = 'inline';
+                       threePaymentAdhocPBS.style.display = 'inline';
+                   }else if(noOfPaymentsInputField.value>3){
+                       onePaymentAdhocPBS.style.display = 'inline';
+                       repayFreqAdhocLabel.style.display = 'inline';
+                       adhocStartingOnOutputPanel.style.display = 'inline';
+                       adhocRepayFreqInputField.style.display = 'inline';
+                       fourOrMorePaymentAdhocPBS.style.display = 'inline';
+                   }
+               }
+               changePaymentLayout();
+            </script>
+                <apex:pageblockButtons location="bottom"
+                    rendered="{!managePaymentPlanStepNo==1}">
+                    <apex:outputPanel rendered="{!Case.Billing_Account__r.Balance__c<>0.0}">
+                    <apex:commandbutton value="Confirm Payment Calculation"
+                            action="{!confirmPaymentCalculation}" reRender="wholePage"
+                            status="loading" />
+                    </apex:outputPanel>
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <apex:pageblock title="2. Payment Calculation"
+                rendered="{!managePaymentPlanMode==MANAGE_PAYMENT_PLAN_MODE_ADD && managePaymentPlanStepNo>1 && isClosedOrAdHoc}"
+                mode="edit">
+                <apex:pageblocksection columns="1">
+                    <apex:outputField value="{!Case.Adhoc_Number_of_Payments__c}" />
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1"
+                    rendered="{!Case.Adhoc_Number_of_Payments__c>=1 && Case.Adhoc_Number_of_Payments__c<=3}">
+                <apex:pageblocksectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Adhoc_First_Payment_Amount__c.label}" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!Case.Adhoc_First_Payment_Amount__c}" />, to pay on&nbsp;
+                        <apex:outputField value="{!Case.Adhoc_First_Payment_Date__c}" />
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                    <apex:pageblocksectionItem rendered="{!Case.Adhoc_Number_of_Payments__c>=2 && Case.Adhoc_Number_of_Payments__c<=3}" >
+                    <apex:outputLabel value="{!$ObjectType.Case.fields.Adhoc_Second_Payment_Amount__c.label}" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!Case.Adhoc_Second_Payment_Amount__c}" />, to pay on&nbsp;
+                        <apex:outputField value="{!Case.Adhoc_Second_Payment_Date__c}" />
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                    <apex:pageblocksectionItem rendered="{!Case.Adhoc_Number_of_Payments__c==3}">
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Adhoc_Last_Payment_Amount__c.label}" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!Case.Adhoc_Last_Payment_Amount__c}" />, to pay on&nbsp;
+                        <apex:outputField value="{!Case.Adhoc_Last_Payment_Date__c}" />
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1"
+                    rendered="{!Case.Adhoc_Number_of_Payments__c>3}">
+                    <apex:pageblocksectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Repayment_Frequency__c.label}" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!Case.Repayment_Frequency__c}" />, starting on&nbsp;
+                        <apex:outputField value="{!Case.Adhoc_First_Payment_Date__c}" />
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                    <apex:outputField value="{!Case.VF_ONLY_Adhoc_First_Payment_Amount__c}"
+                        rendered="{!NOT(ISNULL(Case.VF_ONLY_Adhoc_First_Payment_Amount__c))}" />
+                    <apex:outputField value="{!Case.Adhoc_Regular_Payment_Amount__c}" />
+                    <apex:outputField value="{!Case.VF_ONLY_Adhoc_Last_Payment_Amount__c}"
+                        rendered="{!NOT(ISNULL(Case.VF_ONLY_Adhoc_Last_Payment_Amount__c))}" />
+                </apex:pageblocksection>
+            </apex:pageblock>
+            <apex:pageblock title="2. Payment Calculation"
+                id="addPlanStepOneNormal"
+                rendered="{!managePaymentPlanMode==MANAGE_PAYMENT_PLAN_MODE_ADD && managePaymentPlanStepNo>=1 && NOT(isClosedOrAdHoc)}"
+                mode="edit">
+                <script>
+                var termInputField;
+                var termtwtyfourMonthWarning;
+            </script>
+                <apex:pageblocksection columns="1"
+                    rendered="{!managePaymentPlanStepNo==1}">
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Upfront_Payment__c.label}" />
+                        <apex:panelGrid columns="4">
+                            <apex:outputText value="$" />
+                            <apex:inputField value="{!Case.Upfront_Payment__c}" />
+                            <apex:outputText value=", to pay on " />
+                            <apex:inputField value="{!Case.Date_of_Payment__c}" />
+                        </apex:panelGrid>
+                    </apex:pageblockSectionItem>
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Term__c.label}" />
+                        <apex:panelGrid columns="2">
+                            <apex:inputField id="termInputField" value="{!Case.Term__c}"
+                                onchange="warningForTerms();">
+                                <script>
+                                termInputField = document.getElementById('{!$Component.termInputField}');
+                            </script>
+                            </apex:inputField>
+                            <apex:pageMessage id="termtwtyfourMonthWarning" strength="2"
+                                severity="warning"
+                                summary="Only specific users can use the '24 months' option. If you are not one of those users, you will not be able to estimate with this option.">
+                                <script>
+                                termtwtyfourMonthWarning = document.getElementById('{!$Component.termtwtyfourMonthWarning}');
+                            </script>
+                            </apex:pageMessage>
+                        </apex:panelGrid>
+                    </apex:pageblockSectionItem>
+                    <apex:inputField value="{!Case.Recovery_Path__c}"
+                        rendered="{!CONTAINS(Case.Billing_Account__r.Recovery_Path__c,'QP')}" />
+                </apex:pageblocksection>
+                <script>
+                function warningForTerms(){
+                    var termChoice = termInputField.options[termInputField.selectedIndex].value;
+                    if(termChoice == "24 months"){
+                        termtwtyfourMonthWarning.style.display = "inline";
+                    }else{
+                        termtwtyfourMonthWarning.style.display = "none";
+                    }
+                }
+                warningForTerms();
+            </script>
+                <apex:pageblocksection columns="1"
+                    rendered="{!managePaymentPlanStepNo>1}">
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Upfront_Payment__c.label}" />
+                        <apex:outputPanel >
+                            <apex:outputPanel rendered="{!NOT(ISNULL(Case.Upfront_Payment__c))}">
+                                <apex:outputField value="{!Case.Upfront_Payment__c}" /> to pay on&nbsp;<apex:outputField value="{!Case.Date_of_Payment__c}" />
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!ISNULL(Case.Upfront_Payment__c)}">
+                            None
+                        </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:pageblockSectionItem>
+                    <apex:outputField value="{!Case.Term__c}" />
+                    <apex:outputField value="{!Case.Recovery_Path__c}"
+                        rendered="{!CONTAINS(Case.Billing_Account__r.Recovery_Path__c,'QP')}" />
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1"
+                    rendered="{!managePaymentPlanStepNo==1}">
+                    <apex:pageblocksectionItem rendered="{!isEstimatedOnce}">
+                        <apex:outputlabel />
+                        <apex:outputLink value="#">
+                            <apex:outputText value="Select Bills for Re-estimate" />
+                            <apex:actionSupport oncomplete="ShowBills()" event="onclick"
+                                rerender="errors, billPanel, billLinesPanel" status="loading" />
+                        </apex:outputLink>
+                    </apex:pageblocksectionItem>
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1" rendered="{!isEstimatedOnce}">
+                    <apex:pageblocksectionItem >
+                        <apex:outputLabel value="Estimation Summary" />
+                        <apex:pageblockTable value="{!estimationSummaryTable}"
+                            var="estSummaryTableRow" style="width:60%">
+                            <apex:column headerValue="Description"
+                                value="{!estSummaryTableRow.description}" />
+                            <apex:column headerValue="Amount" style="width:80px">
+                                <apex:outputText value="${0, number, ###,###,##0.00}">
+                                    <apex:param value="{!estSummaryTableRow.amount}" />
+                                </apex:outputText>
+                            </apex:column>
+                        </apex:pageblockTable>
+                    </apex:pageblocksectionItem>
+                    <apex:pageblocksectionItem >
+                        <apex:outputLabel value="Est. Payment Amount" />
+                        <apex:pageblockTable value="{!estPaymentAmountTable}"
+                            var="estPayAmtTableRow" style="width:30%">
+                            <apex:column headerValue="Monthly">
+                                <apex:outputText value="${0, number, ###,###,##0.00}">
+                                    <apex:param value="{!estPayAmtTableRow.monthlyAmount}" />
+                                </apex:outputText>
+                            </apex:column>
+                            <apex:column headerValue="Fortnightly">
+                                <apex:outputText value="${0, number, ###,###,##0.00}">
+                                    <apex:param value="{!estPayAmtTableRow.fortnightlyAmount}" />
+                                </apex:outputText>
+                            </apex:column>
+                            <apex:column headerValue="Weekly">
+                                <apex:outputText value="${0, number, ###,###,##0.00}">
+                                    <apex:param value="{!estPayAmtTableRow.weeklyAmount}" />
+                                </apex:outputText>
+                            </apex:column>
+                        </apex:pageblockTable>
+                    </apex:pageblocksectionItem>
+                </apex:pageblocksection>
+                <apex:outputPanel rendered="{!isEstimatedOnce && managePaymentPlanStepNo==1}">
+                    <script>
+                    var repayFreqPicklist;
+                    var monthlyAmtInputHidden;
+                    var fortngtlyAmtInputHidden;
+                    var wklyAmtInputHidden;
+                    var originalEstInputHidden;
+                    var paymentAmtInputField;
+                    var weeklyWarning;
+                </script>
+                    <apex:inputHidden id="monthlyAmtInputHidden"
+                        value="{!estPaymentAmountTable[0].monthlyAmount}">
+                        <script>
+                        monthlyAmtInputHidden = document.getElementById('{!$Component.monthlyAmtInputHidden}');
+                    </script>
+                    </apex:inputHidden>
+                    <apex:inputHidden id="fortngtlyAmtInputHidden"
+                        value="{!estPaymentAmountTable[0].fortnightlyAmount}">
+                        <script>
+                        fortngtlyAmtInputHidden = document.getElementById('{!$Component.fortngtlyAmtInputHidden}');
+                    </script>
+                    </apex:inputHidden>
+                    <apex:inputHidden id="wklyAmtInputHidden"
+                        value="{!estPaymentAmountTable[0].weeklyAmount}">
+                        <script>
+                        wklyAmtInputHidden = document.getElementById('{!$Component.wklyAmtInputHidden}');
+                    </script>
+                    </apex:inputHidden>
+                    <apex:inputHidden id="originalEstInputHidden"
+                        value="{!Case.Payment_Amount_Original_Estimate__c}">
+                        <script>
+                        originalEstInputHidden = document.getElementById('{!$Component.originalEstInputHidden}');
+                    </script>
+                    </apex:inputHidden>
+                </apex:outputPanel>
+                <apex:pageblocksection columns="1"
+                    rendered="{!isEstimatedOnce && managePaymentPlanStepNo==1}">
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Repayment_Frequency__c.label}" />
+                        <apex:PanelGrid columns="2">
+                            <apex:inputField id="repayFreqPicklist"
+                                value="{!Case.Repayment_Frequency__c}"
+                                onchange="updatePaymentAmount();">
+                                <script>
+                                repayFreqPicklist = document.getElementById('{!$Component.repayFreqPicklist}');
+                            </script>
+                            </apex:inputField>
+                            <apex:pageMessage id="weeklyWarning" strength="2"
+                                severity="warning"
+                                summary="Please give the customer a weekly payment plan ONLY IF they insist - as we are trying to minimise payment numbers.">
+                                <script>
+                                weeklyWarning = document.getElementById('{!$Component.weeklyWarning}');
+                                weeklyWarning.style.display = "none";
+                            </script>
+                            </apex:pageMessage>
+                        </apex:PanelGrid>
+                    </apex:pageblockSectionItem>
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Payment_Amount__c.label}" />
+                        <apex:panelGrid columns="4">
+                            <apex:outputText value="$  " />
+                            <apex:outputPanel >
+                                <apex:inputField id="paymentAmtInputField"
+                                    value="{!Case.Payment_Amount__c}" />
+                                <script>
+                                paymentAmtInputField = document.getElementById('{!$Component.paymentAmtInputField}');
+                            </script>
+                            </apex:outputPanel>
+                            <apex:outputText value=", with first payment on  " />
+                            <apex:inputField value="{!Case.First_Payment_Date__c}" />
+                        </apex:panelGrid>
+                    </apex:pageblockSectionItem>
+                    <script>
+                    function updatePaymentAmount() {
+                        var repayFreqChoice = repayFreqPicklist.options[repayFreqPicklist.selectedIndex].value;
+                        weeklyWarning.style.display = "none";
+                        if(repayFreqChoice == 'Monthly'){
+                            originalEstInputHidden.value = monthlyAmtInputHidden.value;
+                            paymentAmtInputField.value = monthlyAmtInputHidden.value;
+                        }else if (repayFreqChoice == 'Fortnightly'){
+                            originalEstInputHidden.value = fortngtlyAmtInputHidden.value;
+                            paymentAmtInputField.value = fortngtlyAmtInputHidden.value;
+                        }else if (repayFreqChoice == 'Weekly'){
+                            originalEstInputHidden.value = monthlyAmtInputHidden.value;
+                            paymentAmtInputField.value = wklyAmtInputHidden.value;
+                            weeklyWarning.style.display = "inline";
+                        }
+                    }
+                </script>
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1"
+                    rendered="{!managePaymentPlanStepNo==1}">
+                    <apex:pageblocksectionItem >
+                        <apex:outputlabel />
+                        <apex:commandButton value="Estimate"
+                            rendered="{!NOT(isEstimatedOnce)}"
+                            reRender="wholePage, billPanel, billLinesPanel" status="loading"
+                            action="{!estimatePaymentPlan}" />
+                    </apex:pageblocksectionItem>
+                </apex:pageblocksection>
+                <apex:pageblocksection columns="1"
+                    rendered="{!isEstimatedOnce && managePaymentPlanStepNo>1}">
+                    <apex:outputField value="{!Case.Repayment_Frequency__c}" />
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Payment_Amount__c.label}" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!Case.Payment_Amount__c}" /> , starting from&nbsp;<apex:outputField value="{!Case.First_Payment_Date__c}" />
+                        </apex:outputPanel>
+                    </apex:pageblockSectionItem>
+                </apex:pageblocksection>
+                <apex:pageblockButtons location="bottom"
+                    rendered="{!isEstimatedOnce && managePaymentPlanStepNo==1}">
+                    <apex:commandbutton value="Confirm Payment Calculation"
+                        action="{!confirmPaymentCalculation}" reRender="wholePage"
+                        status="loading" />
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <apex:pageblock title="3. Payment Method" id="addPlanStepTwo"
+                rendered="{!managePaymentPlanMode==MANAGE_PAYMENT_PLAN_MODE_ADD && managePaymentPlanStepNo>=2}"
+                mode="edit">
+                <apex:pageblockbuttons location="top"
+                    rendered="{!managePaymentPlanStepNo==2}">
+                    <apex:commandbutton value="Back" action="{!backOneStep}"
+                        reRender="wholePage" status="loading" />
+                </apex:pageblockbuttons>
+                <script>
+                var paymentMethodInputField;
+                var remindRemoveDDOutputPanel;
+                var remindSetupDDOutputPanel;
+            </script>
+                <apex:pageBlockSection columns="1">
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel value="Direct Debit Status" />
+                        <apex:outputPanel >
+                            <apex:outputText value="YES - direct debit arrangement in place"
+                                rendered="{!Case.Billing_Account__r.Direct_Debit__c}" />
+                            <apex:outputText value="NO - direct debit arrangement does not exist"
+                                rendered="{!NOT(Case.Billing_Account__r.Direct_Debit__c)}" />
+                        </apex:outputPanel>
+                    </apex:pageblockSectionItem>
+                    <apex:pageblocksectionItem rendered="{!managePaymentPlanStepNo==2}">
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Payment_Method__c.label}" />
+                        <apex:panelGrid columns="3">
+                            <apex:inputField id="paymentMethodInputField"
+                                value="{!Case.Payment_Method__c}"
+                                onchange="checkDDForPaymentMethod();">
+                                <script>
+                                paymentMethodInputField = document.getElementById('{!$Component.paymentMethodInputField}');
+                            </script>
+                            </apex:inputField>
+                            <apex:pageMessage id="remindSetupDDOutputPanel" strength="2"
+                                severity="warning"
+                                summary="No direct debit arrangement exists - please setup Direct Debit using the link below before confirming the payment method.">
+                                <apex:outputLink value="#" onclick="directDebitAmend();"
+                                    id="dda1">Amend Direct Debit</apex:outputLink>
+                                <script>
+                                remindSetupDDOutputPanel = document.getElementById('{!$Component.remindSetupDDOutputPanel}');
+                            </script>
+                            </apex:pageMessage>
+                            <apex:pageMessage id="remindRemoveDDOutputPanel" strength="2"
+                                severity="warning"
+                                summary="Direct debit arrangement in place - please remove Direct Debit using the link below before confirming the payment method.">
+                                <apex:outputLink value="#" onclick="directDebitCancel();"
+                                    id="dda2">Cancel Direct Debit</apex:outputLink>
+                                <script>
+                                remindRemoveDDOutputPanel = document.getElementById('{!$Component.remindRemoveDDOutputPanel}');
+                            </script>
+                            </apex:pageMessage>
+                        </apex:panelGrid>
+                    </apex:pageblocksectionItem>
+                    <apex:outputField value="{!Case.Payment_Method__c}"
+                        rendered="{!managePaymentPlanStepNo>2}" />
+                </apex:pageBlockSection>
+                <script>                
+                function directDebitAmend(){
+                    if(sforce.console.isInConsole()){
+                        sforce.console.getEnclosingPrimaryTabId(openDirectDebitAmend );
+                    }else{
+                        window.open('{!directDebitURLAmendPrefix}', '_blank');
+                    }
+                }
+                var openDirectDebitAmend = function openDirectDebitAmend(result) {
+                    sforce.console.openSubtab(result.id ,'{!directDebitURLAmendPrefix}&isdtp=vw', true, 'Direct Debit Amend', null);
+                }                
+                function directDebitCancel(){
+                    if(sforce.console.isInConsole()){
+                        sforce.console.getEnclosingPrimaryTabId(openDirectDebitCancel );
+                    }else{
+                        window.open('{!directDebitURLCancelPrefix}', '_blank');
+                    }
+                }
+                var openDirectDebitCancel = function openDirectDebitCancel(result) {
+                    sforce.console.openSubtab(result.id ,'{!directDebitURLCancelPrefix}&isdtp=vw', true, 'Direct Debit Cancel', null);
+                }
+            </script>
+                <script>
+                function checkDDForPaymentMethod(){
+                    var paymentMethodChoice = paymentMethodInputField.options[paymentMethodInputField.selectedIndex].value;
+                    remindRemoveDDOutputPanel.style.display = "none";
+                    remindSetupDDOutputPanel.style.display = "none";
+                    if({!Case.Billing_Account__r.Direct_Debit__c} && paymentMethodChoice!="Direct Debit"){
+                        remindRemoveDDOutputPanel.style.display = "inline";
+                    }else if({!NOT(Case.Billing_Account__r.Direct_Debit__c)} && paymentMethodChoice=="Direct Debit"){
+                        remindSetupDDOutputPanel.style.display = "inline";
+                    }
+                }
+                checkDDForPaymentMethod();
+            </script>
+                <apex:pageblockButtons location="bottom"
+                    rendered="{!managePaymentPlanStepNo==2}">
+                    <apex:commandbutton value="Confirm Payment Method"
+                        action="{!confirmPaymentMethod}" reRender="wholePage"
+                        status="loading" />
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <apex:pageblock title="4. Confirmation" id="addPlanStepThree"
+                rendered="{!managePaymentPlanMode==MANAGE_PAYMENT_PLAN_MODE_ADD && managePaymentPlanStepNo>=3}"
+                mode="edit">
+                <apex:pageblockbuttons location="top"
+                    rendered="{!managePaymentPlanStepNo==3}">
+                    <apex:commandbutton value="Back" action="{!backOneStep}"
+                        reRender="wholePage" status="loading" />
+                </apex:pageblockbuttons>
+                <apex:pageblocksection columns="1">
+                    <apex:pageblockSectionItem >
+                        <apex:outputLabel />
+                        <apex:outputPanel >
+                            <apex:pageMessage rendered="{!managePaymentPlanStepNo==3}"
+                                strength="1" severity="info"
+                                summary="Please confirm the details above and click 'Submit Payment Plan' to create a payment plan." />
+                            <apex:pageMessage rendered="{!managePaymentPlanStepNo>3}"
+                                strength="1" severity="confirm" summary="Payment Plan created." />
+                        </apex:outputPanel>
+                    </apex:pageblockSectionItem>
+                </apex:pageblocksection>
+                <apex:pageblockButtons location="bottom"
+                    rendered="{!managePaymentPlanStepNo==3}">
+                    <apex:commandbutton value="Submit Payment Plan"
+                        action="{!submitPaymentPlan}" reRender="wholePage"
+                        status="loading" />
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <apex:pagemessages id="errors" />
+        </apex:outputPanel>
+        <!--  FLOATING PANELS -->
+        <div id="bill-popup"><apex:outputPanel id="billPanel">
+            <apex:pageblock title="Recent billing details for {!Case.Billing_Account__r.Name}"
+                rendered="{!NOT(ISNULL(Case.Billing_Account__r))}">
+                <apex:outputPanel layout="block"
+                    style="height:200px;width:100%;overflow:auto;align:bottom;">
+                    <apex:pageblockTable id="billHistoryTable" value="{!displayBills}"
+                        var="bill" rendered="{!NOT(ISNULL(displayBills))}">
+                        <apex:column headervalue="Select">
+                            <apex:inputCheckbox id="billselected" value="{!bill.selected}" />
+                        </apex:column>
+                        <apex:column headervalue="Bill Number"> 
+                            <apex:outputLink value="#">
+                              <apex:outputText value="{!bill.BillNumber}"/>
+                              <apex:actionSupport oncomplete="ShowBillLines()" event="onclick" action="{!billHistExCon.refreshBillLines}" rerender="billLinesPanel, errors" status="loading">
+                                  <apex:param assignTo="{!billHistExCon.currentBillNumber}" value="{!bill.BillNumber}" name="selBillNumber"/>
+                              </apex:actionSupport>
+                            </apex:outputLink>  
+                        </apex:column>
+                        <apex:column headervalue="Reason">
+                            <apex:outputText value="{!bill.Reason}" />
+                        </apex:column>
+                        <apex:column headervalue="Billed Date" style="text-align:right;">
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!bill.BilledDate}" />
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="Printed Date" style="text-align:right;">
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!bill.PrintedDate}" />
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="B/F Amount" style="text-align:right;">
+                            <apex:outputText value="{!bill.BroughtForwardAmount}" />
+                        </apex:column>
+                        <apex:column headervalue="Billed Amount" style="text-align:right;">
+                            <apex:outputText value="{!bill.BilledAmount}" />
+                        </apex:column>
+                        <apex:column headervalue="Bill Total" style="text-align:right;">
+                            <apex:outputText value="{!bill.BillTotal}" />
+                        </apex:column>
+                    </apex:pageblockTable>
+                </apex:outputPanel>
+                <apex:inputHidden value="{!nbrOfDisplayedBills}" id="nbrDisplayedBills"/>
+                <apex:pageblockButtons location="bottom">
+                    <apex:commandButton id="closebtn" 
+                        oncomplete="CloseBills()" value="Re-estimate"
+                        action="{!estimatePaymentPlan}"
+                        reRender="wholePage,billPanel,errors" 
+                        status="loading" />
+                </apex:pageblockButtons>
+            </apex:pageblock>
+            <!-- End Bill History Page -->
+        </apex:outputPanel></div>
+
+        <div id="billdetail-popup" title="Bill Detail"><apex:outputPanel id="billLinesPanel">
+            <apex:pageblock title="Bill lines for Bill Number: {!billHistExCon.currentBillNumber}">
+                <apex:outputPanel layout="block"
+                    style="height:200px;width:100%;overflow:auto;align:bottom;">
+                    <apex:pageblockTable id="billLinesTable"
+                        value="{!billHistExCon.billLines}" var="bLine"
+                        style="width:790px;"
+                        rendered="{!NOT(ISNULL(billHistExCon.billLines))}">
+                        <apex:column headervalue="Tarrif Desc" style="text-align:left;">
+                            <apex:outputText value="{!bLine.TariffDescription}" />
+                        </apex:column>
+                        <apex:column headervalue="Basis" style="text-align:right;">
+                            <apex:outputText value="{!bLine.Basis}" />
+                        </apex:column>
+                        <apex:column headervalue="Unit Cost" style="text-align:right;">
+                            <apex:outputText value="{!bLine.UnitCost}" />
+                        </apex:column>
+                        <apex:column headervalue="Charge" style="text-align:right;">
+                            <apex:outputText value="{!bLine.LineNet}" />
+                        </apex:column>
+                        <apex:column headervalue="Tax" style="text-align:right;">
+                            <apex:outputText value="{!bLine.LineVAT}" />
+                        </apex:column>
+                        <apex:column headervalue="Total" style="text-align:right;">
+                            <apex:outputText value="{!bLine.LineTotal}" />
+                        </apex:column>
+                        <apex:column headervalue="Period From" style="text-align:right;">
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!bLine.PeriodFrom}" />
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headervalue="Period To" style="text-align:right;">
+                            <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                <apex:param value="{!bLine.PeriodTo}" />
+                            </apex:outputText>
+                        </apex:column>
+                    </apex:pageblockTable>
+                </apex:outputPanel>
+                <apex:pageblockButtons location="bottom">
+                    <apex:commandButton id="closebtn"
+                        onclick="return CloseBillLines(); return false;" value="Close" />
+                </apex:pageblockButtons>
+            </apex:pageblock>
+        </apex:outputPanel></div>
+        <script type="text/javascript">
+
+        var j$ = jQuery.noConflict();
+        j$(function() {
+            j$( "#billdetail-popup").dialog({
+                dialogClass: 'ui-dropshadow',
+                autoOpen: false,
+                height: 360,
+                width: 860,
+                modal: true,
+                resizable: false,
+                zIndex: 60
+            });
+            j$("#billdetail-popup").siblings("div.ui-dialog-titlebar").remove();
+            // added function to move popup back in form - jquery will normally move it outside
+            j$("#billdetail-popup").parent().appendTo(j$("#{!SUBSTITUTE($Component.theForm,':','\\\\:')}")); 
+        });         
+
+        function ShowBillLines() {
+            try {
+                j$("#billdetail-popup").dialog("open");
+
+            } catch (e) { alert(e.toString()); }
+        }
+
+        function CloseBillLines() {
+            try {
+                j$("#billdetail-popup").dialog("close");
+
+            } catch (e) { alert(e.toString()); }
+            return false;
+        }
+        j$(function() {
+            j$( "#bill-popup").dialog({
+                dialogClass: 'ui-dropshadow',
+                autoOpen: false,
+                height: 360,
+                width: 860,
+                modal: true,
+                resizable: false,
+                zIndex: 50
+            });
+            j$("#bill-popup").siblings("div.ui-dialog-titlebar").remove();
+            // added function to move popup back in form - jquery will normally move it outside
+            j$("#bill-popup").parent().appendTo(j$("#{!SUBSTITUTE($Component.theForm,':','\\\\:')}")); 
+        });         
+
+        function ShowBills() {
+            try {
+                j$("#bill-popup").dialog("open");
+
+            } catch (e) { alert(e.toString()); }
+        }
+
+        function CloseBills() {
+            try {
+                j$("#bill-popup").dialog("close");
+
+            } catch (e) { alert(e.toString()); }
+            return false;
+        }
+    </script>
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff" borderColor="#6B6B6B"
+                    borderSize="1" height="50px" width="120px" margintop="-25px"
+                    marginleft="-60px" ImageUrl="{!$Resource.AjaxAnimation}"
+                    Message="Loading..." />
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+
+
+
+
+</apex:page>

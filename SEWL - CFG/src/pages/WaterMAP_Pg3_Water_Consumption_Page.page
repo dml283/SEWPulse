@@ -1,0 +1,307 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Pg3_Water_Consump_Con"
+            sidebar="false" tabstyle="WaterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+    </script>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+
+    <style type="text/css">
+
+        <!-- increase width of label for this page only -->
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+
+    </style>
+
+    <apex:form >
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Year__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Water_Consumption_Complete__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}"/>
+<!--         <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.ANZSIC_Code__c}"/>  -->
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Site_Manager__r.Name}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Primary_Contact__r.Name}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Secondary_Contact__r.Name}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Water_Cost_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Water_Use_KL_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Sewage_Disposal_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Trade_Waste_Cost_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Water_Cost_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Water_Use_Pct__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Id}"/>
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                     <c:WaterMAPContentsSidebar id="sidebar" waterMAPSubId="{!waterMAPSub.Id}" currentPageNumber="3" />
+               </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:pageBlock id="pageblock">
+
+                        <!--  HEADER -->
+                        <apex:facet name="header">
+                            <div class="pageBlockHeader">
+                                <span class="pageBlockTitle">Water Consumption</span>
+                            </div>
+                        </apex:facet>
+
+                        <!--  TOP BUTTONS -->
+                        <div style="vertical-align: text-top;height: 40px;">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                        <!--  PAGE MESSAGES -->
+                        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                        <!-- CONTENT -->
+                        <apex:outputPanel >
+                            <h1>Baseline Water Use</h1>
+                            <p/>
+                            Your baseline water use is the amount of water you are currently using. It helps you
+                            determine potential savings. Savings can be easily identified by comparing your water
+                            use each year with your baseline water use.
+                            <p/>
+                            <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                The Baseline water use tables below contains information from the South East Water
+                                billing system that relates to your water consumption history, review the data
+                                contained to ensure it is realistic. Please contact your Key Customer Manager if any data
+                                appears to be inaccurate.
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="baselineWaterUseLists" value="Baseline water use"/>
+                                <apex:outputPanel id="baselineWaterUseLists">
+                                    <apex:repeat value="{!baselineWaterUseTables}" var="table">
+                                        <div style="border-top: #595959 solid 1px; padding: 3px 0px; color: #005f98; background-color: #e5f1f8;">
+                                            <h2>Year {!table.financialYear}</h2>
+                                        </div>
+                                        <apex:pageblocktable value="{!table.chargesWithTotal}" rendered="{!table.size>0}" var="charge" style="margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                            <apex:column headerValue="Period" headerClass="headerRowLGBack headerRowPeriod" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')}; white-space:nowrap;">
+                                                <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')};"><apex:outputField value="{!charge.Name}"/></span>
+                                            </apex:column>
+                                            <apex:column headerValue="Water used (kL)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Water_Volume__c}"/></span>
+                                            </apex:column>
+                                            <apex:column headerValue="Water used ($)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Water_Cost__c}"/></span>
+                                            </apex:column>
+                                            <apex:column headerValue="Sewage disposal ($)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Sewage_Disposal_Cost__c}"/></span>
+                                            </apex:column>
+                                            <apex:column headerValue="Trade waste ($)" headerClass="headerRowRight headerRowLGBack" style="border-top: {!IF(charge.Name=='Total', '#bbb0A6 1px solid', '0')};" styleclass="dataRowRight">
+                                                <span style="font-weight:{!IF(charge.Name=='Total','bold','normal')}"><apex:outputField value="{!charge.Trade_Waste_Cost__c}"/></span>
+                                            </apex:column>
+                                        </apex:pageblocktable>
+                                        <apex:outputPanel rendered="{!table.size=0}" layout="block" style="border-top: #bbb0a6 1px solid; border-bottom: #595959 solid 1px; padding: 10px 4px; margin-bottom: 10px;">
+                                            <i>No usage for this year</i>
+                                        </apex:outputPanel>
+                                    </apex:repeat>
+                                    <div style="border-top: #595959 solid 1px; padding: 3px 0px; color: #005f98; background-color: #e5f1f8;">
+                                        <h2>Summary</h2>
+                                    </div>
+                                    <apex:pageblocktable value="{!baselineSummaryCurrentYr}" var="summary" style="margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                        <apex:column headerValue="Value" headerClass="headerRowLGBack headerRowPeriod" style="width:98px">
+                                            <span style="font-weight:bold"><apex:outputText value="{!IF(ISNULL(summary.id),'Actual % Changes between Last Two Years','Proposed % Changes from Last WaterMAP')}"/></span>
+                                        </apex:column>
+                                        <apex:column headerValue="Water used (kL)"
+                                                        headerClass="headerRowRight headerRowLGBack"
+                                                        style="text-align: right" styleclass="dataRowRight">
+                                            <apex:outputText value="{!summary.Prior_Yr_Fcst_Water_Use_KL_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Water_Use_KL_Pct__c))}"/>
+                                            <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Water_Use_KL_Pct__c))}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="Water used ($)"
+                                                        headerClass="headerRowRight headerRowLGBack"
+                                                        style="text-align: right" styleclass="dataRowRight">
+                                            <apex:outputText value="{!summary.Prior_Yr_Fcst_Water_Cost_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Water_Cost_Pct__c))}"/>
+                                            <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Water_Cost_Pct__c))}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="Sewage disposal ($)"
+                                                        headerClass="headerRowRight headerRowLGBack"
+                                                        style="text-align: right" styleclass="dataRowRight">
+                                            <apex:outputText value="{!summary.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c))}"/>
+                                            <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c))}"/>
+                                        </apex:column>
+                                        <apex:column headerValue="Trade waste ($)"
+                                                        headerClass="headerRowRight headerRowLGBack"
+                                                        style="text-align: right" styleclass="dataRowRight">
+                                            <apex:outputText value="{!summary.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c}%" rendered="{!NOT(ISNULL(summary.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c))}"/>
+                                            <apex:outputText value="N/A" rendered="{!(ISNULL(summary.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c))}"/>
+                                        </apex:column>
+                                    </apex:pageblocktable>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        When reviewing your water use history:
+                                        <ul style="padding-left: 0px;">
+                                            <li>
+                                                Ensure the data represents normal operating
+                                                conditions, i.e. there were no shutdowns or refurbishments during the period. If
+                                                there has been a deviation from normal conditions during the period, include a
+                                                description or reason for this (and the estimated impact on water use during the
+                                                period).
+                                            </li>
+                                            <li>Explain any significant variance between actual and proposed % change.</li>
+                                        </ul>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="waterUseComment" value="{!$ObjectType.WaterMAP__c.fields.Water_Use_Comments__c.label}"/>
+                                <apex:inputField id="waterUseComment" value="{!WaterMAP_Submission__c.WaterMAP__r.Water_Use_Comments__c}" style="height:50px"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <br/>
+                                <apex:outputPanel >
+                                    <p/><h1>Water Use Areas</h1>
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        A site walk through will ensure all water use areas have been included.
+                                        Use the upload function (Major facilities diagram) to insert a process
+                                        flow chart of your site water use if desired.
+                                        <p/>
+                                        Note: The upload of major facilities diagram is optional.
+                                    </apex:outputPanel>
+                                    <p/>
+                                </apex:outputPanel>
+                        <apex:pageBlockSection id="majorwaterareasection" collapsible="false" columns="1">
+                            <apex:iframe src="{!$Page.WaterMAP_Pg3_MajorWaterAreaFrame}?id={!WaterMAP_Submission__c.id}" height="120px" scrolling="false"/>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="influencingFactors" value="{!$ObjectType.WaterMAP__c.fields.Water_Use_Influencing_Factors__c.label}"/>
+                                <apex:inputField id="influencingFactors" value="{!WaterMAP_Submission__c.WaterMAP__r.Water_Use_Influencing_Factors__c}" style="height:50px"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        Describe factors that may influence your site's water use.
+                                        <p/>
+                                        Examples include:
+                                        <ul>
+                                            <li>Days of operations and opening hours</li>
+                                            <li>Number of staff</li>
+                                            <li>Number of customers</li>
+                                            <li>Production rates (number of units produced)</li>
+                                            <li>Refurbishment / closure of areas</li>
+                                            <li>Seasonal factors, e.g. rainfall</li>
+                                        </ul>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <br/>
+                                <apex:outputPanel >
+                                    <br/><h1>Water Use Outlook</h1>
+                                </apex:outputPanel>
+                                <p/>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="forecastTable" value="Next year's water use forecast"/>
+                                <apex:pageblocktable id="forecastTable" value="{!baselineForecastNextYr}" var="forecast" style="margin-bottom:10px;">
+                                    <apex:column headerValue="Value" headerClass="headerRowLGBack headerRowPeriod">
+                                        <span style="font-weight:bold"><apex:outputText value="Forecast % change"/></span>
+                                    </apex:column>
+                                    <apex:column headerValue="Water used (kL)" headerClass="headerRowLGBack">
+                                        <apex:inputField value="{!forecast.Forecast_Water_Use_Pct__c}" style="width:70px"/>
+                                    </apex:column>
+                                    <apex:column headerValue="Water used ($)" headerClass="headerRowLGBack">
+                                        <apex:inputField value="{!forecast.Forecast_Water_Cost_Pct__c}" style="width:70px"/>
+                                    </apex:column>
+                                    <apex:column headerValue="Sewage disposal ($)" headerClass="headerRowLGBack">
+                                        <apex:inputField value="{!forecast.Forecast_Sewage_Disposal_Pct__c}" style="width:70px"/>
+                                    </apex:column>
+                                    <apex:column headerValue="Trade waste ($)" headerClass="headerRowLGBack">
+                                        <apex:inputField value="{!forecast.Forecast_Trade_Waste_Cost_Pct__c}" style="width:70px"/>
+                                    </apex:column>
+                                </apex:pageblocktable>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        Use a negative (-) number to indicate any improvements in efficiency.
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="outlookDescription" value="{!$ObjectType.WaterMAP__c.fields.Water_Use_Outlook__c.label}"/>
+                                <apex:outputPanel style="text-align: justify">
+                                    <apex:inputField id="outlookDescription" value="{!WaterMAP_Submission__c.WaterMAP__r.Water_Use_Outlook__c}" style="height:50px"/>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel >
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        Describe any planned works, forecasted growth or redevelopments
+                                        that will influence your water use in the future (for example, in the next 5 years). This will
+                                        help justify any increases you may have over the next five years.
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <!--  BOTTOM BUTTONS -->
+                        <br/>
+                        <div class="pbSectionDivider"></div>
+                        <br/>
+                        <div style="vertical-align: text-top">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                    </apex:pageBlock>
+                    <br/>
+                </td>
+            </tr>
+        </table>
+
+
+       <!-- Action Status that are not position dependent -->
+       <apex:actionStatus id="loading">
+           <apex:facet name="start">
+               <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+           </apex:facet>
+       </apex:actionStatus>
+    </apex:form>
+</apex:page>

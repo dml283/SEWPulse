@@ -1,0 +1,45 @@
+<apex:page standardController="Billing_Account__c" extensions="BillingAccountRefreshExCon">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Performs billing account refresh 
+    ---------------------------------------------------------------
+    History:
+ -->
+
+    <script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            refreshBillingAccount();
+       }
+    </script>
+
+    <apex:PageMessages id="messages"/>
+    <apex:form >
+        <apex:outputField rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c}"/>
+        
+        <apex:commandLink action="{!back}" value="<-- Back" />
+
+        <apex:actionFunction name="refreshBillingAccount"
+                                action="{!refreshBillingAccount}"
+                                status="loading"
+                                rerender="theForm,messages"/>
+
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                        borderColor="#6B6B6B"
+                                        borderSize="1"
+                                        height="50px"
+                                        width="120px"
+                                        margintop="-25px"
+                                        marginleft="-60px"
+                                        ImageUrl="{!$Resource.AjaxAnimation}"
+                                        Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+</apex:page>

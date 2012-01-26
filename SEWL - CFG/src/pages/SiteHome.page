@@ -1,0 +1,18 @@
+<apex:page controller="SiteHomeController" action="{!GoHome}">
+
+    <!--
+        Description: Default page for the site
+                     used to redirect the user to either the
+                     home page or the login page depending
+                     on whether they are authenticated
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <head>
+        <title>South East Water Customer Portal - Login</title>
+        <link rel="shortcut icon" href="https://southeastwater.secure.force.com/portal/favicon.ico" />
+    </head>
+
+</apex:page>

@@ -1,0 +1,423 @@
+<apex:page standardController="Billing_Account__c" extensions="CreateBillingAccountWizardExCon"> 
+
+<!-- 
+    Type:       VF page
+    Purpose:    Creates a Billing Account in HiAF 
+    ---------------------------------------------------------------
+    History:
+ -->
+
+    <apex:sectionHeader title="Create Billing Account Wizard" subtitle="New Billing Account"/>
+    <apex:outputField rendered="false" value="{!Billing_Account__c.RecordType.DeveloperName}"/>
+    <apex:outputField rendered="false" value="{!Billing_Account__c.Name}"/>
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <apex:includeScript value="{!$Resource.experianqas__PopupHelperJS}"/>
+    <script type="text/javascript">
+
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('New Billing Account');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+   </script>
+    <apex:form >
+        <apex:outputPanel id="wholePage">
+            <apex:pagemessages rendered="{!NOT(createSuccessful)}"/>
+            <apex:outputPanel rendered="{!ISNULL(createdBillAccId)&&(ISNULL(Billing_Account__c.RecordTypeId)||ISNULL(Billing_Account__c.Customer__c)||NOT(isStepTwo))}">
+                <apex:pageBlock title="Billing Account Initial Selection" mode="edit">
+                    <apex:pageBlockSection columns="1">
+                        <apex:inputfield value="{!Billing_Account__c.Customer__c}">
+                            <!--
+                            <apex:actionSupport event="onchange" action="{!updateBillAccRecordType}" status="recordTypeSelectStatus" reRender="wholePage"/>
+                            -->
+                        </apex:inputField>
+                        <!--
+                        <apex:inputfield value="{!Billing_Account__c.Property__c}">
+                            <apex:actionSupport event="onchange" action="{!updateBillAccRecordType}" status="recordTypeSelectStatus" reRender="wholePage"/>
+
+                        </apex:inputField>
+                        -->
+                        <script>
+                            var billAcctRTypeSelectList;
+                            var noOfBAcctToCreateLabel;
+                            var noOfBAcctToCreateSelectList;
+                        </script>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Billing Account Record Type"/>
+                            <apex:outputPanel >
+                                <apex:selectList id="billAcctRTypeSelectList" size="1" value="{!Billing_Account__c.RecordTypeId}" onchange="showNoToCreateForBillAccRType();">
+                                    <apex:selectOptions value="{!billAccRecordTypeSelections}"/>
+                                    <!--
+                                    <apex:actionSupport event="onchange" action="{!updateBillAccRecordType}" status="recordTypeSelectStatus" reRender="wholePage"/>
+                                    -->
+                                </apex:selectList>
+                                <script>
+                                    var billAcctRTypeSelectList = document.getElementById("{!$Component.billAcctRTypeSelectList}");
+                                </script>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputPanel >
+                                <apex:outputLabel id="noOfBAcctToCreateLabel" value="Number of Billing Accounts to Create"/>
+                                <script>
+                                    noOfBAcctToCreateLabel = document.getElementById("{!$Component.noOfBAcctToCreateLabel}");
+                                </script>
+                            </apex:outputPanel>
+                            <apex:outputPanel >
+                                <apex:selectList id="noOfBAcctToCreateSelectList" size="1" value="{!noOfBillAccsToCreate}">
+                                    <apex:selectOption itemLabel="1" itemValue="1"/>
+                                    <apex:selectOption itemLabel="2" itemValue="2"/>
+                                    <apex:selectOption itemLabel="3" itemValue="3"/>
+                                    <apex:selectOption itemLabel="4" itemValue="4"/>
+                                    <apex:selectOption itemLabel="5" itemValue="5"/>
+                                    <apex:selectOption itemLabel="6" itemValue="6"/>
+                                    <apex:selectOption itemLabel="7" itemValue="7"/>
+                                    <apex:selectOption itemLabel="8" itemValue="8"/>
+                                    <apex:selectOption itemLabel="9" itemValue="9"/>
+                                    <apex:selectOption itemLabel="10" itemValue="10"/>
+                                    <apex:selectOption itemLabel="11" itemValue="11"/>
+                                    <apex:selectOption itemLabel="12" itemValue="12"/>
+                                    <apex:selectOption itemLabel="13" itemValue="13"/>
+                                    <apex:selectOption itemLabel="14" itemValue="14"/>
+                                    <apex:selectOption itemLabel="15" itemValue="15"/>
+                                </apex:selectList>
+                                <script>
+                                    noOfBAcctToCreateSelectList = document.getElementById("{!$Component.noOfBAcctToCreateSelectList}");
+                                </script>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <script>
+                            showNoToCreateForBillAccRType();
+                            function showNoToCreateForBillAccRType() {
+                                var billAcctRType = billAcctRTypeSelectList.options[billAcctRTypeSelectList.selectedIndex].text;
+                                if("Billing Account"==billAcctRType){
+                                    noOfBAcctToCreateLabel.style.display="inline";
+                                    noOfBAcctToCreateSelectList.style.display="inline";
+                                }else{
+                                    noOfBAcctToCreateLabel.style.display="none";
+                                    noOfBAcctToCreateSelectList.style.display="none";
+                                }
+                            }
+                        </script>
+                    </apex:pageBlockSection>
+                    <apex:pageblockButtons location="bottom">
+                        <apex:commandButton value="Next" action="{!updateBillAccRecordType}" status="recordTypeSelectStatus" reRender="wholePage"/>
+                        &nbsp;&nbsp;
+                        <apex:actionStatus id="recordTypeSelectStatus">
+                            <apex:facet name="start">
+                                <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:pageblockButtons>
+                </apex:pageBlock>
+            </apex:outputPanel>
+            <apex:outputPanel id="billAccInfoEntryOP" rendered="{!NOT(ISNULL(createdBillAccId))|| (NOT(ISNULL(Billing_Account__c.RecordTypeId))&&NOT(ISNULL(Billing_Account__c.Customer__c))&&isStepTwo)}">
+                <apex:pageblock title="New {!Billing_Account__c.RecordType.Name} Details" mode="edit">
+                    <script>
+                        var sameNameAsCustCheckBox;
+                    </script>
+                    <apex:pageblockSection >
+                            <apex:outputLabel >Account Name on customer record:</apex:outputLabel>
+                    </apex:pageblockSection>
+                    <apex:pageBlockSection id="custAccNameSection" columns="1">
+                        <!-- <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="First Name"/>
+                                <apex:outputText value="{!Billing_Account__c.Customer__r.Title__c}"/>
+                        </apex:pageBlockSectionItem> -->
+                        <apex:pageBlockSectionItem id="accountfirstnamepbsi">
+                                <apex:outputLabel value="First Name"/>
+                                <apex:outputText value="{!Billing_Account__c.Customer__r.Initials__c}" id="accountfirstname"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem id="accountlastnamepbsi">
+                                <apex:outputLabel value="Last Name"/>
+                                <apex:outputField value="{!Billing_Account__c.Customer__r.Account_Name__c}" id="accountlastname"/>
+                        </apex:pageBlockSectionItem>
+                        <!--
+                        <apex:outputField value="{!Billing_Account__c.Customer__r.Title__c}" rendered="{!NOT(ISBLANK(Billing_Account__c.Customer__r.Title__c))}"/>
+                        <apex:pageblockSectionItem rendered="{!ISBLANK(Billing_Account__c.Customer__r.Title__c)}">
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Title__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Title__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:outputField value="{!Billing_Account__c.Customer__r.Initials__c}" rendered="{!NOT(ISBLANK(Billing_Account__c.Customer__r.Initials__c))}"/>
+                        <apex:pageblockSectionItem rendered="{!ISBLANK(Billing_Account__c.Customer__r.Initials__c)}">
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Initials__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Initials__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:outputField value="{!Billing_Account__c.Customer__r.Account_Name__c}" rendered="{!NOT(ISBLANK(Billing_Account__c.Customer__r.Account_Name__c))}"/>
+                        <apex:pageblockSectionItem rendered="{!ISBLANK(Billing_Account__c.Customer__r.Account_Name__c)}">
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Account_Name__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Account_Name__c}"/>
+                        </apex:pageblockSectionItem>
+                        -->
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection rendered="{!ISNULL(createdBillAccId)}">
+                        <apex:inputField id="sameNameAsCustCheckBox" value="{!Billing_Account__c.Same_Name_As_Customer__c}" onclick="return showCustOrBillAccName();"/>
+                        <script>
+                            sameNameAsCustCheckBox = document.getElementById("{!$Component.sameNameAsCustCheckBox}");
+                        </script>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection rendered="{!NOT(ISNULL(createdBillAccId))}">
+                        <apex:outputField value="{!Billing_Account__c.Same_Name_As_Customer__c}"/>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection id="billAccNameSectionNotSameAsCust" rendered="{!ISNULL(createdBillAccId)||NOT(Billing_Account__c.Same_Name_As_Customer__c)}" columns="1">
+<!--                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="First Name"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Title__c}"/>
+                        </apex:pageblockSectionItem> -->
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <!--  <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!ISNULL(createdBillAccId)}"/>&nbsp; -->
+                                <apex:outputLabel value="First Name"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel >
+                                <apex:inputField value="{!Billing_Account__c.Initials__c}" rendered="{!ISNULL(createdBillAccId)}"/>
+                                <apex:outputField value="{!Billing_Account__c.Initials__c}" rendered="{!NOT(ISNULL(createdBillAccId))}"/>
+                            </apex:outputPanel>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!ISNULL(createdBillAccId)}"/>&nbsp;
+                                <apex:outputLabel value="Last Name"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel >
+                                <apex:inputField value="{!Billing_Account__c.Account_Name__c}" rendered="{!ISNULL(createdBillAccId)}"/>
+                                <apex:outputField value="{!Billing_Account__c.Account_Name__c}" rendered="{!NOT(ISNULL(createdBillAccId))}"/>
+                            </apex:outputPanel>
+                        </apex:pageblockSectionItem>
+                    </apex:pageBlockSection>
+                    <script>
+                        showCustOrBillAccName();
+                        function showCustOrBillAccName() {
+                            var isSameNameAsCust = sameNameAsCustCheckBox.checked;
+                            if(isSameNameAsCust){
+                                //document.getElementById("{!$Component.custAccNameSection}").style.display="inline";
+                                //alert('foo {!$Component.custAccNameSection.accountfirstnamepbsi.accountfirstname}');
+                                var lastName = document.getElementById("{!$Component.custAccNameSection.accountlastnamepbsi.accountlastname}").innerHTML;
+                                
+                                if (lastName == null || lastName == '') {
+                                    alert('The customer must have an account name');
+                                    return false;
+                                }
+
+                                document.getElementById("{!$Component.billAccNameSectionNotSameAsCust}").style.display="none";
+                            }else{
+                                //document.getElementById("{!$Component.custAccNameSection}").style.display="none";
+                                document.getElementById("{!$Component.billAccNameSectionNotSameAsCust}").style.display="inline";
+                            }
+                            return true;
+                        }
+                    </script>
+                    <script>
+                        var billAddrSameAsPicklist;
+                        var billToParentCheckbox;
+                        var billToParentCheckboxPBS;
+                    </script>
+                    <apex:pageblockSection title="Billing Address">
+                        <!--
+                        <apex:inputField id="billAddrSameAsPicklist" rendered="{!ISNULL(createdBillAccId)}" value="{!Billing_Account__c.Billing_Address_Same_As__c}" onchange="changeBillAddrDisplay();">
+                            <script>
+                                billAddrSameAsPicklist = document.getElementById("{!$Component.billAddrSameAsPicklist}");
+                            </script>
+                        </apex:inputField>
+                        -->
+                        <apex:pageblockSectionItem rendered="{!ISNULL(createdBillAccId)}">
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" rendered="{!isCreateMultipleBillingAccounts}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Billing_Address_Same_As__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:selectList id="billAddrSameAsPicklist" size="1" value="{!Billing_Account__c.Billing_Address_Same_As__c}" onchange="changeBillAddrDisplay();">
+                                <apex:selectoptions value="{!billAddressSameAsSelections}"/>
+                                <script>
+                                    billAddrSameAsPicklist = document.getElementById("{!$Component.billAddrSameAsPicklist}");
+                                </script>
+                            </apex:selectList>
+                        </apex:pageblockSectionItem>
+                        <apex:outputField rendered="{!NOT(ISNULL(createdBillAccId))}" value="{!Billing_Account__c.Billing_Address_Same_As__c}"/>
+                    </apex:pageblockSection>
+                    <!--
+                    <apex:pageBlockSection id="billToParentCheckboxPBS">
+                        <apex:inputField id="billToParentCheckbox" value="{!Billing_Account__c.Bill_To_Parent__c}">
+                            <script>
+                                billToParentCheckboxPBS = document.getElementById("{!$Component.billToParentCheckboxPBS}");
+                                billToParentCheckbox = document.getElementById("{!$Component.billToParentCheckbox}");
+                            </script>
+                        </apex:inputField>
+                    </apex:pageBlockSection>
+                    -->
+                    <apex:pageblockSection id="billingAddressFieldsSection" columns="1" rendered="{!ISNULL(createdBillAccId)&&(ISNULL(Billing_Account__c.Billing_Address_Same_As__c)||Billing_Account__c.Billing_Address_Same_As__c='')}">
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Street_Address__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Street_Address__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.City__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.City__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.State__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.State__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Postal_Code__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Postal_Code__c}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:pageblockSectionItem >
+                            <apex:outputPanel >
+                                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>&nbsp;
+                                <apex:outputLabel value="{!$ObjectType.Billing_Account__c.fields.Country__c.label}"/>
+                            </apex:outputPanel>
+                            <apex:inputField value="{!Billing_Account__c.Country__c}"/>
+                        </apex:pageblockSectionItem>
+                    </apex:pageblockSection>
+                    <script>
+                        changeBillAddrDisplay();
+                        function changeBillAddrDisplay() {
+                            var picklistChoice = billAddrSameAsPicklist.options[billAddrSameAsPicklist.selectedIndex].value;
+                            if('' == picklistChoice){
+                                //billToParentCheckboxPBS.style.display="none";
+                                //billToParentCheckbox.checked=false;
+                                document.getElementById("{!$Component.billingAddressFieldsSection}").style.display="inline";
+                            }else{
+                                //billToParentCheckboxPBS.style.display="inline";
+                                document.getElementById("{!$Component.billingAddressFieldsSection}").style.display="none";
+                            }
+                        }
+                    </script>
+                    <apex:pageblockSection columns="1" rendered="{!NOT(ISNULL(createdBillAccId))&&(ISNULL(Billing_Account__c.Billing_Address_Same_As__c)||Billing_Account__c.Billing_Address_Same_As__c='')}">
+                        <apex:outputField value="{!Billing_Account__c.Street_Address__c}"/>
+                        <apex:outputField value="{!Billing_Account__c.City__c}"/>
+                        <apex:outputField value="{!Billing_Account__c.State__c}"/>
+                        <apex:outputField value="{!Billing_Account__c.Postal_Code__c}"/>
+                        <apex:outputField value="{!Billing_Account__c.Country__c}"/>
+                    </apex:pageblockSection>
+                    <!--
+                    <apex:pageBlockSection title="Concession Details">
+                        <apex:inputField value="{!Billing_Account__c.Card_Type__c}"/>
+                        <apex:inputField value="{!Billing_Account__c.Concession_Number__c}"/>
+                        <apex:inputField value="{!Billing_Account__c.Card_Firstname__c}"/>
+                        <apex:inputField value="{!Billing_Account__c.Card_Lastname__c}"/>
+                    </apex:pageBlockSection>
+                    -->
+                    <apex:pageBlockSection title="Other Billing Details" rendered="{!ISNULL(createdBillAccId)}">
+                        <apex:pageblockSectionItem rendered="{!NOT(isCreateMultipleBillingAccounts)}">
+                            <apex:outputLabel value="Welcome Home Kit"/>
+                            <apex:inputCheckBox value="{!isWelcomeHomeKit}"/>
+                        </apex:pageblockSectionItem>
+                        <apex:inputField value="{!Billing_Account__c.Clerical__c}"/>
+                        <apex:inputField value="{!Billing_Account__c.ICE_Customer_Ref__c}" rendered="{!isAdHoc&&NOT(Billing_Account__c.Customer__r.RecordType.DeveloperName=='Residential')}"/>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Other Billing Details" rendered="{!NOT(ISNULL(createdBillAccId))}">
+                        <apex:pageblockSectionItem rendered="{!NOT(isCreateMultipleBillingAccounts)}">
+                            <apex:outputLabel value="Welcome Home Kit"/>
+                            <apex:inputCheckBox value="{!isWelcomeHomeKit}" disabled="true"/>
+                        </apex:pageblockSectionItem>
+                        <apex:outputField value="{!Billing_Account__c.Clerical__c}"/>
+                        <apex:outputField value="{!Billing_Account__c.ICE_Customer_Ref__c}" rendered="{!isAdHoc&&NOT(Billing_Account__c.Customer__r.RecordType.DeveloperName=='Residential')}"/>
+                    </apex:pageBlockSection>
+                    <apex:pageblockButtons location="bottom" >
+                        <apex:actionStatus id="createRecordStatus">
+                            <apex:facet name="start">
+                                <apex:image value="{!$Resource.AjaxAnimation}" alt="Loading..."/>
+                            </apex:facet>
+                            <apex:facet name="stop">
+                                <apex:outputPanel >
+                                    <apex:commandButton action="{!submit}" value="Create Billing Account" status="createRecordStatus" disabled="{!createSuccessful}" rerender="wholePage"/>
+                                    <apex:commandButton value="Cancel" onclick="testCloseTab();return false" disabled="{!createSuccessful}"/>
+                                </apex:outputPanel>
+                            </apex:facet>
+                        </apex:actionStatus>
+                    </apex:pageblockButtons>
+                </apex:pageblock>
+                <apex:pageblock title="Record Creation Successful" rendered="{!createSuccessful}">
+                    <apex:pageBlockSection columns="1">
+                        <apex:pagemessages />
+                        <apex:panelGrid columns="5" cellpadding="0px" cellspacing="0px" style="vertical-align:middle;">
+                            <apex:commandButton value="Validate Billing Address" onclick="QASDisplayPopup({ id: '{!createdBillAccId}', touchpoint: 'BillingAccountAddress'});" rendered="{!NOT(isCreateMultipleBillingAccounts)&&(ISNULL(Billing_Account__c.Billing_Address_Same_As__c)||Billing_Account__c.Billing_Address_Same_As__c='')}"/>
+                            <apex:commandButton value="Segmentation" onclick="OpenSegmentation(); return false;"/>
+                            <apex:outputPanel rendered="{!NOT(isCreateMultipleBillingAccounts)}">&nbsp;&nbsp;<apex:commandButton value="View Record" action="{!viewCreatedRecord}"/></apex:outputPanel>
+                            <apex:outputPanel rendered="{!(isCreateMultipleBillingAccounts)}">&nbsp;&nbsp;<apex:commandButton value="View Accounts for Customer" onclick="ViewAccountList(); return false;"/></apex:outputPanel>
+                            <apex:outputPanel >&nbsp;&nbsp;<apex:commandButton value="Close Page" onclick="CloseTab();return false"/></apex:outputPanel>
+                        </apex:panelGrid>
+                    </apex:pageBlockSection>
+                </apex:pageblock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <script type="text/javascript">
+            function CloseTab() {
+                if(sforce.console.isInConsole()){
+                    sforce.console.getEnclosingTabId(closeSubtab);
+                }
+                else{
+                    window.location = "{!JSENCODE(retURL)}";
+                }
+            }
+
+            var closeSubtab = function closeSubtab(result) {
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };
+
+            function ViewAccountList() {
+                if(sforce.console.isInConsole()){
+                    try {
+                        sforce.console.getEnclosingPrimaryTabId(openAcctList);
+                    }
+                    catch(e) {
+                        alert(e.toString());
+                    }
+                }
+                else {
+                    window.location = "/{!accountListURL}";
+                }
+            }
+            
+            var openAcctList = function openAcctList (result) {
+                sforce.console.openSubtab(result.id ,'/{!accountListURL}', true, '', null);
+            }
+
+            function OpenSegmentation() {
+                if(sforce.console.isInConsole()){
+                    sforce.console.getEnclosingPrimaryTabId(OpenSegmentationTab);
+                } else {
+                    window.open("/apex/CustomerSegmentEntry?id={!JSENCODE(Billing_Account__c.Customer__c)}", "_new");
+                }
+            }
+    
+            var OpenSegmentationTab = function OpenSegmentationTab (result) {
+                sforce.console.openSubtab(result.id , '/apex/CustomerSegmentEntry?id={!JSENCODE(Billing_Account__c.Customer__c)}', true, '', null);
+            }
+        </script>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,110 @@
+<apex:page tabStyle="Segment__c" standardController="Account" extensions="CustomerSegmentEntryController">
+
+    <!--
+        Description: Entry screen for customer segmentation questionaire
+
+        History:
+            9-Nov-2011 D.Thong      Created
+            8-Dec-2011 M.Watson     Added Segment Image
+    -->
+
+    <apex:sectionHeader title="Customer Segment Questionaire" subtitle="{!Account.Name}"/>
+    <apex:includeScript value="/support/console/23.0/integration.js"/>
+
+    <script type="text/javascript">
+        /* Set the title */
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Segmentation Questionaire');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+    </script>
+    
+    <apex:form >
+        <apex:outputField value="{!Account.RecordType.DeveloperName}" rendered="false"/>
+        <apex:outputField value="{!Account.Segment_Usage_Quartile__c}" rendered="false"/>
+        <apex:outputField value="{!Account.Segment_Usage_Last_Updated__c}" rendered="false"/>
+
+        <apex:pageMessages />
+        <apex:pageBlock title="Segmentation" mode="detail">
+            <apex:pageBlockSection collapsible="false" columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Segment"/>
+                    <apex:outputText value="{!Account.Segment__r.Name}"/>           
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection collapsible="false" columns="2">
+                <apex:outputField value="{!Account.Segment_Profile_Last_Updated__c}"/>
+                <apex:outputField value="{!Account.Segment_Profile_Next_Review_Date__c}"/>
+            </apex:pageBlockSection> 
+            <apex:pageBlockSection collapsible="false" columns="1">
+
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value="Image"/>
+                    <apex:image value="{!Account.Segment__r.Image__c}"/>
+                </apex:pageblockSectionItem>       
+                <!--<apex:outputField value="{!Account.Segment__r.Offer__c}"/>      -->     
+            </apex:pageBlockSection> 
+        </apex:pageBlock>
+        <apex:pageBlock title="Questionaire" mode="detail">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!Save}" value="Save"/>
+                <apex:commandButton value="Close Page" onclick="CloseTab();return false"/>
+                <script type="text/javascript">
+                    function CloseTab() {
+                        if(sforce.console.isInConsole()){
+                            sforce.console.getEnclosingTabId(closeSubtab);
+                        }
+                        else{
+                            window.location = "/{!Account.id}";
+                        }
+                    }
+
+                    var closeSubtab = function closeSubtab(result) {
+                        var tabId = result.id;
+                        sforce.console.closeTab(tabId);
+                    };
+                </script>
+            </apex:pageBlockButtons>
+            <apex:outputText value="To help us better meet your needs, I would just like to ask you a few questions about your household ..."
+            			style="font-weight:bold" rendered="{!customerType=='Residential'}"/>
+            <apex:outputText value="As part of better understanding our customers and their different needs and interests, do you mind if I ask you a few quick questions?"
+            			style="font-weight:bold" rendered="{!customerType!='Residential'}"/>
+            <p/>
+            <apex:pageBlockTable value="{!questionAndAnswers}" var="qa" style="width:80%">
+                <apex:column headerValue="#" 
+                                style="width:20px; vertical-align:top; padding-left:5px; border-bottom:0; {!IF(qa.Question.Is_Group_Question__c, 'border-bottom:0; border-top: #D4DADC solid 1px', IF(NOT(ISBLANK(qa.Question.Group_Question__c)), 'border-bottom:0;','border-top: #D4DADC solid 1px'))}"> 
+                    <apex:outputText value="{0,number,0}." rendered="{!(ISBLANK(qa.Question.Group_Question__c))}">
+                        <apex:param value="{!qa.Question.Order__c}" />
+                    </apex:outputText>
+                </apex:column>
+                <apex:column headerValue="Question"
+						colspan="{!IF(qa.Question.Is_Group_Question__c, 2, 1)}"
+                        style="padding-right:20px; vertical-align:top; border-bottom:0; {!IF(qa.Question.Is_Group_Question__c, 'border-bottom:0; border-top: #D4DADC solid 1px', IF(NOT(ISBLANK(qa.Question.Group_Question__c)), 'border-bottom:0;','border-top: #D4DADC solid 1px'))}">
+					<apex:outputField value="{!qa.Question.Question__c}"/>
+					<apex:outputPanel rendered="{!qa.question.API_Field__c = 'Segment_Usage_Quartile__c'}">
+						<br/><br/>
+						<div layout="block" style="border: #D4DADC solid 1px; padding: 5px">
+							<b>How to populate Segment Usage Help Text</b>
+							<br/>
+							Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
+						</div>
+					</apex:outputPanel>
+				</apex:column>	                        
+                <apex:column headerValue="Answer" 
+                                rendered="{!NOT(qa.Question.Is_Group_Question__c)}"
+                                style="padding:0px 15px; vertical-align:top; border-bottom:0; {!IF(qa.Question.Is_Group_Question__c, 'border-bottom:0; border-top: #D4DADC solid 1px', IF(NOT(ISBLANK(qa.Question.Group_Question__c)), 'border-bottom:0;','border-top: #D4DADC solid 1px'))}">
+                    <apex:inputField value="{!Account[qa.question.API_Field__c]}" id="answer" required="true" rendered="{!qa.question.API_Field__c != null}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+
+</apex:page>

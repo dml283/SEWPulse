@@ -1,0 +1,49 @@
+<apex:page controller="QASTest_Controller">
+<!-- 
+    Type:       VF page
+    Purpose:    Used for testing only! 
+                
+    Used By:    QAS 
+    ---------------------------------------------------------------
+    History:
+    
+    12-12-2011 D.Thong  Created
+ -->
+    {!key}
+    {!qasiFrameURL}
+    <p/>
+
+    <apex:pageMessages />
+    <apex:iframe src="{!qasiFrameURL}" width="300" height="190"/>
+    <p/>
+    <apex:form id="theForm">
+        
+        <apex:inputHidden value="{!address}" id="address" />
+        <apex:outputText label="Received Address" value="{!address}" id="addressVisible" />
+        <apex:outputText value="{!dpid}" id="dpid"/>
+        <apex:commandButton action="{!PopulateDPID}" value="DPID" rerender="theForm" />
+
+        <script>
+            function ReceiveAddress(address) {
+                var completeAddress;
+                
+                for (var i=0; i < address.Length; i++) {
+                    var line = address.AddressLines[i].Line;
+                    
+                    if (line != null & line != "") {
+                        if (completeAddress == null)
+                            completeAddress = line;
+                        else                    
+                            completeAddress = completeAddress + ', ' + line;
+                    }
+                }
+                document.getElementById("{!$Component.address}").value = completeAddress;
+                document.getElementById("{!$Component.addressVisible}").innerHTML = completeAddress;
+                jsPopulateDPID();
+            }
+        
+        </script>
+
+        <apex:actionFunction action="{!PopulateDPID}" name="jsPopulateDPID" rerender="theForm"/>
+    </apex:form>
+</apex:page>

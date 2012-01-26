@@ -1,0 +1,38 @@
+<apex:page showHeader="false" standardstylesheets="false" sidebar="false">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Used by the QAS iFrame as a proxy  
+                
+    Used By:    QAS 
+    ---------------------------------------------------------------
+    History:
+    
+    12-12-2011 D.Thong	Created
+ -->
+
+	<apex:includeScript value="{!$Resource.json_parse}"/>
+	<script type="text/javascript">
+        window.onload = function() {
+            var lastMsgIdx = 0;
+            var addressJson = "";
+            window.location.hash = "#0N";
+
+            setInterval(function() {
+                var thisMsgIdx = parseInt(window.location.hash.substring(1, 2));
+                if (thisMsgIdx !== lastMsgIdx) {
+                    lastMsgIdx = thisMsgIdx;
+                    addressJson += window.location.hash.substring(3);
+                    var more = window.location.hash.substring(2, 3);
+                    if (more === "N") {
+                        // all chunks have been received
+                        address = json_parse(decodeURI(addressJson));
+                        window.parent.parent.ReceiveAddress(address);
+                        addressJson = "";
+                    }
+                }
+            }, 100);
+        }
+	</script>
+
+</apex:page>

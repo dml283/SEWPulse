@@ -1,0 +1,37 @@
+<apex:component id="headerComponent">
+
+    <!--
+        Description: Site header rebranded
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:attribute name="authenticated" description="indicates if the component is being used whilst logged in" type="Boolean" default="false"/>
+
+    <div style="margin: auto; width: 950px; display: block; color: #fffff;">
+        <apex:panelGrid cellpadding="0" cellspacing="0" width="98%" border="0" columns="2" style="text-align: left;" id="theHeader">
+            <apex:outputLink value="{!IF($Profile.Name='Portal Profile' && NOT(authenticated), 'http://www.southeastwater.com.au', '/home/home.jsp')}">
+                <apex:image url="https://southeastwater--c.ap1.content.force.com/servlet/servlet.ImageServer?id=015900000002VEA&oid=00D90000000KRNM" style="align: left" alt="South East Water" title="South East Water"/>
+            </apex:outputLink>
+            <apex:panelGrid cellpadding="0" cellspacing="0" width="100%" border="0" columns="1" style="text-align: right; padding-top:5px" id="Links">
+                <apex:panelGroup rendered="{!AND(ISPICKVAL($User.UserType,'Guest'), $Site.LoginEnabled)}">
+                    <apex:outputLink value="http://www.sewl.com.au/ContactUs/Pages/contact_us.aspx" styleClass="headerLink" target="_blank">Contact Us</apex:outputLink>
+                    <apex:outputText value=" | " styleClass="headerLink"/>
+                    <apex:outputLink value="{!$Site.Prefix}/apex/SiteLogin" styleClass="headerLink">{!$Label.site.login_button}</apex:outputLink>
+                    <apex:outputText value=" | " styleClass="headerLink"/>
+                    <!--
+                    <apex:outputLink value="{!$Site.Prefix}/apex/SiteNewPortalUserRegistration" styleClass="headerLink">New User Registration</apex:outputLink>
+                    <apex:outputText value=" | " styleClass="headerLink"/>
+                    -->
+                    <apex:outputLink value="{!$Site.Prefix}/apex/ForgotPassword" styleClass="headerLink">Forgotten Password</apex:outputLink>
+                    <apex:outputText value=" | " styleClass="headerLink"/>
+                    <apex:outputLink value="{!$Site.Prefix}/apex/ForgotUsername" styleClass="headerLink">Forgotten Username</apex:outputLink>
+                    <apex:outputText value=" | " styleClass="headerLink" rendered="{!$Site.RegistrationEnabled}"/>
+                    <apex:outputLink value="{!$Site.Prefix}/apex/SiteNewPortalUserRegistration" styleClass="headerLink" rendered="{!$Site.RegistrationEnabled}">{!$Label.site.new_user_q}</apex:outputLink>
+                </apex:panelGroup>
+                <apex:outputLink value="{!$Site.Prefix}/secur/logout.jsp" styleClass="headerLink" rendered="{!NOT(ISPICKVAL($User.UserType,'Guest'))}">{!$Label.site.logout}</apex:outputLink>
+            </apex:panelGrid>
+        </apex:panelGrid>
+    </div>
+</apex:component>

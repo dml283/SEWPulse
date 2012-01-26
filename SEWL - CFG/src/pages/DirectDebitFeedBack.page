@@ -1,0 +1,137 @@
+<!-- 
+    Type:       VF page
+    Purpose:    Display the direct debit process result
+                
+    Used By:    DirectDebitAmend VF page
+    ---------------------------------------------------------------
+    History:
+    
+    24-11-2011 Ji Zhang (Coretec Solutions)   Created
+
+ -->
+<apex:page controller="DirectDebitController" tabstyle="Billing_Account__c">
+
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <script type="text/javascript">
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Direct Debit');
+       } 
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) { 
+                previousOnload(); 
+            }
+            setTabTitle(); 
+       }
+    </script>
+    <apex:sectionHeader title="Direct Debit - Result"/>
+    <apex:form id="form">
+    <apex:pagemessages id="messages" />
+        <apex:pageblock mode="edit" title="Customer Details" id="pb1">
+            <apex:pageBlockSection columns="1" id="pbs1">
+                <apex:outputField value="{!userInputFields.Customer_Account__c}" />
+                <apex:outputField value="{!userInputFields.Person__c}" />
+            </apex:pageBlockSection>
+        </apex:pageblock>
+          
+        <apex:pageblock title="Selected Accounts Details" id="pb2">
+            <apex:pageBlockTable value="{!taskList}" var="task">
+                <apex:column style="text-align: center"><apex:image value="{!$Resource.AjaxAnimation}" rendered="{!IF(task.newTask.Status == 'In Progress' && submitting,true, false)}"/>
+                <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}"  rendered="{!IF(task.newTask.Status == 'Completed',true, false)}"/>
+                <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Cross_Icon.png')}" rendered="{!IF(task.newTask.Status != 'Completed' && NOT(submitting),true, false)}"/></apex:column>
+                <apex:column headerValue="Billing Account #" style="width:100px"><apex:outputLink value="javascript:goToAccount('/{!task.newTask.WhatId}')">
+                    <apex:outputText value="{!task.billingAccName}"/>
+                    <script type="text/javascript">
+                        var sccUrl;
+
+                        function goToAccount(url) {
+                            if(sforce.console.isInConsole()){
+                                try {
+                                    sccUrl = url;                                
+                                    sforce.console.getEnclosingPrimaryTabId(openAcct);
+                                }
+                                catch(e) {
+                                    alert(e.toString());
+                                }
+                            }
+                            else {
+                                window.open(url);
+                            }
+                        }
+                        var openAcct = function openAcct (result) {
+                            sforce.console.openSubtab(result.id ,sccUrl, true, '', null);
+                        }
+
+                    </script>
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headervalue="Type"><apex:outputField value="{!task.newTask.Type}"/></apex:column>
+                <apex:column headervalue="Action"><apex:outputText value="{!IF(task.taskAction=='Cancel', 'Remove', task.taskAction)}"/> </apex:column>
+                <apex:column headervalue="Status"><apex:outputField value="{!task.newTask.Status}"/></apex:column>
+                <apex:column headervalue="Details"><apex:outputField value="{!task.newTask.Hidden_DD_Details__c}"/></apex:column>
+                <apex:column headervalue="Messages"><apex:outputField value="{!task.newTask.Hidden_Messages__c}"/></apex:column>
+                
+            </apex:pageBlockTable>
+             <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton value="Close Page" onclick="testCloseTab();return false" disabled="{!submitting}"/>
+                    <apex:commandButton rendered="false" action="{!goback}" value="Back" immediate="true" disabled="{!submitting}"/>
+             </apex:pageBlockButtons>
+        </apex:pageBlock>
+
+        <apex:actionPoller action="{!checkStatus}" interval="5" rendered="{!submitting}" rerender="form" oncomplete="doRedirect()"/>   
+           
+        <apex:inputHidden value="{!notCompleted}" id="notcompletedflag"/>
+        <apex:inputHidden value="{!timeOut}" id="timeoutflag"/>
+        
+        <script>
+            function doRedirect() {
+                var notCompleteFlag = document.getElementById('{!$Component.notcompletedflag}').value;
+                var timeoutFlag =  document.getElementById('{!$Component.timeoutflag}').value;
+
+                if (notCompleteFlag == 'false') {
+                    Redirect();
+                }
+                
+                if (timeoutFlag == 'true') {
+                    Timeout();
+                }   
+            }
+            
+            function testCloseTab() {
+                if(sforce.console.isInConsole()){
+                    sforce.console.getEnclosingTabId(closeSubtab);
+                }
+                else{
+                    if ('{!billAcctId}' != '') 
+                        window.location = "/{!billAcctId}";
+                    else
+                        window.location = "/{!JSENCODE(userInputFields.Customer_Account__c)}";
+                }
+            }
+
+            var closeSubtab = function closeSubtab(result) {
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };
+        </script>
+        <apex:actionFunction action="{!Redirect}" name="Redirect"/>  
+        <apex:actionFunction action="{!Timeout}" name="Timeout"/>
+       
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+</apex:page>

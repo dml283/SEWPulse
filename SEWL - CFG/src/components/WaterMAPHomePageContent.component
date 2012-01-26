@@ -1,0 +1,12 @@
+<apex:component >
+    <!-- Defines content to be used in the WaterMAP Home Page top panel -->
+
+Business and non-residential organisations that use 10 million litres or more of water per year have
+greatly reduced their water consumption through their participation in the waterMAP program.<p/>
+
+Completing and implementing a waterMAP benefits your organisation in multiple ways. You'll gain a better
+understanding of your operations and once you start saving water you'll enjoy lower operating costs.<p/>
+
+South East Water thanks you for your commitment to operating more water efficiently.
+
+</apex:component>

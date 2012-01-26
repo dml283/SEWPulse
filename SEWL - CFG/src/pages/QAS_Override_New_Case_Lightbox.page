@@ -1,0 +1,4 @@
+<apex:page standardController="Case" extensions="experianqas.QASOverrideController" action="{!autoRun}">
+<experianqas:QASRedirectLightboxComponent ErrorCondition="{!ErrorCondition}" NoSuccess="{!NoSuccess}" SomeSuccess="{!SomeSuccess}"
+FormData="{!FormData}" RNextUrl="{!RNextUrl}" />
+</apex:page>

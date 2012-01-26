@@ -1,0 +1,39 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="{!ErrorCondition}"
+    tabStyle="QAS_for_salesforce_com__tab" controller="experianqas.QASPopupController" action="{!AutoRun}">
+<head>
+<title>Launching QAS On Demand for Salesforce...</title>
+</head>
+<body>
+
+<apex:sectionHeader rendered="{!ErrorCondition}" title="Address Search Failed"/>
+<apex:pageBlock rendered="{!PopupError}">
+<h3>Error(s) were encountered while attempting to search for an address with QAS On Demand.</h3>
+<p/>
+<apex:messages />
+<p/>
+Please contact your Salesforce administrator with the above details, and continue by pressing the 'Close' button.
+<p/>
+<input class="btn" type="submit" value=" Close " onclick="window.close();" />
+</apex:pageBlock>
+
+<apex:pageBlock rendered="{!LightboxError}">
+<h3>Error(s) were encountered while attempting to search for an address with QAS On Demand.</h3>
+<p/>
+<apex:messages />
+<p/>
+Please contact your Salesforce administrator with the above details,
+and continue by pressing the 'Close' button (the small cross at the top right of this window).
+</apex:pageBlock>
+
+<apex:outputPanel rendered="{!AutoSubmit}">
+<h3>Launching Popup...</h3>
+<form action="{!PopupURL}" method="POST" name="frm_redirect">
+<input type="hidden" name="token" value="{!Token}"/>
+</form>
+<script>
+    document.frm_redirect.submit();
+</script>
+</apex:outputPanel>
+
+</body>
+</apex:page>

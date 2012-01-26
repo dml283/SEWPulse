@@ -1,0 +1,20 @@
+<apex:page showheader="false" sidebar="false" >
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+
+	<style>
+		div.sidebarModuleHeader {
+			display:none !important;
+		}
+		.secondaryPalette.bPageBlock {
+			
+		}
+		.sideBarCell {
+			width: 190px !important;
+		}
+	</style>
+
+	<!-- Sidebar menu -->
+    <c:PortalSidebar id="sidebar" groupName="Home" currentDevName="Home" title="Home">
+    	Welcome <apex:outputText value=" {!$User.FirstName + ' ' + $User.LastName}"/>
+    </c:PortalSidebar>
+</apex:page>

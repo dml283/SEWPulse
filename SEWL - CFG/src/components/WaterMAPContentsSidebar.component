@@ -1,0 +1,135 @@
+<apex:component controller="WaterMAPContentsSidebarController">
+
+    <!--
+        Description: side bar for watermap
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:attribute: name="waterMAPSubId" type="String" required="true" description="WaterMAP Submission record Id" assignTo="{!waterMAPSubId}"/>
+    <apex:attribute: name="currentPageNumber" type="String" required="true" description="Current Water MAP Page"/>
+
+    <style type="text/css">
+        .bPageBlock .pbBody {
+            padding-left: 5px;
+            padding-right: 0px;
+        }
+        .popup {width: 130px;}
+
+    </style>
+
+    <table style="padding:0px 2px 0px 0px; margin:0px; table-layout:fixed; width:215px">
+        <tr style="padding:0px; margin:0px">
+            <td style="padding:0px; margin:0px">
+            <apex:pageBlock >
+                <apex:facet name="header">
+                    <div class="pageBlockHeader">
+                        <span class="pageBlockTitle">Contents</span>
+                        </div>
+                    </apex:facet>
+                    <table style="width:100%; margin:0px; padding:0px; border:none"
+                            cellspacing="0" id="watermapcontentstable">
+                        <tr>
+                            <td colspan="2" id="watermapaddresscell" class="contentsAddressCell">
+                                <apex:outputText escape="false" value="{!waterMapSub.Site_Address__c}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"></td>
+                            <td id="watermaphomecell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAPHomePage}" styleclass="contentsLink">
+                                    waterMAP Home
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Cover_Complete__c}"/></td>
+                            <td id="watermappg0cell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Pg0_CoverPage}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='0', 'contentsLinkActive', 'contentsLink')}">
+                                    Cover<span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+<!--                        <tr>
+<!--                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Company_Site_Info_Complete__c}"/></td> -->
+<!--                            <td id="watermappg1cell" class="contentsLinkCell"> -->
+<!--                                <apex:outputLink value="{!$Page.WaterMAP_Pg1_Introduction_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='1', 'contentsLinkActive', 'contentsLink')}"> -->
+<!--                                    Section 1: Introduction -->
+<!--                                </apex:outputLink> -->
+<!--                            </td> -->
+<!--                        </tr> -->
+                        <tr>
+                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Company_Site_Info_Complete__c}"/></td>
+                            <td id="watermappg2cell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Pg2_Company_Site_Info_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='2', 'contentsLinkActive', 'contentsLink')}">
+                                    Company &amp; Site Information
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Water_Consumption_Complete__c}"/></td>
+                            <td id="watermappg3cell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Pg3_Water_Consumption_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='3', 'contentsLinkActive', 'contentsLink')}">
+                                    Water Consumption
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Indicators_Targets_Complete__c}"/></td>
+                            <td id="watermappg4cell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Pg4_Indicators_Targets_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='4', 'contentsLinkActive', 'contentsLink')}">
+                                    Indicators &amp; Targets
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Opportunities_to_Save_Water_Complete__c}"/></td>
+                            <td id="watermappg5cell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Pg5_Opp_to_Save_Water_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='5', 'contentsLinkActive', 'contentsLink')}">
+                                    Opportunities to Save Water
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Action_Plan_Complete__c}"/></td>
+                            <td id="watermappg6cell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Pg6_Action_Plan_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='6', 'contentsLinkActive', 'contentsLink')}">
+                                    Action Plan
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="tickIconCell"></td>
+                            <td id="watermapsubmitcell" class="contentsLinkCell">
+                                <apex:outputLink value="{!$Page.WaterMAP_Submit_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='submit', 'contentsLinkActive', 'contentsLink')}">
+                                    Submit Your waterMAP
+                                    <span class="popup" >Please save your work before navigating</span>
+                                </apex:outputLink>
+                            </td>
+                        </tr>
+                        <apex:outputPanel rendered="{!WaterMAPSub.Status__c == 'Ready for Review'||WaterMAPSub.Status__c == 'Review Completed'}">
+                            <tr>
+                                <td class="tickIconCell"><apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" rendered="{!WaterMapSub.Review_Complete__c}"/></td>
+                                <td id="watermappg7cell" class="contentsLinkCell">
+                                    <apex:outputLink value="{!$Page.WaterMAP_Pg7_Reporting_Page}?id={!waterMAPSubId}" styleclass="{!IF(currentPageNumber='7', 'contentsLinkActive', 'contentsLink')}">
+                                        Reporting
+                                        <span class="popup" >Please save your work before navigating</span>
+                                    </apex:outputLink>
+                                </td>
+                            </tr>
+                        </apex:outputPanel>
+                    </table>
+                </apex:pageBlock>
+            </td>
+        </tr>
+    </table>
+
+
+</apex:component>

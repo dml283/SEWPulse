@@ -1,0 +1,14 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PaymentHistoryExCon" standardStylesheets="false" renderAs="pdf">
+    <html>
+        <head>
+            <apex:stylesheet value="{!$Resource.PDFDocumentStyle}" />
+            <apex:stylesheet value="{!$Resource.PortalPdf_Style}" />
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+
+        </head>
+        <body>
+            <h1>Recent payment details for {!Billing_Account__c.HiAF_Account_Number_Check_Digit__c} - {!Billing_Account__c.Customer__r.Name}</h1>
+            <apex:include pageName="PortalPaymentHistoryPrintView"/>
+        </body>
+    </html> 
+</apex:page>

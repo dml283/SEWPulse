@@ -1,0 +1,53 @@
+<apex:component controller="PortalSidebarController">
+    <apex:attribute: name="groupName" type="String" required="true" description="Group name (e.g. 'Billing_Account__c')" assignTo="{!groupName}"/>
+    <apex:attribute: name="currentDevName" type="String" required="false" default="null" description="Current developer name (to match with the item's Name field in the PortalSidebarItem Custom Settings)" assignTo="{!currentDevName}"/>
+    <apex:pageBlock id="pageblock">
+
+        <!--  HEADER -->
+        <apex:facet name="header">
+            <div class="pageBlockHeader">
+                <span class="pageBlockTitle">{!currentChosenItem.label}</span>
+            </div>
+        </apex:facet>
+        <!--  PAGE MESSAGES -->
+        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+        <!-- CONTENT -->
+        <!-- use the outputpanel below for words that goes across the whole content page-->
+        <apex:outputPanel >
+            <h1>Select Account</h1>
+            <p style="text-align: justify">
+            Please choose the account you would like to use.
+            </p>
+            <p/><!-- adds extra space -->
+        </apex:outputPanel>
+        <br/> <!-- another way to add spaces - <br/> leaves more space than <p/> -->
+        <!-- use the structure below for fields -->
+        <apex:pageBlockSection columns="1" showHeader="false">
+            <apex:pageBlockSectionItem >
+                <apex:outputPanel >
+                    <apex:outputLabel value="Account Number"/>
+                </apex:outputPanel>
+                <apex:outputPanel >
+                    <apex:selectList value="{!selectedBillAcctId}" size="1" style="width:100%">
+                        <apex:selectOptions value="{!billAcctOptions}"/>
+                        <apex:actionSupport event="onchange" action="{!peformOperationOnSelectedBillAcct}" status="loading"/>
+                    </apex:selectList>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+    <apex:actionStatus id="loading">
+        <apex:facet name="start">
+            <c:EnhancedActionStatus BackColor="#ffffff"
+                                   borderColor="#6B6B6B"
+                                   borderSize="1"
+                                   height="50px"
+                                   width="120px"
+                                   margintop="-25px"
+                                   marginleft="-60px"
+                                   ImageUrl="{!$Resource.AjaxAnimation}"
+                                   Message="Loading..."/>
+        </apex:facet>
+    </apex:actionStatus>
+</apex:component>

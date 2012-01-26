@@ -1,0 +1,82 @@
+<apex:component controller="WaterMAP_KBAI_Chart_Controller">
+
+    <!--
+        Description: Displays the KBAI chart in PDF and popup
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:attribute name="recentYrKBAIs" description="Array of Current Year KBAIs"
+                        type="Key_Business_Activity_Indicator__c[]"
+                        assignTo="{!recentYrKBAIs}"/>
+    <apex:attribute name="wmapSub" description="WaterMAP Submission"
+                        type="WaterMAP_Submission__c" assignTo="{!wmapSub}"
+                        required="true"/>
+    <apex:attribute name="nbrOfYears" description="Number of Years to display"
+                        type="Integer" assignTo="{!noOfYearsToDisplayForKBAI}"/>
+    <apex:attribute name="showFigures" description="Shows KBAI figures under the chart (default to true)"
+                        type="Boolean" default="true"/>
+
+
+
+<!--    <apex:dataList value="{!orderedKBAILines}" var="line" id="theList"> -->
+<!--        <apex:outputText value="{!line.periodName} {!line.kbaiCount} {!line.usage}"/> -->
+<!--    </apex:dataList> -->
+
+    <apex:outputPanel id="KBAIChartDiv" style="padding-top:20px;" layout="block">
+        <apex:image value="{!googleChartURL}"/>
+        <p/><p/>
+        <apex:outputPanel rendered="{!showFigures}">
+            <div id="kbaitextblock" style="display: block; margin: 30px 80px 0px;">
+                <apex:pageBlock >
+                    <apex:pageBlocktable value="{!kbaiSummaryTable}" var="kbaiSummaryTableRow" style="width:100%;margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;white-space:normal">
+                        <apex:column headervalue="Year" value="{!kbaiSummaryTableRow.year}" headerClass="headerRowLGBack headerRowPeriod" />
+                        <apex:column headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                            <apex:facet name="header">
+                                Water<br/>Consumption
+                            </apex:facet>
+                            <apex:outputText value="{0, number, ###,###,##0} KL per year">
+                                <apex:param value="{!kbaiSummaryTableRow.totalYearConsumption}" />
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                            <apex:facet name="header">
+                                {!if(wmapsub.WaterMAP__r.KBAI_Type__c='Average', 'Average', 'Total')} Count<br/>({!wmapsub.WaterMAP__r.KBAI_Description__c})
+                            </apex:facet>
+                            <apex:outputText value="{0, number, ###,###,##0.00}">
+                                <apex:param value="{!kbaiSummaryTableRow.kbaiCountSummary}" />
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="headerRowRight headerRowLGBack" styleclass="dataRowRight">
+                            <apex:facet name="header">
+                                Average water usage<br/>per {!wmapsub.WaterMAP__r.KBAI_Description__c} per year
+                            </apex:facet>
+                            <apex:outputText value="{0, number, ###,###,##0.00} KL">
+                                <apex:param value="{!kbaiSummaryTableRow.klPerKBAISummary}" />
+                            </apex:outputText>
+                        </apex:column>
+                    </apex:pageBlocktable>
+                </apex:pageBlock>
+            </div>
+        </apex:outputPanel>
+
+<!--        <script type="text/javascript" src="https://www.google.com/jsapi"></script> -->
+<!--        <script type="text/javascript">-->
+<!--            google.load("visualization", "1", {packages: ["corechart"]});-->
+<!--            //google.setOnLoadCallback(drawLineChart);-->
+<!--
+<!--            function drawLineChart() {-->
+<!--                var data = new google.visualization.DataTable( eval( '({!KBAIJSONChartData})' ) );-->
+<!--
+<!--                var chart = new google.visualization.LineChart(-->
+<!--                document.getElementById('{!$Component.KBAIChartDiv}'));-->
+<!--                chart.draw(data, {-->
+<!--                                    width: 750, height: 400-->
+<!--                                 }-->
+<!--                            );-->
+<!--            }-->
+<!--        </script>-->
+    </apex:outputPanel>
+
+</apex:component>

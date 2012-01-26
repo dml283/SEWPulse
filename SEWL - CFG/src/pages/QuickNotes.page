@@ -1,0 +1,285 @@
+<apex:page controller="QuickNotesController">
+<!-- 
+    Type:       VF page
+    Purpose:    Quick Notes
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+    <apex:includeScript value="/support/console/22.0/integration.js" />
+    <script type="text/javascript">
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Quick Notes');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+    </script>
+    <apex:sectionHeader title="Quick Notes" />
+    <apex:form >
+        <apex:outputPanel id="wholePage">
+            <apex:pageblock mode="edit" title="1 - Customer Information">
+                <apex:pagemessages />
+                <apex:pageBlockSection rendered="{!ISNULL(currentQuickNotesTask.id)}">
+                    <apex:inputField value="{!userInputFields.AccountId}"
+                        required="true" />
+                    <apex:inputField value="{!userInputFields.ContactId}" />
+                    <apex:pageblocksectionItem >
+                        <apex:outputLabel value="Billing Account" />
+                        <apex:outputPanel id="balanceLabel">
+                            <apex:inputField value="{!userInputFields.Billing_Account__c}"
+                                required="true">
+                                <apex:actionsupport event="onchange" rerender="balanceLabel" />
+                            </apex:inputField>
+                            <apex:outputLabel value="Balance: "
+                                rendered="{!NOT(ISNULL(userInputFields.Billing_Account__r))}" />
+                            <apex:outputText value="${0, number, ###,###,##0.00}"
+                                rendered="{!NOT(ISNULL(userInputFields.Billing_Account__r))}">
+                                <apex:param value="{!userInputFields.Billing_Account__r.Balance__c}" />
+                            </apex:outputText>
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Interaction Type" />
+                        <apex:selectList size="1" value="{!interactionTypeDefault}">
+                            <apex:selectOptions value="{!interactionTypeSelectOptions}" />
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection rendered="{!NOT(ISNULL(currentQuickNotesTask.id))}">
+                    <apex:outputField value="{!userInputFields.AccountId}" />
+                    <apex:outputField value="{!userInputFields.ContactId}" />
+                    <apex:pageblocksectionItem >
+                        <apex:outputLabel value="Billing Account" />
+                        <apex:outputPanel >
+                            <apex:outputField value="{!userInputFields.Billing_Account__c}" />
+                            <apex:outputLabel value="Balance: "
+                                rendered="{!NOT(ISNULL(userInputFields.Billing_Account__r))}" />
+                            <apex:outputText value="${0, number, ###,###,##0.00}"
+                                rendered="{!NOT(ISNULL(userInputFields.Billing_Account__r))}">
+                                <apex:param value="{!userInputFields.Billing_Account__r.Balance__c}" />
+                            </apex:outputText>
+                        </apex:outputPanel>
+                    </apex:pageblocksectionItem>
+                    <apex:outputField value="{!currentQuickNotesTask.Interaction_Type__c }" />
+                </apex:pageBlockSection>
+            </apex:pageblock>
+            <table style="width: 100%;">
+                <tr style="vertical-align: top">
+                    <td style="width:60%"><apex:actionRegion >
+                            <apex:pageblock mode="edit" title="2 - Note Categories"
+                                id="notesCategories">
+                                <apex:pageBlockSection columns="1">
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel />
+                                        <a
+                                            href="http://aquanet/OUR_TEAMS/CUSTOMERS_AND_COMMUNITY/CUSTOMER_SUPPORT/Pages/QuickNotes.aspx"
+                                            target="_blank">Products and Services Information (PSI)</a>
+                                    </apex:pageblockSectionItem>
+
+                                    <apex:inputField value="{!currentQuickNotesTask.Group__c}">
+                                    </apex:inputField>
+                                    
+                                    <apex:inputField value="{!currentQuickNotesTask.Category_Level_1__c}">
+                                    </apex:inputField>
+
+                                    <apex:inputField value="{!currentQuickNotesTask.Category_Level_2__c}"
+                                        id="catLevel2">
+                                        <apex:actionSupport event="onchange"
+                                            oncomplete="document.getElementById('{!$Component.catLevel2}').focus()"
+                                            action="{!resetPredefinedText}" reRender="predefinedText"
+                                            status="predefinedTextStatus" />
+                                    </apex:inputField>
+
+                                    <apex:inputField value="{!currentQuickNotesTask.Category_Level_3__c}"
+                                        id="catLevel3">
+                                        <apex:actionSupport event="onchange"
+                                            oncomplete="document.getElementById('{!$Component.catLevel3}').focus()"
+                                            action="{!resetPredefinedText}" reRender="predefinedText"
+                                            status="predefinedTextStatus" />
+                                    </apex:inputField>
+
+                                    <script>
+
+                                    function cursor_wait() {
+                                        document.body.style.cursor = 'wait';
+                                    }
+
+                                    function cursor_clear() {
+                                        document.body.style.cursor = 'default';
+                                    }
+                                </script>
+
+                                    <apex:pageblockSectionItem >
+                                        <apex:outputLabel value="Response" />
+                                        <apex:outputPanel id="predefinedText">
+                                            <apex:actionStatus id="predefinedTextStatus">
+                                                <apex:facet name="start">
+                                                    <apex:outputPanel layout="none">
+                                                        <apex:image value="{!$Resource.AjaxAnimation}" />&nbsp;
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                                <apex:facet name="stop">
+                                                    <apex:outputPanel >
+                                                        <apex:pageblockTable value="{!quickQoSResponsesList}" var="quickQoSResponse" rendered="{!quickQoSResponsesList.size>0}">
+                                                            <apex:column headerValue="Response Text" value="{!quickQoSResponse.Response__c}"/>
+                                                            <apex:column headerValue="Mode" value="{!quickQoSResponse.Mode__c}"/>
+                                                            <apex:column >
+                                                                <apex:actionStatus id="copyTextStatus">
+                                                                    <apex:facet name="start">
+                                                                        <apex:outputPanel layout="none">
+                                                                            <apex:image value="{!$Resource.AjaxAnimation}" />&nbsp;
+                                                                        </apex:outputPanel>
+                                                                    </apex:facet>
+                                                                    <apex:facet name="stop">
+                                                                        <apex:commandLink value="Copy" action="{!copyText}" rerender="noteDetailsPB" status="copyTextStatus">
+                                                                            <apex:param id="selectedPredefinedTextId" name="selectedPredefinedTextId" value="{!quickQoSResponse.Id}" assignTo="{!selectedPredefinedTextId}"/>
+                                                                        </apex:commandLink>
+                                                                    </apex:facet>
+                                                                </apex:actionStatus>
+                                                            </apex:column>
+                                                        </apex:pageblockTable>
+                                                        <apex:outputText rendered="{!quickQoSResponsesList.size=0}">No Response Text Available - please ensure the picklists above are filled.</apex:outputText>
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                        </apex:outputPanel>
+                                    </apex:pageblockSectionItem>
+                                    </apex:pageblockSection>
+                            </apex:pageblock>
+                        </apex:actionRegion></td>
+                    <td><apex:pageblock mode="edit" title="3 - Note Details"
+                            id="noteDetailsPB">
+                            <apex:pageblockSection columns="1">
+                                <apex:inputField value="{!currentQuickNotesTask.Subject}"
+                                    style="width:300px" />
+                                <apex:inputField value="{!currentQuickNotesTask.No_of_Contacts__c}"/>
+                                <apex:inputField value="{!currentQuickNotesTask.Hot_Issue__c}"/>
+                                <apex:inputField value="{!currentQuickNotesTask.Mode__c}"/>
+                                <apex:inputField value="{!currentQuickNotesTask.Description}"
+                                    style="width:300px;height:120px" />
+                                <apex:pageblockSectionItem rendered="{!qosLetterCheckList.size>0 && isNew}">
+                                    <apex:outputLabel value="Letter to Send" />
+                                    <apex:repeat value="{!qosLetterCheckList}"
+                                        var="qosResponseWrapper">
+                                        <apex:outputPanel >
+                                            <apex:actionStatus id="checkLetterSelectedStatus">
+                                                <apex:facet name="start">
+                                                    <apex:image value="{!$Resource.AjaxAnimation}" />
+                                                </apex:facet>
+                                                <apex:facet name="stop">
+                                                    <apex:inputCheckbox value="{!qosResponseWrapper.isSelected}">
+                                                        <apex:actionSupport event="onclick"
+                                                            reRender="noteDetailsPB"
+                                                            status="checkLetterSelectedStatus" />
+                                                    </apex:inputCheckbox>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+                                                &nbsp;{!IF(ISNULL(qosResponseWrapper.responseRec.Letter_Name__c),qosResponseWrapper.responseRec.Letter_Code__c,qosResponseWrapper.responseRec.Letter_Name__c)}
+                                            </apex:outputPanel>
+                                    </apex:repeat>
+                                </apex:pageblockSectionItem>
+                                <apex:pageblockSectionItem rendered="{!isNew && isLetterSelectedToSend}">
+                                    <apex:outputLabel value="Send to" />
+                                    <apex:inputField value="{!currentQuickNotesTask.Letter_Sent_to__c}"
+                                        required="true" />
+                                </apex:pageblockSectionItem>
+                                <apex:outputField value="{!currentQuickNotesTask.Letter_Sent__c}"
+                                    rendered="{!NOT(isNew)&&NOT(ISNULL(currentQuickNotesTask.Letter_Sent__c))}" />
+                                <apex:outputField value="{!currentQuickNotesTask.Letter_Sent_to__c}"
+                                    rendered="{!NOT(ISNULL(currentQuickNotesTask.Letter_Sent__c))&&NOT(isNew)}" />
+                            </apex:pageblockSection>
+                            <apex:pageblockButtons location="bottom">
+                                <apex:commandbutton value="{!IF(isNew,'Add','Update')}"
+                                    action="{!upsertTask}" disabled="{!NOT(hasCopiedResponse)}"/>
+                            </apex:pageblockButtons>
+                        </apex:pageblock></td>
+                </tr>
+            </table>
+            <apex:pageblock title="Notes Created"
+                rendered="{!quickNotesTasks.size>0}">
+                <apex:pageblocktable value="{!quickNotesTasks}" var="taskWrapper">
+                    <apex:column >
+                        <apex:commandlink action="{!editCreatedTask}" value="Edit">
+                            <apex:param name="taskIdToEdit" value="{!taskWrapper.taskRec.id}"
+                                assignTo="{!taskIdToEdit}" />
+                        </apex:commandlink>
+                    </apex:column>
+                    <apex:column value="{!taskWrapper.taskRec.Category_Level_1__c}" />
+                    <apex:column value="{!taskWrapper.taskRec.Category_Level_2__c}" />
+                    <apex:column value="{!taskWrapper.taskRec.Category_Level_3__c}" />
+                    <apex:column value="{!taskWrapper.taskRec.Subject}" />
+                    <apex:column value="{!taskWrapper.taskRec.Letter_Sent__c}" />
+                    <apex:column headerValue="Create Case">
+                        <apex:selectList multiselect="false" size="1"
+                            onchange="QuickCase('{!$Component.quickprocess}');"
+                            id="quickprocess">
+                            <apex:selectOptions value="{!quickNoteSelectOptions}" />
+                        </apex:selectList>
+                        <script type="text/javascript">
+                            var caseRecordTypeSelectField;
+                            var caseRecordTypeId;
+
+                            function QuickCase(compId) {
+                                caseRecordTypeSelectField = document.getElementById(compId);
+                                caseRecordTypeId = caseRecordTypeSelectField.options[caseRecordTypeSelectField.selectedIndex].value;
+                                if(sforce.console.isInConsole()){
+                                    sforce.console.getEnclosingPrimaryTabId(openCase );
+                                }
+                                else{
+                                    if(caseRecordTypeId.indexOf("012", 0) == 0){
+                                        window.open('{!taskWrapper.quickCaseURLPrefix}&RecordType='+caseRecordTypeId);
+                                    }else{
+                                        window.open(caseRecordTypeId+'{!taskWrapper.urlParameterSuffix}');
+                                    }
+                                }
+                                caseRecordTypeSelectField.selectedIndex=0;
+                            }
+
+                            var openCase = function openCase (result) {
+                                if(caseRecordTypeId.indexOf("012", 0) == 0){
+                                    sforce.console.openSubtab(result.id ,'{!taskWrapper.quickCaseURLPrefix}&isdtp=vw&RecordType='+caseRecordTypeId, true,
+                                    '', null);
+                                }else{
+                                    sforce.console.openSubtab(result.id ,caseRecordTypeId+'{!taskWrapper.urlParameterSuffix}&isdtp=vw', true,
+                                    '', null);
+                                }
+                            }
+                        </script>
+                    </apex:column>
+                </apex:pageblocktable>
+                <apex:pageblockButtons location="bottom">
+                    <apex:commandButton value="Close Page"
+                        onclick="testCloseTab();return false" />
+                    <script type="text/javascript">
+                          function testCloseTab() {
+                              if(sforce.console.isInConsole()){
+                                  sforce.console.getEnclosingTabId(closeSubtab);
+                              }
+                              else{
+                                  <!--back to the original page-->
+                                  window.location = "{!retURL}";
+                              }
+                          }
+                          
+                          var closeSubtab = function closeSubtab(result) {
+                              var tabId = result.id;
+                              sforce.console.closeTab(tabId);
+                          };
+                      </script>
+                </apex:pageblockButtons>
+            </apex:pageblock>
+
+        </apex:outputPanel>
+    </apex:form>
+
+
+
+</apex:page>

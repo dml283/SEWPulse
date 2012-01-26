@@ -1,0 +1,274 @@
+<!-- 
+    Type:       VF page
+    Purpose:    Allow user to add, amend and remove direct debit account information
+                of selected billing account
+                
+    Used By:    DirectDebit VF page
+    ---------------------------------------------------------------
+    History:
+    
+    22-11-2011 Ji Zhang (Coretec Solutions)   Created
+
+ -->
+<apex:page controller="DirectDebitController" tabstyle="Billing_Account__c">
+
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <script type="text/javascript">
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Direct Debit');
+       } 
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) { 
+                previousOnload(); 
+            }
+            setTabTitle(); 
+       }
+    </script>
+    <apex:sectionHeader title="Direct Debit - {!IF(actionType='Cancel', 'Remove', 'Add/Amend')}"/>
+    <apex:form id="form">
+         <apex:pageblock mode="edit" title="Customer Details" id="pb1">
+            <apex:pagemessages id="messages" />
+            <apex:pageBlockSection columns="1" id="pbs1">
+                <apex:outputField value="{!userInputFields.Customer_Account__c}" />
+                <apex:inputField value="{!userInputFields.Person__c}" required="true" />
+            </apex:pageBlockSection>
+        </apex:pageblock>
+          
+        <apex:pageblock title="Selected Accounts Details" id="pb2">
+            <apex:pageBlockTable value="{!selectedBillingAccList}" var="BillingAccWrap">
+                <apex:column headervalue="Select" style="width:20px"><apex:inputCheckbox value="{!BillingAccWrap.isSelected}" disabled="true"/></apex:column>
+                <apex:column headerValue="Billing Account #" style="width:100px"><apex:outputLink value="javascript:goToAccount('/{!BillingAccWrap.billingAccount.Id}')">
+                    <apex:outputText value="{!BillingAccWrap.billingAccount.Name}"/>
+                    <script type="text/javascript">
+                        var sccUrl;
+                        
+                        function goToAccount(url) {
+                            if(sforce.console.isInConsole()){
+                                try {
+                                    sccUrl = url;
+                                    sforce.console.getEnclosingPrimaryTabId(openAcct);
+                                }
+                                catch(e) {
+                                    alert(e.toString());
+                                }
+                            }
+                            else {
+                                window.open(url);
+                            }
+                        }
+                        var openAcct = function openAcct (result) {
+                            sforce.console.openSubtab(result.id ,sccUrl, true, '', null);
+                        }
+
+                    </script>
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headervalue="Existing" style="width:40px;text-align:center"><apex:inputCheckbox value="{!BillingAccWrap.billingAccount.Direct_Debit__c}" disabled="true"/></apex:column>
+                <apex:column headervalue="Property Address" style="width:250px"><apex:outputText value="{!BillingAccWrap.billingAccount.Property_Address__c}" escape="false"/></apex:column>
+                <apex:column headerValue="Account Details"><apex:outputText value="{!BillingAccWrap.billingAccount.Direct_Debit_Details__c}"/></apex:column>
+                <apex:column headervalue="Payment Plan" style="width:80px;text-align:center" ><apex:inputCheckbox value="{!BillingAccWrap.billingAccount.Is_Payment_Plan__c}" disabled="true"/></apex:column>
+            </apex:pageBlockTable>
+            <apex:outputPanel rendered="{!IF(actionType == 'Cancel',true, false)}">
+                <br/>
+                    <b>Please confirm that the customer wishes to remove direct debit from the above account(s).</b>
+                <br/>
+            </apex:outputPanel>
+            <apex:pageBlockButtons location="bottom" rendered="{!IF(actionType == 'Cancel',true, false)}">
+                    <apex:commandButton action="{!submit}" value="Remove" 
+                                                        id="removeBtn" 
+                                                        rerender="form" 
+                                                        status="loading"
+                                                        oncomplete="doSubmit()"/>
+                    <apex:commandButton action="{!goback}" value="Back" immediate="true"/>
+                    <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+                    <script type="text/javascript">
+                         function doSubmit() {
+                            if ('{!newTaskList}'!= '' && '{!newTaskList}'!= '[]') {
+                                registerDeregisterCustomer();
+                            }
+                        }
+                        
+                        function testCloseTab() {
+                            if(sforce.console.isInConsole()){
+                                sforce.console.getEnclosingTabId(closeSubtab);
+                            }
+                            else{
+                                if ('{!billAcctId}' != '') 
+                                    window.location = "/{!billAcctId}";
+                                else
+                                    window.location = "/{!JSENCODE(userInputFields.Customer_Account__c)}";                            
+                            }
+                        }
+
+                        var closeSubtab = function closeSubtab(result) {
+                            var tabId = result.id;
+                            sforce.console.closeTab(tabId);
+                        };
+                    </script>
+                </apex:pageBlockButtons> 
+                <apex:actionFunction action="{!registerDeregisterCustomer}" name="registerDeregisterCustomer"/>          
+        </apex:pageBlock>
+        
+        <apex:pageblock mode="edit" title="New Account Details" id="pb3" rendered="{!IF(actionType != 'Cancel',true, false)}">
+            <apex:actionRegion >
+            <apex:pageBlockSection columns="1">
+                <apex:inputField value="{!userInputFields.DD_Account_Type__c}" required="true">
+                    <apex:actionSupport event="onchange"  status="loading" rerender="pb3"/>
+                </apex:inputField>
+            </apex:pageBlockSection>
+            </apex:actionRegion>
+            
+            <apex:pageBlockSection columns="1" rendered="{!userInputFields.DD_Account_Type__c!='Credit Card'}" id="bankacct">    
+                    <apex:inputField value="{!userInputFields.DD_Financial_Institution__c}" required="true"/>
+                    <apex:inputField value="{!userInputFields.DD_BSB_No__c}" required="true"/>
+                    <apex:inputField value="{!userInputFields.DD_Account_No__c}" id="accountNumber" required="true"/> 
+                    <apex:inputField value="{!userInputFields.DD_Account_Name__c}" required="true"/>
+                        <script>
+                            document.getElementById('{!$Component.DD_Financial_Institution__c}').autocomplete = "off";
+                            document.getElementById('{!$Component.DD_BSB_No__c}').autocomplete = "off";
+                            document.getElementById('{!$Component.DD_Account_No__c}').autocomplete = "off";
+                            document.getElementById('{!$Component.accountNumber}').autocomplete = "off";
+                        </script>
+            </apex:pageBlockSection> 
+               
+            <apex:pageBlockSection columns="1" rendered="{!userInputFields.DD_Account_Type__c='Credit Card'}"> 
+                    <apex:inputField value="{!userInputFields.Credit_Card_Type__c}" required="true"/>
+                     <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Credit Card Number"/>
+                        <apex:outputPanel >
+                        <table style="border-spacing:0">
+                                <tr>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_1__c}" id="creditCardNumber1" required="true" style="width:30px; margin-left:2px">
+                                        
+                                        </apex:inputField>
+                                   </td>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_2__c}" id="creditCardNumber2" style="width:30px; margin-left:2px">
+                                        </apex:inputField>
+                                   </td>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_3__c}" id="creditCardNumber3" style="width:30px; margin-left:2px">
+                                        </apex:inputField>
+                                   </td>
+                                   <td style="width:40px">
+                                        <apex:inputField value="{!userInputFields.Credit_Card_Number_4__c}" id="creditCardNumber4" style="width:30px; margin-left:2px">
+                                        </apex:inputField>
+                                   </td>
+                                </tr>
+                        </table>
+                        <script>
+                            document.getElementById('{!$Component.creditCardNumber1}').autocomplete = "off";
+                            document.getElementById('{!$Component.creditCardNumber2}').autocomplete = "off";
+                            document.getElementById('{!$Component.creditCardNumber3}').autocomplete = "off";
+                            document.getElementById('{!$Component.creditCardNumber4}').autocomplete = "off";
+                        </script>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Expiry Date:"/>
+                        <apex:outputPanel >
+                        <table style="border-spacing:0">
+                            <tr>
+                                <td style="width:80px">
+                                    <apex:inputField value="{!userInputFields.Expiration_Date_Month__c}" required="true" />
+                                </td>                               
+                                <td>    
+                                    <apex:selectList value="{!userInputFields.Expiration_Date_Year__c}" multiselect="false" size="1" required="true">
+                                        <apex:selectOptions value="{!items}"/>
+                                    </apex:selectList>
+                                </td>
+                            </tr>
+                        </table>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!userInputFields.Name_on_Card__c}" required="true"/>
+                    <apex:inputField value="{!userInputFields.CVN__c}" style="width:30px; margin-left: 2px"/>        
+            </apex:pageBlockSection> 
+            <apex:outputPanel >
+                <table>
+                    <tr>
+                        <td style="width:100px"></td>
+                        <td style="line-height:150%">
+                   <b>CUSTOMER AGREEMENT:</b><br/>
+Do you authorise South East Water Ltd (user ID 44854) to arrange for the funds to be debited from your account?<br/>
+South East Water requires 4 business days notice to cancel or change a direct debit payment.<br/>
+Do you understand you can change or cancel the deduction by contacting us?<br/>
+A confirmation letter with the terms and conditions of this direct debt arrangement will be forwarded for you to read.<br/>
+<br/>
+<b>IMPORTANT</b><br/>
+For quarterly direct debit customer's with a current balance, please inform customer that the current balance will need to be paid using their normal 
+payment method i.e. Credit Card, Cheque etc. Future accounts raised will be paid through Direct Debit. If payment of the 
+current balance is  not completed before direct debit commences, the amount owed will be direct debited in the next payment 
+run.<br/>
+
+                       </td>
+                       <td style="width:100px"></td>
+                    </tr> 
+                    <tr>
+                       <td></td>
+                       <td><b>Customer is notified of agreement</b>
+                           <apex:actionRegion >
+                               <apex:inputCheckbox value="{!agreedTerms}" id="agreedterms"> 
+                                   <apex:actionSupport event="onclick"  status="loading" rerender="submitBtn"/>
+                               </apex:inputCheckbox> 
+                           </apex:actionRegion>
+                       </td> 
+                       <td></td>
+                    </tr>
+            </table>       
+            </apex:outputPanel>
+            <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton action="{!submit}" value="Add/Amend" id="submitBtn" 
+                                                        disabled="{!NOT(agreedTerms)}"
+                                                        rerender="form" 
+                                                        oncomplete="doSubmit()"
+                                                        status="loading"/>
+                    <apex:commandButton action="{!goback}" value="Back" immediate="true"/>
+                    <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+                    <script type="text/javascript">
+                        function doSubmit() {
+                        
+                            if ('{!newTaskList}'!= '' && '{!newTaskList}'!= '[]') {
+                                registerDeregisterCustomer();
+                            }
+                        }
+                    
+                        function testCloseTab() {
+                            if(sforce.console.isInConsole()){
+                                sforce.console.getEnclosingTabId(closeSubtab);
+                            }
+                            else{
+                                if ('{!billAcctId}' != '') 
+                                    window.location = "/{!billAcctId}";
+                                else
+                                    window.location = "/{!JSENCODE(userInputFields.Customer_Account__c)}";                            }
+                        }
+
+                        var closeSubtab = function closeSubtab(result) {
+                            var tabId = result.id;
+                            sforce.console.closeTab(tabId);
+                        };
+                    </script>
+             </apex:pageBlockButtons> 
+             <apex:actionFunction action="{!registerDeregisterCustomer}" name="registerDeregisterCustomer"/>
+        </apex:pageblock>
+
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+</apex:page>

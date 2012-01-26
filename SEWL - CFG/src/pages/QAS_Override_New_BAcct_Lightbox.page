@@ -1,0 +1,3 @@
+<apex:page standardController="Billing_Account__c" extensions="experianqas.QASOverrideController" action="{!autoRun}"> 
+    <experianqas:QASRedirectLightboxComponent ErrorCondition="{!ErrorCondition}" NoSuccess="{!NoSuccess}" SomeSuccess="{!SomeSuccess}" FormData="{!FormData}" RNextUrl="{!RNextUrl}"/> 
+</apex:page>

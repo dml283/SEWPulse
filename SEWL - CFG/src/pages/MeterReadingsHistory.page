@@ -1,0 +1,107 @@
+<apex:page standardController="Meter_Details__c"
+	extensions="MeterReadingsHistoryExCon"
+	title="{!Meter_Details__c.Name} - Meter Readings History">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Displays Meter Reading History
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+	<apex:outputField rendered="false"
+		value="{!Meter_Details__c.Pit_Reference__c}" />
+	<apex:outputField rendered="false"
+		value="{!Meter_Details__c.Meter_Type__c}" />
+	<apex:sectionHeader title="Meter Readings History"
+		subtitle="{!Meter_Details__c.Name}" />
+	<apex:includeScript value="/support/console/22.0/integration.js" />
+	<script type="text/javascript">      
+       
+       function setTabTitle() {
+           if(sforce.console.isInConsole()){
+               sforce.console.setTabTitle('{!Meter_Details__c.Name} - Meter Readings History');
+           }
+       }       
+      
+       var previousOnload = window.onload;        
+       window.onload = function() { 
+            if (previousOnload) { 
+                previousOnload();
+            }
+            setTabTitle();                
+       }
+   </script>
+	<p>Below is the most recent meter readings for
+		{!$ObjectType.Meter_Details__c.fields.Name.label}
+		{!Meter_Details__c.Name}.</p>
+	<apex:pagemessages />
+	<apex:form >
+		<apex:pageblock title="Recent meter readings under {!Meter_Details__c.Name}">
+			<apex:pageblockTable value="{!meterReadings}" var="read">
+				<!--
+              <apex:column headervalue="XXX THIS IS A LINK THAT CAN OPEN IN NEW WINDOW / NEW SUBTAB XXX">
+                  <A HREF="#" onClick="testOpenSubtab{!UNIQUE_ID}();return false">XXX</A>
+                  <script type="text/javascript">
+                      function testOpenSubtab{!UNIQUE_ID}() {
+                          if(sforce.console.isInConsole()){
+                              sforce.console.getEnclosingPrimaryTabId(openSubtab{!UNIQUE_ID});
+                          }
+                          else{
+                              window.open("/{!LINK}");
+                          }
+                      }
+                      var openSubtab{!UNIQUE_ID} = function openSubtab{!UNIQUE_ID}(result) {
+                          var primaryTabId = result.id;
+                          sforce.console.openSubtab(primaryTabId , '/{!LINK}', true, 
+                              '{!TAB_NAME}', null, null, 'subtab{!UNIQUE_ID}');
+                      };
+                  </script>
+              </apex:column>
+          -->
+				<apex:column headervalue="Read Date">
+					<apex:outputText value="{0,date,dd/MM/yyyy}">
+						<apex:param value="{!read.readDate}" />
+					</apex:outputText>
+				</apex:column>
+				<apex:column headervalue="Reading">
+					<apex:outputText value="{!read.reading}" />
+				</apex:column>
+				<apex:column headervalue="Consumption">
+					<apex:outputText value="{!read.consumption}" />
+				</apex:column>
+				<apex:column headervalue="No. of Days">
+					<apex:outputText value="{!read.noOfDays}" />
+				</apex:column>
+				<apex:column headervalue="Reading Method">
+					<apex:outputText value="{!read.readingMethod}" />
+				</apex:column>
+				<apex:column headervalue="Estimated">
+					<apex:outputText value="{!read.estimated}" />
+				</apex:column>
+			</apex:pageblockTable>
+			<apex:pageblockButtons >
+				<apex:commandButton value="Close Page"
+					onclick="testCloseTab();return false" />
+				<script type="text/javascript">
+                  function testCloseTab() {
+                      if(sforce.console.isInConsole()){
+                          sforce.console.getEnclosingTabId(closeSubtab);
+                      }
+                      else{
+                          <!--back to the original page-->
+                          window.location = "{!JSENCODE(retURL)}";
+                      }
+                  }
+                  
+                  var closeSubtab = function closeSubtab(result) {
+                      var tabId = result.id;
+                      sforce.console.closeTab(tabId);
+                  };
+              </script>
+			</apex:pageblockButtons>
+		</apex:pageblock>
+	</apex:form>
+</apex:page>

@@ -1,0 +1,42 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PaymentHistoryExCon" contenttype="application/x-excel#PaymentHistory-{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}.xls">
+    <apex:include pageName="PortalPaymentHistoryPrintView"/>
+    <!-- 
+    Type:       VF page
+    Purpose:    Displays HiAF Payment History For Portal User To General Excel Sheet
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+        <!-- hidden outputfields or input fields go here -->
+        <!-- <apex:outputfield rendered="false" value="{!Billing_Account__c.Id}"/>
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}"/>
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c}"/>       
+        <table maxwidth="900px">
+            <tr>
+                <td>                  
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                        <apex:pageBlock id="pageblock">
+                            
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!paymentNum==0}"><i>No records to display</i></apex:outputPanel>
+                             <apex:pageBlockSection id="payHistorySection" columns="1" rendered="{!paymentNum!=0}">
+                                <apex:pageblockTable id="payHistoryTable" value="{!payments}" var="pay">
+                                    <apex:column headervalue="Date Posted" style="text-align:left;" width="20%">
+                                        <apex:outputText value="{0,date,dd-MM-yyyy}">
+                                           <apex:param value="{!pay.DatePosted}" />
+                                        </apex:outputText>
+                                    </apex:column>
+                                    <apex:column headervalue="Method">
+                                        <apex:outputText value="{!pay.Method}"/>
+                                    </apex:column>
+                                    <apex:column headervalue="Amount" style="text-align:right;" width="20%">
+                                        <apex:outputText value="{!pay.Amount}"/>
+                                    </apex:column>
+                                </apex:pageblockTable>
+                            </apex:pageBlockSection>          
+                        </apex:pageBlock>
+                 
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>-->
+</apex:page>

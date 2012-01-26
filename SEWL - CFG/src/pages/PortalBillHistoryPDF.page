@@ -1,0 +1,14 @@
+<apex:page sidebar="false" showHeader="false" standardController="Billing_Account__c" tabstyle="My_Accounts_Portal__tab" standardStylesheets="false" renderAs="pdf">
+    <html>
+        <head>
+            <apex:stylesheet value="{!$Resource.PDFDocumentStyle}" />
+            <apex:stylesheet value="{!$Resource.PortalPdf_Style}" />
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+
+        </head>
+        <body>
+            <h1>Bill History Details - Account no. {!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}</h1>
+            <apex:include pageName="PortalBillHistoryPrintView"/>
+        </body>
+    </html> 
+</apex:page>

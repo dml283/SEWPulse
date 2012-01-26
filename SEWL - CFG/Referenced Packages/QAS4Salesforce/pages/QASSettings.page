@@ -1,0 +1,227 @@
+<apex:page controller="experianqas.QASSettingsController" title="Editing Advanced Settings {!Name}" 
+tabStyle="QAS_for_salesforce_com__tab" action="{!AutoRun}">
+<apex:includeScript value="{!$Resource.experianqas__QASConfigJS}"/>
+<apex:includeScript value="{!$Resource.experianqas__jquery132min}"/>
+<apex:includeScript value="{!$Resource.experianqas__PopupHelperJS}"/>
+<apex:includeScript value="{!$Resource.experianqas__thickbox31js}"/>
+<apex:sectionHeader title="Advanced Settings Edit" subtitle="{!Name}" help="https://services3.ondemand.qas.com/SalesForce/HostedPopup/V3/Help/advancededit.htm"/>
+<apex:form >
+<apex:pageBlock mode="edit">
+<apex:pageBlockButtons >
+<apex:commandButton action="{!Save}" value="Save"/>
+<apex:commandButton action="{!Cancel}" value="Cancel" immediate="true"/>
+</apex:pageBlockButtons>
+
+<apex:pageMessages id="msgs" />
+
+<apex:pageBlockSection title="Core details" columns="2">
+
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="{!NameKeyLabel}" for="setting__userprof"/>
+    <apex:outputPanel >
+        <apex:outputPanel layout="block" styleClass="requiredInput" rendered="{!ShowName}">
+            <apex:outputPanel layout="block" styleClass="requiredBlock" rendered="{!NameRequired}"/>
+            <apex:inputText value="{!Name}" size="40" id="setting__name" rendered="{!ShowName}" disabled="{!DisableNameEdit}"/>
+        </apex:outputPanel>
+        <apex:selectList rendered="{!EnableUserProfileSelection}" value="{!SelectedUserProfile}" multiselect="false" size="1" id="setting__userprof">
+            <apex:selectOptions value="{!AvailableUserProfiles}"/>
+        </apex:selectList>
+    </apex:outputPanel>
+</apex:pageBlockSectionItem>
+
+<!--<apex:pageBlockSectionItem >-->
+<!--<apex:outputLabel value="Settings Priority" for="setting__priority"/>-->
+<!--<apex:inputText value="{!Priority}" size="10" id="setting__priority"/>-->
+<!--</apex:pageBlockSectionItem>-->
+
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Inherit User Permissions For Data Access" for="misc__setting__daws"/>
+    <apex:selectList value="{!DataAccessWithSharing}" multiselect="false" size="1" id="setting__daws">
+        <apex:selectOptions value="{!TrueFalseDefault}"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="Experian QAS On Demand Details" columns="2">
+
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="QAS On Demand Web Service Username" for="od__username"/>
+<apex:inputText value="{!ODUsername}" size="30" id="od__username"/>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="QAS On Demand Web Service URL" for="od__webserviceurl"/>
+<apex:inputText value="{!ODWebserviceUrl}" size="50" id="od__webserviceurl"/>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="QAS On Demand Web Service Password" for="od__password"/>
+<apex:inputSecret value="{!ODPassword}" size="15" redisplay="true" id="od__password"/>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="QAS On Demand Address Search URL" for="od__popupurl"/>
+<apex:inputText value="{!ODPopupUrl}" size="50" id="od__popupurl"/>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="QAS On Demand Token Web Service URL" for="od__tokenserviceurl"/>
+<apex:inputText value="{!ODTokenserviceUrl}" size="50" id="od__tokenserviceurl"/>
+</apex:pageBlockSectionItem>
+
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="Global Settings" columns="2">
+
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Initial Data Mapping" for="dm__initial"/>
+    <apex:selectList value="{!InitialDataMapping}" multiselect="false" size="1" id="dm__initial">
+        <apex:selectOptions value="{!AvailableDataMappingsWithDefault}"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Can Change Data Mapping" for="dm__canchange"/>
+    <apex:selectList value="{!CanChangeDataMapping}" multiselect="false" size="1" id="dm__canchange">
+        <apex:selectOptions value="{!TrueFalseDefault}"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Use Initial Data Mapping" for="dm__useinitial"/>
+    <apex:selectList value="{!UseInitialDataMapping}" multiselect="false" size="1" id="dm__useinitial">
+        <apex:selectOptions value="{!TrueFalseDefault}"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Allowed Engines" for="eng__allowed"/>
+    <apex:selectCheckboxes value="{!AllowedEngines}" id="eng__allowed">
+        <apex:selectOptions value="{!AvailableEngines}"/>
+    </apex:selectCheckboxes>
+</apex:pageBlockSectionItem>
+
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Allowed Data Mappings" for="dm__allowed"/>
+    <apex:selectCheckboxes value="{!AllowedDataMappings}" id="dm__allowed" layout="pageDirection">
+        <apex:selectOptions value="{!AvailableDataMappings}"/>
+    </apex:selectCheckboxes>
+</apex:pageBlockSectionItem>
+
+
+
+<!--<apex:pageBlockSectionItem >-->
+<!--    <apex:outputLabel value="Data Mapping Aliases" for="dm__aliases"/>-->
+<!--    <apex:outputPanel >-->
+<!--        <apex:inputTextArea value="{!DataMappingAliases}" id="dm__aliases" cols="40" rows="5"/>-->
+<!--        <br/>-->
+<!--        <apex:inputText id="dm_newalias_text" size="25"/>-->
+<!--        =&gt;-->
+<!--        <apex:selectList multiselect="false" size="1" id="dm_newalias_country">-->
+<!--            <apex:selectOptions value="{!AvailableDataMappings}"/>-->
+<!--        </apex:selectList>-->
+<!--        <input type="button" id="dm_newalias_do" value="Add Alias" onclick="CopyAliasToTarget('{!$Component.dm_newalias_text}', '{!$Component.dm_newalias_country}', '{!$Component.dm__aliases}');"/>-->
+<!--    </apex:outputPanel>-->
+<!--</apex:pageBlockSectionItem>-->
+
+</apex:pageBlockSection>
+
+<apex:pageBlockSection title="Data Mapping Specific Settings" columns="2" id="searchsettings">
+
+<apex:facet name="header">
+<apex:pageBlockSectionItem >
+    <apex:outputLabel value="Search Settings For: " for="ss__specificdm"/>
+    <apex:outputPanel >
+    <apex:selectList value="{!SpecificDataMapping}" multiselect="false" size="1" id="ss__specificdm">
+        <apex:selectOptions value="{!AvailableDataMappingsWithDefault}"/>
+        <apex:actionSupport event="onchange" action="{!ChangeSettingsSpecficDM}"
+            rerender="searchsettings,searchsettings2,msgs" focus="eng__allowed" status="specificdm_status" />
+    </apex:selectList>
+    <!--<apex:actionstatus id="specificdm_status" startText="working...">-->
+   	</apex:outputPanel>
+</apex:pageBlockSectionItem>
+</apex:facet>
+</apex:pageBlockSection>
+<apex:actionstatus id="specificdm_status" startText="working...">
+<apex:facet name="stop">
+<apex:pageBlockSection id="searchsettings2" columns="1" >
+	<apex:pageBlockSection >
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Can Change Engine" for="eng__canchange"/>
+	    <apex:selectList value="{!CanChangeEngine}" multiselect="false" size="1" id="eng__canchange">
+	        <apex:selectOptions value="{!TrueFalseDefault}"/>
+	    </apex:selectList>
+	</apex:pageBlockSectionItem>
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Initial Engine" for="eng__initial"/>
+	    <apex:selectList value="{!InitialEngine}" multiselect="false" size="1" id="eng__initial">
+	        <apex:selectOptions value="{!AvailableEnginesWithDefault}"/>
+	    </apex:selectList>
+	</apex:pageBlockSectionItem>
+	
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Threshold" for="misc__threshold"/>
+	    <apex:inputText value="{!Threshold}" size="10" id="misc__threshold"/>
+	</apex:pageBlockSectionItem>
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Timeout (seconds)" for="misc__timeout"/>
+	    <apex:inputText value="{!Timeout}" size="10" id="misc__timeout"/>
+	</apex:pageBlockSectionItem>
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Search Intensity" for="misc__searchintensity"/>
+	    <apex:selectList value="{!SearchIntensity}" multiselect="false" size="1" id="misc__searchintensity">
+	        <apex:selectOptions value="{!AvailableSearchIntensities}"/>
+	    </apex:selectList>
+	</apex:pageBlockSectionItem>
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Flatten Picklists" for="misc__flattenpicklists"/>
+	    <apex:selectList value="{!FlattenPicklists}" multiselect="false" size="1" id="misc__flattenpicklists">
+	        <apex:selectOptions value="{!TrueFalseDefault}"/>
+	    </apex:selectList>
+	</apex:pageBlockSectionItem>
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Can Override Address" for="misc__canoverideaddress"/>
+	    <apex:selectList value="{!CanOverrideAddress}" multiselect="false" size="1" id="misc__canoverideaddress">
+	        <apex:selectOptions value="{!TrueFalseDefault}"/>
+	    </apex:selectList>
+	</apex:pageBlockSectionItem>
+	
+	
+	
+	
+	<apex:pageBlockSectionItem >
+	    <apex:outputLabel value="Auto Accept Verified Address" for="misc__skipfinaladdress"/>
+	    <apex:selectList value="{!SkipFinalAddress}" multiselect="false" size="1" id="misc__skipfinaladdress">
+	        <apex:selectOptions value="{!TrueFalseDefault}"/>
+	    </apex:selectList>
+	</apex:pageBlockSectionItem>
+		
+	</apex:pageBlockSection>
+	
+
+	<apex:pageBlockSection id="DMAliasPanel" columns="1">
+	
+	<apex:pageBlockSectionItem >
+	<apex:outputLabel value="Data Map Aliases" for="misc__standarddmaliases"/>
+	<apex:inputText value="{!StandardDataMappingAliases}" size="90" id="misc__standarddmaliases" disabled="true"/>
+	</apex:pageBlockSectionItem>
+	
+	<apex:pageBlockSectionItem rendered="{!ShowDataMappingAliases}">
+	<apex:outputLink id="dmlink" value="javascript:loadcssfile('/resource/1250699948000/experianqas__Thickbox31css');tb_show_scrolling('Edit Data Map Aliases',{!DMAliasURL});">Additional Data Map Aliases</apex:outputLink>
+	<apex:inputText value="{!DataMappingAliases}" size="90" id="misc__dmaliases" disabled="{!DisableDataMappingAliases}" onchange="document.getElementById('{!$Component.dmlink}').innerHTML='';refreshSection()"/>
+	</apex:pageBlockSectionItem>
+	</apex:pageBlockSection>
+
+	
+	
+
+
+</apex:pageBlockSection>
+</apex:facet>
+</apex:actionstatus>
+
+
+
+</apex:pageBlock>
+<apex:actionFunction name="refreshSection" action="{!dataAliasFieldUpdated}"  rerender="DMAliasPanel"/>
+ <apex:actionFunction name="dataAliasUpdated" action="{!dataAliasUpdated}" rerender="searchsettings,searchsettings2" status="specificdm_status">
+ <apex:param name="firstParam" assignTo="{!PassedBackAliases}" value="" />
+ </apex:actionFunction>
+</apex:form>
+</apex:page>

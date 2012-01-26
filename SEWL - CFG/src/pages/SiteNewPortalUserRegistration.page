@@ -1,0 +1,614 @@
+<apex:page id="newUserRegistrationPage"
+	controller="SiteNewPortalUserRegistrationController" showHeader="false"
+	title="New User Registration">
+	<!--
+        Description: Site login paged rebranded for SEW
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+	<head>
+<title>South East Water Customer Portal - New User Registration</title>
+<link rel="shortcut icon"
+	href="https://southeastwater.secure.force.com/portal/favicon.ico" />
+	</head>
+
+	<style>
+		.siteLabel {width: 170px;}
+		ul {
+			margin-left: 1em;
+			padding-left: 0px;
+		}
+		.sitePanel {margin-top: 2%;}
+	</style>
+
+	<apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}" />
+
+	<span id="hideMyParent"></span>
+	<script type="text/javascript"> 
+		var custnbrfield;
+	
+		var j$ = jQuery.noConflict();
+
+		j$(document).ready(
+			function() { 
+				var startYear=1900; 
+				var endYear=2030; 
+				var optionsString=''; 
+				if(startYear<endYear){ 
+					for(i=startYear;i<endYear+1;i++){ 
+						optionsString += "<option value=\""+i+"\">"+i+"</option>"; 
+					} 
+					j$('#calYearPicker').html(optionsString); 
+				} 
+				j$('#sidebarDiv #hideMyParent').parent().parent().hide(); 
+			}
+		);
+	</script>
+
+	<apex:composition template="{!$Site.Template}">
+		<apex:define name="body">
+			<apex:outputPanel id="wholePage">
+				<apex:form forceSSL="true" id="theForm">
+					<div style="margin: auto; width: 600px; display: block">
+						<div class="sitePanel" style="width: 600px; padding: 10px;">
+							<apex:outputPanel layout="none"
+								rendered="{!NOT(NOT(ISNULL(billAcctEntered))&&isValidUserDetail&&isNewUserRegSuccessful)}">
+								<table width="100%">
+									<tr>
+										<td style="text-align: left">
+											<div>
+												<apex:outputText style="font-size:8pt"
+													value="This form is secure." />
+												&nbsp;
+												<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+												&nbsp;
+												<apex:outputText style="font-size:8pt"
+													value="Indicates mandatory fields." />
+											</div></td>
+										<td style="text-align: right">
+											<div style="float: right;">
+												<apex:outputText style="font-size:8pt;{!IF(ISNULL(billAcctEntered),'color: #005F98;font-weight:bold;','')}"
+													value="Account Details" />
+												|&nbsp;
+												<apex:outputText style="font-size:8pt;{!IF(NOT(ISNULL(billAcctEntered))&&NOT(isValidUserDetail),'color: #005F98;font-weight:bold;','')}"
+													value="Your Details" />
+												|&nbsp;
+												<apex:outputText style="font-size:8pt;{!IF(NOT(ISNULL(billAcctEntered))&&isValidUserDetail&&NOT(isNewUserRegSuccessful),'color: #005F98;font-weight:bold;','')}"
+													value="Online Terms" />
+											</div></td>
+									</tr>
+								</table>
+							</apex:outputPanel>
+							<div style="margin: auto; width: 480px">
+								<!-- Checking Account Information -->
+								<br /> <br />
+								<apex:outputText styleClass="siteTitle"
+									value="Welcome to South East Water Online Services" />
+								<p />
+								<apex:outputPanel layout="none" id="entrypanel"
+									rendered="{!(ISNULL(billAcctEntered)||ISNULL(contactInfoEntered))||NOT(reCAPTCHA.correctResponse)}">
+                                    Setting up your South East Water Online account is easy. All you need is your name and customer number as shown on the top right hand corner of your bill. 
+                                    <a href="javascript:showBill()"
+										id="showbill">Show me how to find it</a>.
+                                    <script>
+                                   		function showBill() {
+											j$("#samplebill-popup").dialog("open");
+										}
+                                    </script>
+
+									<p />
+                                    Business customer? Register
+                                    <a
+										href="http://www.southeastwater.com.au/SiteCollectionDocuments/PULSE_Documentation/Online_Services_Authorisation_Form.pdf"
+										target="_new">here</a>.
+                                    <p />
+									<apex:outputText styleClass="siteTitle" value="Step 1" />
+									<p />
+									<div style="color: #000;">
+										<apex:outputPanel layout="block" id="accountpanel">
+
+											<apex:pageMessages />
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+												<apex:outputText value="Please provide your account information as it appears on your bill." />
+											</apex:panelGrid>
+											<apex:panelGrid columns="2"
+												style="margin-top:2px;white-space:nowrap;">
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Customer Number" />
+												</apex:outputPanel>
+												<apex:outputPanel id="custnbrpanel">
+													<apex:inputText style="width:155px"
+														value="{!accNumberEntryStr}" id="custnbrfield" />
+													<apex:image value="{!$Resource.Info_Icon}"
+														style="padding-left: 5px; vertical-align: middle"
+														title="This can be found on the top right hand corner of your bill." />
+													<a href="javascript:showBill()" id="showbill"
+														style="font-size: 8pt; font-style: italic">Show me how
+														to find it</a>
+													<script>
+                                                    	custnbrfield = document.getElementById('{!$Component.custnbrfield}');
+                                                    </script>
+												</apex:outputPanel>
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Customer Name" />
+												</apex:outputPanel>
+												<apex:outputPanel >
+													<apex:inputText style="width:155px"
+														value="{!accNameEntryStr}" />
+													<apex:image value="{!$Resource.Info_Icon}"
+														style="padding-left: 5px; vertical-align: middle"
+														title="This can be found on the top left hand corner of your bill." />
+													<a href="javascript:showBill()" id="showbill"
+														style="font-size: 8pt; font-style: italic">Show me how
+														to find it</a>
+												</apex:outputPanel>
+
+												<apex:outputLabel />
+												<apex:outputPanel >
+													<apex:inputCheckbox value="{!isResidential}"
+														id="isresidentialcust" onclick="checkResiCust()">
+														<script>
+		                                            		function checkResiCust() {
+		                                            			try {
+																	var isResiCust = document.getElementById('{!$Component.isresidentialcust}').checked;
+																	var btn = document.getElementById('{!$Component.nextbtn}');
+																	if (!isResiCust) {
+																		document.getElementById('businessregerrorpanel').style.display='';
+																		btn.style.display='none';						
+																	}
+																	else {
+																		document.getElementById('businessregerrorpanel').style.display='none';
+																		btn.style.display='';				
+																	}																
+																} catch (e) {
+																	alert(e.toString());
+																}
+															}
+		                                            	</script>
+													</apex:inputCheckbox> I'm a residential customer
+												</apex:outputPanel>
+											</apex:panelGrid>
+											<div class="message errorM2" id="businessregerrorpanel"
+												style="display: none">
+												<table border="0" cellpadding="0" cellspacing="0"
+													class="messageTable" style="padding: 0px; margin: 0px;">
+													<tbody>
+														<tr valign="top">
+															<td><img alt="error" src="/s.gif" class="msgIcon"
+																title="error" /></td>
+															<td class="messageCell">
+																<div class="messageText">
+																	<span>
+																		<h4></h4> </span>Only residential customers can register
+																	online. Click <a
+																		href="http://www.southeastwater.com.au/SiteCollectionDocuments/PULSE_Documentation/Online_Services_Authorisation_Form.pdf"
+																		style="color: #005F98; margin: 0; font-size: 1em"
+																		target="_new"> here </a> to register. <br />
+																</div></td>
+														</tr>
+														<tr>
+															<td></td>
+															<td></td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+												<apex:outputText value="For identification purposes, please complete the following:" />
+											</apex:panelGrid>
+											<apex:panelGrid columns="2"
+												style="margin-top:2px;white-space:nowrap;">
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:outputLabel value="First Name" />
+												</apex:outputPanel>
+												<apex:inputText style="width:155px"
+													value="{!userFirstNameEntryStr}" />
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Last Name" />
+												</apex:outputPanel>
+												<apex:inputText style="width:155px"
+													value="{!userLastNameEntryStr}" />
+											</apex:panelGrid>
+										</apex:outputPanel>
+									</div>
+									<br />
+									<apex:outputText styleClass="siteTitle" value="Step 2" />
+									<br />
+									<div style="color: #000;">
+										<apex:outputPanel layout="block">
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+                                                Please provide <b>2
+													out of 3</b> of the following.
+                                                <apex:outputText value="This will be verified with your details we have recorded in our system." />
+											</apex:panelGrid>
+											<apex:panelGrid columns="2"
+												style="margin-top:4px;white-space:nowrap;">
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:outputLabel value="Telephone Number" />
+												</apex:outputPanel>
+												<apex:outputPanel layout="block">
+													<apex:inputText style="width:155px"
+														value="{!userTelNoEntryStr}" />&nbsp;
+                                                    <apex:image value="{!$Resource.Info_Icon}"
+														style="vertical-align: middle"
+														title="The telephone number will be matched to one of the specified contact's phone number in the system" />
+												</apex:outputPanel>
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:outputLabel value="Date of Birth" />
+												</apex:outputPanel>
+												<apex:outputPanel layout="block">
+													<apex:inputField id="birthdateField"
+														value="{!newUserToRegister.HIDDEN_Birthdate__c}" />
+													<script>
+                                                        var birthdateField = document.getElementById("{!$Component.birthdateField}");
+                                                        birthdateField.nextSibling.style.display="none";
+                                                    </script>
+												</apex:outputPanel>
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:outputLabel value="Driver License #" />
+												</apex:outputPanel>
+												<apex:inputText style="width:155px"
+													value="{!userDriverLicenseNoStr}" />
+											</apex:panelGrid>
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+												<apex:outputText value="Please enter both words below separated by a space." />
+											</apex:panelGrid>
+											<center>
+												<apex:panelGrid columns="1"
+													style="text-align: center; margin-top:2px;white-space:nowrap;">
+													<apex:outputPanel layout="block" style="padding-top:3px">
+														<script
+															src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"
+															type="text/javascript" />
+														<script>
+                                                    function showRecaptcha(element) {
+                                                      Recaptcha.create("{!reCAPTCHA.publicKey}", element, {
+                                                            theme: 'clean',
+                                                            tabindex: 0,
+                                                            callback: Recaptcha.focus_response_field
+                                                      });
+                                                    }
+                                                    </script>
+														<apex:outputPanel id="captcha">
+															<apex:inputhidden value="{!reCAPTCHA.challenge}"
+																id="challenge" />
+															<apex:inputhidden value="{!reCAPTCHA.response}"
+																id="response" />
+															<script type="text/javascript">
+                                                            function captureResponse(ele) {
+                                                                document.getElementById('{!$Component.challenge}').value =
+                                                                    document.getElementById('recaptcha_challenge_field').value;
+
+                                                                document.getElementById('{!$Component.response}').value =
+                                                                    document.getElementById('recaptcha_response_field').value;
+                                                            }
+                                                            </script>
+															<div id="dynamic_recaptcha_1"></div>
+															<script type="text/javascript">showRecaptcha('dynamic_recaptcha_1');</script>
+														</apex:outputPanel>
+													</apex:outputPanel>
+													<apex:outputLabel />
+													<apex:commandButton value="Next"
+														onclick="javascript:captureResponse(this);"
+														action="{!checkAccountAndContactDetails}"
+														styleClass="btnGreen" id="nextbtn" />
+												</apex:panelGrid>
+											</center>
+										</apex:outputPanel>
+									</div>
+									<br />
+								</apex:outputPanel>
+								<!-- Enter and check contact details -->
+								<apex:outputPanel layout="none"
+									rendered="{!NOT(ISNULL(billAcctEntered)||ISNULL(contactInfoEntered))&&NOT(isValidUserDetail)&&reCAPTCHA.correctResponse}">
+									<br />
+									<apex:outputText styleClass="siteTitle"
+										value="Step 3 - Login Details" />
+									<br />
+									<div style="color: #000; width: 450px">
+										<apex:outputPanel layout="block">
+											<apex:pageMessages />
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+												<apex:outputText value="To login to South East Water Online Services you will need to set up your user name and add your email address.  If you would like us to send information or notifications to your email address, please tick the box  in the next screen" />
+											</apex:panelGrid>
+											<apex:panelGrid columns="2"
+												style="margin-top:2px;white-space:nowrap;">
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Nominated Username" />
+												</apex:outputPanel>
+												<apex:outputPanel layout="block">
+													<apex:inputText style="width:155px"
+														value="{!newUserToRegister.Username}" />&nbsp;
+                                                        <!-- @portal.sewl.com.au{!IF(ISNULL($Setup.PortalSettings__c.Sandbox_Name__c),'','.'+$Setup.PortalSettings__c.Sandbox_Name__c)}  -->
+												</apex:outputPanel>
+												<apex:outputLabel />
+												<apex:outputPanel layout="block" style="white-space:normal">
+													<apex:outputText value="Please note: Your nominated username should be six characters or more"
+														style="font-style:italic; font-size:9pt" />
+												</apex:outputPanel>
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Password" />
+												</apex:outputPanel>
+												<apex:inputSecret style="width:155px"
+													value="{!userPasswordEntryStr}" />
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Confirm Password" />
+												</apex:outputPanel>
+												<apex:inputSecret style="width:155px"
+													value="{!userConfirmPasswordEntryStr}" />
+												<apex:outputLabel />
+												<apex:outputPanel layout="block" style="white-space:normal">
+													<apex:outputText value="Passwords must satisfy the following requirements:"
+														style="font-style:italic; font-size:9pt" />
+													<ul style="font-style: italic; font-size: 9pt">
+														<li>Must be a minimum of 8 characters.</li>
+														<li>Must contain at least one alphabetic and one
+															numeric character.</li>
+														<li>Cannot contain the word 'password'</li>
+													</ul>
+												</apex:outputPanel>
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Email Address" />
+												</apex:outputPanel>
+												<apex:inputText style="width:155px"
+													value="{!newUserToRegister.email}" />
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Confirm Email Address" />
+												</apex:outputPanel>
+												<apex:inputText style="width:155px"
+													value="{!userConfirmEmailEntryStr}" />
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Secret Question" />
+												</apex:outputPanel>
+												<apex:inputField value="{!newUserToRegister.Secret_Question__c}" />
+												<apex:outputPanel layout="block" styleClass="siteLabel">
+													<apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}" />
+													<apex:outputLabel value="Secret Answer" />
+												</apex:outputPanel>
+												<apex:inputField value="{!newUserToRegister.Secret_Answer__c}" />
+											</apex:panelGrid>
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+												<apex:outputPanel layout="block" style="white-space:normal">
+													<apex:outputText value="Your account's secret answer makes  your account more secure, like your password. For this reason, you should never share it with anyone. You'll need the secret answer to change your password or email address."
+														style="font-style:italic; font-size:9pt" />
+												</apex:outputPanel>
+												<center>
+													<apex:outputPanel layout="block" style="text-align: center">
+														<apex:commandButton value="Next"
+															action="{!prepareUserReg}" styleClass="btnGreen" />
+													</apex:outputPanel>
+												</center>
+											</apex:panelGrid>
+										</apex:outputPanel>
+									</div>
+									<br />
+								</apex:outputPanel>
+								<apex:outputPanel layout="none"
+									rendered="{!NOT(ISNULL(billAcctEntered)||ISNULL(contactInfoEntered))&&isValidUserDetail&&NOT(isNewUserRegSuccessful)&&reCAPTCHA.correctResponse}">
+									<br />
+									<apex:outputText styleClass="siteTitle"
+										value="Terms and Conditions" />
+									<br />
+									<script>
+                                            var isAcceptTAndCCheckbox;
+                                            var submitNewUserRegBtn;
+                                        </script>
+									<div style="color: #000;">
+										<apex:outputPanel layout="block">
+											<apex:pageMessages />
+											<apex:panelGrid columns="2" style="margin-top:1em;">
+												<apex:inputCheckbox value="{!isMarketingOptIn}" />
+												<apex:outputPanel layout="block">
+													<apex:outputText value="Contact me with additional information, products and services from South East Water."
+														style="font-size:10pt" />
+												</apex:outputPanel>
+												<apex:outputPanel layout="block">
+													<apex:inputCheckbox id="isAcceptTAndCCheckbox"
+														onclick="checkAcceptTandC();" />
+													<script>
+                                                            isAcceptTAndCCheckbox = document.getElementById("{!$Component.isAcceptTAndCCheckbox}");
+                                                        </script>
+												</apex:outputPanel>
+												<apex:outputPanel layout="block">
+													<apex:outputText value="I have read and understood the "
+														style="font-size:10pt" />
+													<apex:outputLink target="_blank"
+														value="http://www.southeastwater.com.au/Footer/Pages/Terms.aspx"
+														style="font-size:10pt">Terms and Conditions</apex:outputLink>
+													<apex:outputText value=" for South East Water Online Services."
+														style="font-size:10pt" />
+												</apex:outputPanel>
+												<apex:outputLabel />
+												<apex:outputPanel layout="block">
+													<apex:commandButton id="submitNewUserRegBtn" value="Submit"
+														styleClass="btnGreen" action="{!submitNewUserReg}" />
+													<script>
+                                                            submitNewUserRegBtn = document.getElementById("{!$Component.submitNewUserRegBtn}");
+                                                        </script>
+												</apex:outputPanel>
+											</apex:panelGrid>
+										</apex:outputPanel>
+										<script>
+                                                function checkAcceptTandC(){
+                                                    submitNewUserRegBtn.disabled=!isAcceptTAndCCheckbox.checked;
+                                                    if(submitNewUserRegBtn.disabled){
+                                                        submitNewUserRegBtn.setAttribute("class", "btnDarkGray");
+                                                        submitNewUserRegBtn.setAttribute("className", "btnDarkGray");
+                                                    }else{
+                                                        submitNewUserRegBtn.setAttribute("class", "btnGreen");
+                                                        submitNewUserRegBtn.setAttribute("className", "btnGreen");
+                                                    }
+                                                }
+                                                checkAcceptTandC();
+                                            </script>
+									</div>
+									<br />
+								</apex:outputPanel>
+								<apex:outputPanel layout="none"
+									rendered="{!NOT(ISNULL(billAcctEntered))&&isValidUserDetail&&isNewUserRegSuccessful&&reCAPTCHA.correctResponse}">
+									<br />
+									<apex:outputText styleClass="siteTitle"
+										value="User Registration Successful" />
+									<br />
+									<div style="color: #000;">
+										<apex:outputPanel layout="block">
+											<apex:pageMessages />
+											<apex:panelGrid columns="1" style="margin-top:1em;">
+												<apex:outputPanel layout="block">
+													<apex:outputText value="A email will be sent to {!newUserToRegister.email} confirming your registration."
+														style="font-size:10pt" />
+												</apex:outputPanel>
+											</apex:panelGrid>
+											<apex:outputLink value="{!$Page.SiteLogin}"
+												style="font-size:10pt;">Go back to Login Page</apex:outputLink>
+										</apex:outputPanel>
+									</div>
+									<br />
+								</apex:outputPanel>
+							</div>
+							<apex:outputPanel layout="none"
+								rendered="{!NOT(NOT(ISNULL(billAcctEntered))&&isValidUserDetail&&isNewUserRegSuccessful)}">
+								<span> <apex:outputText style="font-size:8pt"
+										value="If you need assistance with our registration contact us on 131 694 or email: " />&nbsp;
+									<apex:outputLink target="_self" value="mailto:info@sewl.com.au"
+										style="font-size:8pt"
+										title="South East Water Portal Registration Issue">info@sewl.com.au</apex:outputLink>
+									<apex:outputText style="font-size:8pt" value="." /> </span>
+							</apex:outputPanel>
+						</div>
+					</div>
+				</apex:form>
+			</apex:outputPanel>
+		</apex:define>
+	</apex:composition>
+
+	<div id="billblur"
+		style="display: none; position: fixed; left: 1px; top: 1px; width: 100%; height: 100%; text-align: center; vertical-align: middle; background-color: #dcdcdc; opacity: 0.6; filter: alpha(opacity = 60); z-index: 2;"
+		onclick="hideBill()" onmouseover="this.focus()"
+		onmouseout="this.blur()"></div>
+
+
+
+	<!--    <div id="billdiv" style="display:none; position:fixed; border-right: 2px solid #595959; border-bottom: 2px solid #595959; border-top: 1px solid #7e7e7e; border-left: 1px solid #7e7e7e; margin-left:-225px; margin-top:-210px; left:50%; top: 50%; width:450px; height:420px; background-color: white; padding:15px; z-index:3;"
+                        onclick="hideBill()"
+                        onmouseover="this.focus()"
+                        onmouseout="this.blur()"
+                        >
+        <apex:outputText styleClass="siteTitle" value="Finding Your Customer Number"/>
+        <apex:outputLink value="javascript:hideBill();">
+            <apex:image url="{!URLFOR($Resource.Icons, 'Icons/CloseWindowSmall.png')}"
+                    style="clear:left; float:right"
+                    />
+        </apex:outputLink>
+        <p style="margin-top:10px"/>
+        You can find  your customer number on the top right hand corner of your South East Water bill.
+        <p/>
+        <center>
+            <apex:image value="/resource/BillCustomerNbrLocation" style="text-align:center;margin-bottom:25px"/>
+            <apex:outputLink value="javascript:hideBill();" id="closebillwindow"
+                    tabindex="1">
+                Close Window
+                <script type="text/javascript">
+
+					var j$ = jQuery.noConflict();
+
+                    var escapeListener = function(e) {
+                        if(e.keyCode == 27) hideBill();
+                    }
+
+
+                    function hideBill() {
+
+                        var blur = document.getElementById("billblur");
+                        blur.style.display = "none";
+                        var bill = document.getElementById("billdiv");
+                        bill.style.display = "none";
+                        //window.removeEventListener("keyup", escapeListener, false);
+						j$(document).unbind('keydown');
+
+                    }
+
+                    function showBill() {
+
+                        var blur = document.getElementById("billblur");
+                        blur.style.display = "block";
+                        var bill = document.getElementById("billdiv");
+                        bill.style.display = "block";
+                        //alert("{!$Component.closebillwindow}");
+                        document.getElementById("{!$Component.closebillwindow}").focus();
+                        //window.addEventListener("keyup", escapeListener, false);
+						j$(document).keydown(function(event) {
+							if (event.which == 27) {
+								hideBill();
+							}
+						});
+
+                    }
+
+
+                </script>
+            </apex:outputLink>
+        </center>
+    </div> -->
+
+	<div id="samplebill-popup"
+		title="Finding Your Customer Number and Name">
+
+		<p style="margin-top: 10px" />
+		You can find your customer number on the top right hand corner and
+		your customer name in the top left hand corner of your South East
+		Water bill.
+		<p />
+		<center>
+			<apex:image value="{!$Resource.BillCustomerNbrLocation}"
+				style="text-align:center;margin-bottom:25px" />
+			<p />
+			<apex:outputLink value="javascript:hideBill();" id="closebillwindow"
+				tabindex="1">
+            	Close Page
+            	<script>
+            		function hideBill() {
+						j$("#samplebill-popup").dialog("close");
+					}
+            	</script>
+			</apex:outputLink>
+		</center>
+	</div>
+
+	<script type="text/javascript">
+        var previousOnload = window.onload;
+        window.onload = function() {
+            window.scrollTo(0,0);
+			try {
+				j$("input:text:visible:first").focus();
+				//custnbrfield.focus();
+			} catch (e) {
+			}
+
+        }
+
+		j$(function() {
+			j$( "#samplebill-popup" ).dialog({
+				dialogClass: 'ui-dropshadow',
+				autoOpen: false,
+				height: 470,
+				width: 500,
+				modal: true,
+				resizable: false
+			});
+		});
+   </script>
+
+</apex:page>

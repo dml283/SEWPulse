@@ -1,0 +1,257 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PortalMeterReadingsHistoryExCon">
+    <!-- 
+    Type:       VF page
+    Purpose:    Displays Meter Reading History For Portal User
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <!--<apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>-->
+    <!-- extra, page specific css - example below increase width of label for this page only -->
+    
+ <!--    <style type="text/css">
+
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+
+        #kbaitextblock td.labelCol {
+            width: 20% !important;
+        }
+        #kbaitextblock td.dataCol {
+            width: auto !important;
+        }
+
+        .waterUseHeading {
+            padding-left: 30px !important;
+        }
+
+    </style>  -->
+ 	<apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}"/>
+
+    <apex:form >
+        <!-- hidden outputfields or input fields go here -->
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.Id}"/>
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c}"/>
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.Property__c}"/>
+        
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:PortalSidebar id="sidebar" groupName="Billing_Account__c" currentAccRecordType="{!Billing_Account__c.Customer__r.RecordType.DeveloperName}" currentDevName="PortalMeterReadingsHistory" title="Menu">
+                        <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                           <apex:outputText value="{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}"/>
+                            <br/>
+                            <apex:outputText value="{!Billing_Account__c.Property_Address__c}" escape="false"/>
+                        </apex:outputPanel>
+                    </c:PortalSidebar>
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:outputPanel layout="none" rendered="{!ISNULL(Billing_Account__c.Id)}">
+                        <c:PortalSelectBillAcctForOperation groupName="Billing_Account__c" currentDevName="PortalMeterReadingsHistory"/>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                        <apex:pageBlock id="pageblock">
+    
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">View Portal Meter Readings History</span>
+                                </div>
+                            </apex:facet>
+                            
+                            <!--  TOP BUTTONS -->
+                            <!--
+                            <div style="vertical-align: text-top; height: 40px;">
+                                <div style="float:left">
+                                    <apex:commandButton value="Top left button - light blue"/>
+                                    <apex:commandButton value="Top left button - dark blue" styleClass="btnDarkBlue"/>
+                                </div>
+                                <span style="float:right;">
+                                    <apex:commandButton value="Top right button - green" styleClass="btnGreen"/>
+                                </span>
+                            </div>
+                            -->
+                            <!--  PAGE MESSAGES -->
+                            <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+    
+                            <!-- CONTENT -->
+                            <!-- use the outputpanel below for words that goes across the whole content page-->
+                            <apex:outputPanel >
+                                <h1>Meter Readings History {!Billing_Account__c.HiAF_Account_Number_Check_Digit__c} - {!Billing_Account__c.Customer__r.Name}</h1>
+                            	
+                                <div class="exportToolbarContainer">
+                                	<span class="exportToolbarItem">
+	                                    <a title="Export to Excel" href='{!$Page.PortalMeterReadingsHistoryExcel}?id={!Billing_Account__c.Id}&cid={!currentMeterId}' 
+	                                    		target="_blank"
+	                                    		onclick="_gaq.push(['_trackPageview', '{!$Page.PortalMeterReadingsHistoryExcel}'])">
+	                                    	<img src="{!URLFOR($Resource.Icons, 'Icons/Excel.png')}" />
+	                                    </a>
+	                                </span>
+                                	<span class="exportToolbarItem">
+	                                    <a title="View as PDF" href='{!$Page.PortalMeterReadingsHistoryPDF}?id={!Billing_Account__c.Id}&cid={!currentMeterId}' 
+	                                    		target="_blank"
+	                                    		onclick="_gaq.push(['_trackPageview', '{!$Page.PortalMeterReadingsHistoryPDF}'])">
+	                                    	<img src="{!URLFOR($Resource.Icons, 'Icons/adobepdf.png')}" />
+	                                   	</a>
+	                                </span>
+                                	<span class="exportToolbarItem">
+	                                    <a title="Printable View" href='{!$Page.PortalMeterReadingsHistoryHTMLPrint}?id={!Billing_Account__c.Id}&cid={!currentMeterId}' 
+	                                    		target="_blank">
+	                                    	<img src="{!URLFOR($Resource.Icons, 'Icons/Printer.png')}" />
+	                                    </a>
+	                                </span>
+                                </div>
+                            </apex:outputPanel>
+                            <br/> <!-- another way to add spaces - <br/> leaves more space than <p/> -->
+                            <!-- use the structure below for fields -->
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!meterListNum==0}"><i>No records to display</i></apex:outputPanel>
+                            <apex:pageBlockSection id="meterReadings" columns="1" rendered="{!meterListNum!=0}">
+                            
+                            <apex:pageBlockSectionItem >
+                                 <apex:outputLabel >Meter Serial Number:</apex:outputLabel>
+                                 <apex:selectList value="{!currentMeterId}" multiselect="false" size="1">
+                                        <apex:selectOptions value="{!MeterListOption}"/>
+                                        <apex:actionSupport event="onchange" status="loading" rerender="pageblock"/>
+                                 </apex:selectList>
+                            </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>    
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!meterReadings==''&& meterListNum!=0}"><i>No meter readings history to display</i></apex:outputPanel>
+                            <apex:pageBlockSection id="meterHistory" rendered="{!meterReadings!=''}">
+                                 <apex:pageblockTable value="{!meterReadings}" var="read">
+                                  <apex:column headervalue="Read Date">
+                                      <apex:outputText value="{0,date,dd/MM/yyyy}">
+                                          <apex:param value="{!read.readDate}" /> 
+                                      </apex:outputText>
+                                  </apex:column>
+                                  <apex:column headervalue="Reading" style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.reading}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="Consumption" style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.consumption}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="No. of Days" style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.noOfDays}"/>
+                                  </apex:column>
+                                  
+                                  <apex:column headervalue="Average Daily Consumption(Litres)" style="text-align:right;" headerClass="headerRowRight">
+                                      <apex:outputText value="{!read.averageConsumption}"/>
+                                  </apex:column>
+                                               
+                                  <apex:column headervalue="Reading Method" style="text-align:center;">
+                                      <apex:outputText value="{!read.readingMethod}"/>
+                                  </apex:column>
+                                  <apex:column headervalue="Estimated" style="text-align:center;">
+                                      <apex:outputText value="{!read.estimated}"/>
+                                  </apex:column>
+                              </apex:pageblockTable>
+                            </apex:pageBlockSection>
+                            
+                            <div class="pbSectionDivider"></div>
+                            <br/>
+                            
+                            <!--  BOTTOM BUTTONS -->
+                            <br/>
+                        </apex:pageBlock>
+                 
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+
+        <!--  FLOATING PANELS - use below for styling examples -->
+        <!--
+        <apex:outputPanel id="kbaichartpanel">
+        -->
+            <!-- Panel that blurs the background -->
+        <!--
+            <div id="kbaiblur" style="display:none; position:fixed; left:1px; top:1px; width:100%; height:100%; text-align:center; vertical-align: middle; background-color: #dcdcdc; opacity:0.6;filter:alpha(opacity=60); z-index: 2;"></div>
+
+            <div id="kbaichartdiv" style="display:none; position:fixed; border-right: 2px solid #595959; border-bottom: 2px solid #595959; border-top: 1px solid #7e7e7e; border-left: 1px solid #7e7e7e; margin-left:-325px; margin-top:-275px; left:50%; top: 50%; width:650px; height:550px; background-color: white; padding:10px; z-index:3;">
+
+                <apex:commandButton style="background: transparent; height: 24px; clear: left; width: 24px; padding: 0; float: right;"
+                                        onclick="return CloseKBAIChart(); return false;"
+                                        action="{!NoOp}"
+                                        image="{!URLFOR($Resource.Icons, 'Icons/CloseWindow.png')}"/>
+                <center>
+                    <c:WaterMAP_KBAI_Preview_Chart recentYrKBAIs="{!kbaiTableUnwrapped}"
+                                        wmapSub="{!waterMAPSub}"
+                                        id="kbaiChart"/>
+                </center>
+                <br/>
+                <apex:commandButton id="closebtn" onclick="return CloseKBAIChart(); return false;"
+                            action="{!NoOp}" value="Close" style="position:absolute; float: left; margin-left:50px;"/>
+            </div>
+        </apex:outputPanel>
+        -->
+        
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <!--  Action Functions for floating panel on open -->
+        <!--
+        <apex:actionFunction name="RefreshKBAIChart" action="{!NoOp}" rerender="kbaiChart" status="loading"/>
+        -->
+    </apex:form>
+    <!-- javascript for floating panel -->
+    <!--
+    <script type="text/javascript">
+        function ShowKBAIChart(closebtnid) {
+            // refresh the data
+            RefreshKBAIChart();
+
+            // show the blur
+            var blur = document.getElementById("kbaiblur");
+            blur.style.display = "block";
+            blur.style.zindex="2";
+            blur.style.height = window.screen.availHeight + "px";
+            blur.style.width = window.screen.availWidth + "px";
+
+            // show the popup
+            var form = document.getElementById("kbaichartdiv");
+            try {
+                //AlignToCenter(form);
+            } catch(e) {
+                alert(e.toString());
+            }
+            form.style.display = "block";
+
+            try {
+                document.getElementById(closebtnid).focus();
+            } catch (e) { alert(e.toString()); }
+
+        }
+
+        function CloseKBAIChart() {
+            // hide the blur
+            var blur = document.getElementById("kbaiblur");
+            blur.style.display = "none";
+
+            // hide the popup
+            var form = document.getElementById("kbaichartdiv");
+            form.style.display = "none";
+
+            return false;
+        }
+
+    </script>
+    -->
+
+</apex:page>

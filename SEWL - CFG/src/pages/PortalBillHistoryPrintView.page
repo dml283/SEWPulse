@@ -1,0 +1,53 @@
+<apex:page sidebar="false" showHeader="false" tabstyle="My_Accounts_Portal__tab" 
+	standardController="Billing_Account__c" extensions="BillHistoryExCon" standardStylesheets="false">
+<!-- 
+    Type:       VF page
+    Purpose:    Displays Bill History For Portal User
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+        <!-- hidden outputfields or input fields go here -->
+        <apex:outputfield rendered="false" value="{!Billing_Account__c.HiAF_Account_Number__c }"/>
+        <table maxwidth="900px">
+            <tr>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:outputPanel layout="none" rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+                        <apex:pageBlock id="pageblock">
+                            <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!billNum==0}"><i>No records to display</i></apex:outputPanel>
+                            <apex:outputPanel rendered="{!billNum!=0}"> 
+                            <apex:pageBlockSection id="billHistorySection" columns="1">
+                                <apex:pageblockTable id="billHistoryTable" value="{!bills}" var="bill" style="margin-bottom:10px; font-size: 9pt;" align="right">
+                                    <apex:column headervalue="Bill Number" >                                      
+                                    <apex:outputText value="{!bill.BillNumber}" />
+                                    </apex:column>
+                                    <apex:column headervalue="Billed Date" >
+                                        <apex:outputText value="{0,date,dd-MMM-yyyy}">
+                                            <apex:param value="{!bill.BilledDate}" />
+                                        </apex:outputText>
+                                    </apex:column>
+                                    <apex:column headervalue="Printed Date" >
+                                        <apex:outputText value="{0,date,dd-MMM-yyyy}">
+                                            <apex:param value="{!bill.PrintedDate}" />
+                                        </apex:outputText>
+                                    </apex:column>
+                                    <apex:column headervalue="B/F Amount" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{!bill.BroughtForwardAmount}" />
+                                    </apex:column>
+                                    <apex:column headervalue="Billed Amount" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{!bill.BilledAmount}" />
+                                    </apex:column>
+                                    <apex:column headervalue="Bill Total" style="text-align:right;" headerClass="headerRowRight">
+                                        <apex:outputText value="{!bill.BillTotal}" />
+                                    </apex:column>
+                                </apex:pageblockTable>
+                            </apex:pageBlockSection>                    
+                            </apex:outputPanel>
+                        </apex:pageBlock>        
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+    
+</apex:page>

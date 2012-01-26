@@ -1,0 +1,7 @@
+<apex:page controller="experianqas.QASOverridePopupController" action="{!autoRun}">
+<c:QASRedirectComponent ErrorCondition="{!ErrorCondition}" NoSuccess="{!NoSuccess}" SomeSuccess="{!SomeSuccess}"
+    FormData="{!FormData}" RNextUrl="{!RNextUrl}" rendered="{!isLightbox==false}" />
+    
+<c:QASRedirectLightboxComponent ErrorCondition="{!ErrorCondition}" NoSuccess="{!NoSuccess}" SomeSuccess="{!SomeSuccess}"
+    FormData="{!FormData}" RNextUrl="{!RNextUrl}" rendered="{!isLightbox}"/>
+</apex:page>

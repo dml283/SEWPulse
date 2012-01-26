@@ -1,0 +1,69 @@
+<apex:page standardController="Case"
+    extensions="NoticeOfSaleActions_Extension">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Performs Notice of Sale
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+    <script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            performNoticeOfSale();
+       }
+    </script>
+
+    <apex:PageMessages id="messages" />
+    <apex:form >
+        <apex:outputField value="{!Case.Status}" rendered="false" />
+        <apex:outputField value="{!Case.IsClosed}" rendered="false" />
+        <apex:outputField value="{!Case.CaseNumber}" rendered="false" />
+        <apex:outputField value="{!Case.Complete__c}" rendered="false" />
+        <apex:outputField value="{!Case.Settlement_Date__c}" rendered="false" />
+        <apex:outputField value="{!Case.Type_of_Sale__c}" rendered="false" />
+        <apex:outputField value="{!Case.Information_Int_Long__c}" rendered="false" />
+        <apex:outputField value="{!Case.Alerts_Int_Long__c}" rendered="false" />
+        <apex:outputField value="{!Case.NOS_Exception__c}" rendered="false" />
+        <apex:outputField value="{!Case.Vendor_Billing_Account__r.HiAF_Account_Number__c}"
+            rendered="false" />
+        <apex:outputField value="{!Case.Purchaser_Billing_Account__r.HiAF_Account_Number__c}"
+            rendered="false" />
+        <apex:outputField value="{!Case.Tenant_Billing_Account__r.HiAF_Account_Number__c}"
+            rendered="false" />
+        <apex:outputField value="{!Case.Cheque_Included__c}" rendered="false" />
+        <apex:outputField value="{!Case.Cheque_Amount__c}" rendered="false" />
+        <apex:outputField value="{!Case.Cheque_Number__c}" rendered="false" />
+        <apex:outputField value="{!Case.Bank__c}" rendered="false" />
+        <apex:outputField value="{!Case.Dialysis_Customer__c}"
+            rendered="false" />
+        <apex:outputField value="{!Case.Caveat_Customer__c}" rendered="false" />
+        <apex:outputField value="{!Case.Legal_Customer__c}" rendered="false" />
+        <apex:outputField value="{!Case.BNSM_ADC_Manual_Update__c}"
+            rendered="false" />
+        <apex:outputField value="{!Case.RecordType.DeveloperName}"
+            rendered="false" />
+        <apex:outputField value="{!Case.Property__r.CIS_Property_Id__c}"
+            rendered="false" />
+        <apex:commandLink action="{!back}" value="<-- Back" />
+
+        <apex:actionFunction name="performNoticeOfSale"
+            action="{!performNoticeOfSale}" status="loading"
+            rerender="theForm,messages" />
+
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff" borderColor="#6B6B6B"
+                    borderSize="1" height="50px" width="120px" margintop="-25px"
+                    marginleft="-60px" ImageUrl="{!$Resource.AjaxAnimation}"
+                    Message="Loading..." />
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+</apex:page>

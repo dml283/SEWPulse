@@ -1,0 +1,127 @@
+<apex:page sidebar="false" showHeader="true"
+	tabstyle="My_Accounts_Portal__tab"
+	standardcontroller="Billing_Account__c">
+
+	<!-- 
+    Type:       VF page
+    Purpose:    Displays the Portal Account Summary Page
+    ---------------------------------------------------------------
+    History:
+    	12-Dec-2011 - Dennis Thong - Created
+	-->
+
+    <head>
+		<apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+
+	<apex:stylesheet value="{!$Resource.SEWPortalStyles}" />
+	<style type="text/css">
+		/* Increase width of label */
+		.bPageBlock .detailList .labelCol {width: 150px;}
+		.bPageBlock .detailList .data2Col {width: auto;}
+	</style>
+
+	<apex:form >
+		<table maxwidth="900px">
+			<tr>
+				<td class="sideBarCell">
+					<!-- Sidebar menu --> <c:PortalSidebar id="sidebar"
+						groupName="Billing_Account__c"
+						currentDevName="PortalAccountDetailPage" title="Menu">
+						<apex:outputPanel layout="none"
+							rendered="{!NOT(ISNULL(Billing_Account__c.Id))}">
+							<apex:outputText value="{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}" />
+							<br />
+							<apex:outputText value="{!Billing_Account__c.Property_Address__c}" escape="false" />
+						</apex:outputPanel>
+					</c:PortalSidebar>
+				</td>
+				<td class="contentCell">
+					<apex:pageBlock id="pageblock">
+						<!--  HEADER -->
+						<apex:facet name="header">
+							<div class="pageBlockHeader">
+								<span class="pageBlockTitle">Account Details for
+									{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}</span>
+							</div>
+						</apex:facet>
+
+						<!--  TOP BUTTONS -->
+						<!-- 
+                        <div style="vertical-align: text-top; height: 40px;">
+                            <div style="float:left">
+                                <apex:commandButton value="Top left button - light blue"/>
+                                <apex:commandButton value="Top left button - dark blue" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="Top right button - green" styleClass="btnGreen"/>
+                            </span>
+                        </div>  -->
+						<!--  PAGE MESSAGES -->
+						<div style="margin-top: 5px">
+							<apex:pageMessages id="msg" />
+						</div>
+
+						<!-- CONTENT -->
+						<!-- use the outputpanel below for words that goes across the whole content page-->
+						<apex:outputPanel >
+							<h1>Customer and Property Details</h1>
+							<p style="text-align: justify">The basic details for customer
+								{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c} and
+								property {!Billing_Account__c.CIS_Property_Id__c} are shown
+								along with your current balance below.</p>
+							<p />
+							<!-- adds extra space -->
+							<table width="100%">
+								<tr>
+									<td width="75%"><apex:pageBlockSection columns="1"
+											showHeader="false">
+											<apex:pageBlockSectionItem >
+												<apex:outputLabel value="Name on the Account" for="acctname" />
+												<apex:outputField value="{!Billing_Account__c.Account_Name_Formula__c}"
+													id="acctname" />
+											</apex:pageBlockSectionItem>
+											<apex:pageBlockSectionItem >
+												<apex:outputLabel value="Mailing Address"
+													for="mailingaddress" />
+												<apex:outputText value="{!Billing_Account__c.Account_Address__c}"
+													escape="false" id="mailingaddress" />
+											</apex:pageBlockSectionItem>
+											<apex:pageBlockSectionItem >
+												<apex:outputLabel value="Property Address"
+													for="propertyaddress" />
+												<apex:outputText value="{!Billing_Account__c.Property_Address__c}"
+													escape="false" id="propertyaddress" />
+											</apex:pageBlockSectionItem>
+										</apex:pageBlockSection>
+									</td>
+									<td width="25%" style="vertical-align: top"><apex:outputPanel styleclass="informationBoxNoIcon" style="text-align: center">
+											Your Account Balance
+											<p />
+											<span style="font-size: 12pt; color: #000"> <apex:outputField value="{!Billing_Account__c.Balance__c}" /> </span>
+											<p />
+											<apex:commandButton value="Pay Now"
+												onclick="javascript:window.open('http://www.sewl.com.au/myaccount/Payment/Pages/PayMyBill.aspx')" />
+										</apex:outputPanel>
+									</td>
+								</tr>
+							</table>
+						</apex:outputPanel>
+					</apex:pageBlock>
+				</td>
+			</tr>
+		</table>
+
+		<!-- Action Status that are not position dependent -->
+		<apex:actionStatus id="loading">
+			<apex:facet name="start">
+				<c:EnhancedActionStatus BackColor="#ffffff" borderColor="#6B6B6B"
+					borderSize="1" height="50px" width="120px" margintop="-25px"
+					marginleft="-60px" ImageUrl="{!$Resource.AjaxAnimation}"
+					Message="Loading..." />
+			</apex:facet>
+		</apex:actionStatus>
+
+	</apex:form>
+
+</apex:page>

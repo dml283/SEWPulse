@@ -1,0 +1,46 @@
+<apex:page standardController="Case"  extensions="SMR_View_Extension">
+    <!--
+        Description: Used as a redirector to validate the special meter read request using the perform
+                     action of the SMR_View_Extension class. This will perform the special meter read
+                     request via web service and populates the alert messages
+
+        History:
+            28-Sep-2011 J.Pe (Davanti)    Created
+    -->
+
+	<script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+	       	if (previousOnload) {
+	       		previousOnload();
+	       	}
+	       	CancelSMR();
+       }
+    </script>
+
+    <apex:pageMessages id="messages"/>
+	<apex:form id="theForm">
+
+        <apex:commandLink value="<-- Back to Case" action="{!back}" />
+
+	    <apex:actionFunction name="CancelSMR"
+	    						action="{!cancel}"
+	    						status="loading"
+	    						rerender="theForm,messages"/>
+
+		<apex:actionStatus id="loading">
+		    <apex:facet name="start">
+		        <c:EnhancedActionStatus BackColor="#ffffff"
+		                                borderColor="#6B6B6B"
+		                                borderSize="1"
+		                                height="50px"
+		                                width="120px"
+		                                margintop="-25px"
+		                                marginleft="-60px"
+		                                ImageUrl="{!$Resource.AjaxAnimation}"
+		                                Message="Loading..."/>
+		    </apex:facet>
+		</apex:actionStatus>
+	</apex:form>
+
+</apex:page>

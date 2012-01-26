@@ -1,0 +1,104 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" controller="ctController">
+    <!-- 
+    Type:       VF page
+    Purpose:    Displays HiAF Payment History For Portal User
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+    <head>
+        <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+    
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <!--<apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>-->
+
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-1.6.2.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jqueryui1816, '/js/jquery-ui-1.8.16.custom.min.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jqueryui1816, '/css/custom-theme/jquery-ui-1.8.16.custom.css')}"/>
+
+    <apex:form id="form">
+        
+        
+        <table maxwidth="900px">
+            <tr>
+                
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                   
+                    
+                    <apex:outputPanel layout="none">
+                    <apex:pageBlock id="pageblock">
+                    
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Pay Bills</span>
+                                </div>
+                            </apex:facet>
+                      
+                            <!--  PAGE MESSAGES -->
+                            <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+    
+                           
+                      
+                            <apex:pageBlockButtons location="bottom">
+                            <apex:commandButton action="{!submit}" value="Submit" rerender="form" oncomplete="doSubmitPayment();"/>
+                            </apex:pageBlockButtons>
+
+        
+        <c:EnhancedActionStatus BackColor="#ffffff"
+                                borderColor="#6B6B6B"
+                                borderSize="1"
+                                height="50px"
+                                width="120px"
+                                margintop="-25px"
+                                marginleft="-60px"
+                                ImageUrl="{!$Resource.AjaxAnimation}"
+                                Message="Processing..."
+                                rendered="{!submitting}"/>
+
+  
+                            
+                            
+                            <div class="pbSectionDivider"></div>
+                            <br/>
+
+                            <br/>
+                        </apex:pageBlock>
+                       <script>
+                
+                            function doSubmitPayment() {
+                                alert('submitting' + '{!taskId}');
+                                /*if('{!Taskrec.id}' != '') {
+                                    //submitPayment();
+                                }*/
+                            }
+                          
+                            
+                      </script>
+                 
+                    </apex:outputPanel>
+                </td>
+            </tr>
+        </table>
+
+        
+        <!-- Action Status that are not position dependent -->
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+
+    </apex:form>  
+</apex:page>

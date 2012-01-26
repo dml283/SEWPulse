@@ -1,0 +1,25 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PortalAvgDailyUsage_ChartExCon" >
+
+<style>
+	div {
+		font-size: 10pt;
+	}
+
+</style>
+
+<apex:chart height="400" width="700" data="{!data}">
+                                
+                                
+                                <apex:axis type="Numeric" position="left" fields="averageDailyUsage" title="Average Daily Usage" grid="true"/>
+                                <apex:axis type="Numeric" position="right" fields="averageDailyUsage" title="Average Daily Usage" grid="true"/>
+                                <apex:axis type="Category" position="bottom" fields="period" title="Period" />
+                                 <apex:barSeries title="Average" orientation="vertical" axis="right" xField="period" yField="averageDailyUsage">
+                                    <apex:chartTips height="20" width="120"/>
+                                 </apex:barSeries>
+                                 
+                                
+                                </apex:chart>
+
+
+
+</apex:page>

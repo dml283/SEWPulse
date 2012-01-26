@@ -1,0 +1,48 @@
+<apex:page standardController="Case" extensions="ConcessionExCon">
+<!-- 
+    Type:       VF page
+    Purpose:    Deletes a Concession in HiAF
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+	<script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+	       	if (previousOnload) {
+	       		previousOnload();
+	       	}
+	       	deleteConcession();
+       }
+    </script>
+
+	<apex:form id="theForm">
+		<apex:pageBlock >
+		    <apex:pagemessages id="messages"/>
+		    <apex:pageBlockButtons location="bottom">
+		        <apex:commandButton action="{!URLFor($Action.Case.View,cse.Id)}" value="Back"/>
+		    </apex:pageBlockButtons>
+		</apex:pageBlock>
+
+	    <apex:actionFunction name="deleteConcession"
+	    						action="{!deleteConcession}"
+	    						status="loading"
+	    						rerender="theForm,messages"/>
+
+		<apex:actionStatus id="loading">
+		    <apex:facet name="start">
+		        <c:EnhancedActionStatus BackColor="#ffffff"
+		                                borderColor="#6B6B6B"
+		                                borderSize="1"
+		                                height="50px"
+		                                width="120px"
+		                                margintop="-25px"
+		                                marginleft="-60px"
+		                                ImageUrl="{!$Resource.AjaxAnimation}"
+		                                Message="Loading..."/>
+		    </apex:facet>
+		</apex:actionStatus>
+	</apex:form>
+</apex:page>

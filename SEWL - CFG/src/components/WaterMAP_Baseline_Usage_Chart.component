@@ -1,0 +1,14 @@
+<apex:component controller="WaterMAP_Baseline_Usage_Chart_Controller">
+
+    <apex:attribute name="wmapSub" description="WaterMAP Submission"
+                        type="WaterMAP_Submission__c" assignTo="{!wmapSub}"
+                        required="true"/>
+    <apex:attribute name="nbrOfYears" description="Number of Years to display"
+                        type="Integer" assignTo="{!noOfYearsToDisplayForBaseline}"/>
+
+    <apex:outputPanel id="BaselineChartDiv" style="padding-top:20px;" layout="block">
+        <apex:image value="{!googleChartURL}"/>
+        <p/>
+    </apex:outputPanel>
+
+</apex:component>

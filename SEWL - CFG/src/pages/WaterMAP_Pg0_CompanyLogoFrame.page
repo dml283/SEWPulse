@@ -1,0 +1,163 @@
+<apex:page standardcontroller="WaterMAP_Submission__c"  extensions="WaterMAP_Pg0_CompanyLogoFrameController" sidebar="false" tabstyle="WaterMAP_Portal_Home__tab" showHeader="false">
+
+    <apex:outputField value="{!WaterMAP_Submission__c.Watermap__c}" rendered="false"/>
+
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.SiteStyles}"/>
+
+
+    <style type="text/css">
+        <!-- remove padding on left of page block -->
+        .bPageBlock .pbBody {
+            padding-left:0px;
+            padding-right:0px;
+        }
+        <!-- remove border from page block -->
+        .bPageBlock {
+            border-width:0px;
+        }
+        <!-- shift label slightly left -->
+        .bPageBlock .labelCol {
+            padding-right:14px;
+        }
+        <!-- shift data col slightly right -->
+        .bPageBlock .detailList .data2Col {
+            padding-left:6px;
+        }
+
+        .informationBox {
+            vertical-align:middle;
+            margin-top:7px;
+        }
+        body {
+            font-size:0.8em;
+        }
+
+		.secondaryPalette.bPageBlock {
+			border: none;
+			padding: 0;
+			-moz-border-radius: 0;
+			-webkit-border-radius: 0;
+			border-radius: 0;
+			-moz-box-shadow: none;
+			-webkit-box-shadow: none;
+			box-shadow: none;
+		}
+    </style>
+
+    <div id="blurrybackground" style="position:absolute; left:1px; top:1px; width:100%; height:100%; text-align:center; vertical-align: middle; display:none; background-color: #ffffff; opacity:0; filter:alpha(opacity=0)"/>
+
+    <apex:form enctype="multipart/form-data">
+        <apex:pageBlock >
+            <apex:pageBlockSection id="companylogosection" collapsible="false" columns="1">
+                <apex:pageBlockSectionItem helpText="Upload a GIF or JPG file. Max Size – 266(w) x 200(l) pixels.">
+                    <apex:outputLabel for="logo" value="Company Logo"/>
+                    <apex:outputPanel layout="block" >
+                        <apex:inputFile id="logo" value="{!attachment.body}"
+                                                    filename="{!attachment.Name}"
+                                                    contentType="{!attachment.ContentType}"
+                                                    fileSize="{!attachment.BodyLength}"
+                                                    onchange="ChangeLogoFileName(this.value)"
+                                                    style="vertical-align: top"/>
+                        <apex:commandButton value="{!IF(ISBLANK(existingattachment.Id), 'Upload', 'Replace')}"
+                                             action="{!UploadAttachment}"
+                                              onclick="return CheckLogoFileName('{!$Component.uploadlogobutton}')"
+                                              id="uploadlogobutton"
+                                              style="vertical-align: 50%; margin-top: -2px;"/>
+                        <div style="display:inline; vertical-align: top;">
+                            <img src="{!URLFOR($Resource.AjaxAnimation)}" style="vertical-align:50%; display:none;" id="uploadanimation"/>&nbsp;
+                            <apex:outputPanel rendered="{!existingattachment.Id != null}" id="logofile">
+                                <apex:outputLink value="/servlet/servlet.FileDownload?file={!existingattachment.Id}" style="vertical-align:60%;" target="_blank">{!existingattachment.Name}</apex:outputLink>
+                                <apex:commandLink action="{!DeleteAttachment}" title="Delete Logo" >
+                                    <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Cross_Icon.png')}"  alt="Delete File" style="vertical-align:20%;"/>
+                                </apex:commandLink>
+                            </apex:outputPanel>
+                        </div>
+                        <br/>
+                        <apex:outputPanel styleclass="informationBox">
+                            <apex:outputPanel layout="inline" rendered="{!existingattachment.Id = null}">
+                                Choose the file to upload then click on the "Upload" button.
+                            </apex:outputPanel>
+                            <apex:outputPanel layout="inline" rendered="{!existingattachment.Id != null}">
+                                To replace the file upload a new file then click on the "Replace" button.
+                                <br/>
+                                To delete, click on the "X" button.
+                            </apex:outputPanel>
+                            <br/>
+                            Only .jpg, .gif and .png image files are supported. Max Size – 266(w) x 200(l) pixels.
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:messages style="margin-top:5px; margin-bottom:5px; margin-left:80px; color:red;" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+
+
+
+    <script type="text/javascript">
+
+        var logoFileName;
+        var button;
+
+        var AgreementForm = document.getElementById("blurrybackground");
+        AgreementForm.style.height = window.screen.availHeight + "px";
+        AgreementForm.style.width = window.screen.availWidth + "px";
+
+        //resizes the frame holding the sControl to make up for odd dimensions
+        function resizeFrame() {
+
+            var sframe = parent.document.getElementById("j_id99"); //get id of iframe from parent
+            if (navigator.userAgent.indexOf("Firefox") != -1) { //if Firefox
+                var nHeight = document.body.scrollHeight+10; //add ten pixels to height of sControl frame
+            } else { //otherwise
+                var nHeight = document.body.scrollHeight; //use the returned height of sControl frame
+            }
+            sframe.style.height = nHeight+"px"; //set the frame height to correspond to the content
+        }
+
+        //resizeFrame();
+
+        function CheckLogoFileName (btnid) {
+
+            // check that the file is there
+            if (logoFileName == null || logoFileName == "undefined") {
+                alert("Please select a file.");
+                return false;
+            }
+
+            // must have an extension
+            if (logoFileName.length < 4) {
+                alert("Please select a valid image file.");
+                return false;
+            }
+
+            // check that the file is a valid image (jpg, gif, png)
+            var logoFileExtension = logoFileName.substr(logoFileName.length - 3, 3);
+
+            if (logoFileExtension != "jpg" && logoFileExtension != "gif" && logoFileExtension != "png") {
+                alert("Please select a valid image file.");
+                return false;
+            }
+
+            // prevent editing whilst posting
+            var blur = document.getElementById("blurrybackground");
+            blur.style.display="block";
+
+            var btn = document.getElementById(btnid);
+            btn.value = 'Loading...';
+
+            document.getElementById("uploadanimation").style.display="inline";
+
+            return true;
+        }
+
+        function ChangeLogoFileName (filename) {
+
+            logoFileName = filename.toLowerCase();
+        }
+
+    </script>
+
+</apex:page>

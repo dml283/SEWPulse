@@ -1,0 +1,11 @@
+<apex:page sidebar="false" showHeader="true" tabstyle="My_Accounts_Portal__tab" standardController="Billing_Account__c" extensions="PortalMeterReadingsHistoryExCon" contenttype="application/x-excel#MeterReadingsHistory-{!Billing_Account__c.HiAF_Account_Number_Check_Digit__c}.xls" >
+    <apex:include pageName="PortalMeterReadingsHistoryPrintView" />
+    <!-- 
+    Type:       VF page
+    Purpose:    Displays Meter Reading History For Portal User To Generate Excel Sheet
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+       
+</apex:page>

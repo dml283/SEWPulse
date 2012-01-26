@@ -1,0 +1,36 @@
+<apex:page showHeader="false" sidebar="false" controller="experianqas.QASDataMapAliasController" title="Editing Advanced Settings {!Name}" 
+tabStyle="QAS_for_salesforce_com__tab" action="{!RetrieveAliases}">
+<apex:form >
+<apex:pageBlock mode="edit">
+	<apex:pageBlockButtons >
+		<apex:commandButton action="{!UpdateAliases}" value="Save"/>
+		<apex:commandButton value="Cancel" onclick="self.parent.jQuery('#TB_closeWindowButton').trigger('click')"/>
+	</apex:pageBlockButtons>
+
+	<apex:pageMessages id="msgs" />
+	<apex:pageBlockSection title="Standard Aliases" columns="1">
+
+	<table border="1" width="80%" align="center">
+	<apex:repeat value="{!StandardDataMappingAliasArray}" var="pt">     
+       <tr>
+		<td>
+        <apex:outputText value="{!pt}"/>
+		</td>
+		</tr>
+
+    </apex:repeat>
+    </table>
+    </apex:pageBlockSection>
+    <apex:pageBlockSection title="Custom Aliases" columns="1"  id="AliasSection" >
+    <apex:actionstatus id="specificdm_status" startText="working..."/>
+    <apex:dataTable value="{!updateDataMapAliasArray}" var="pt" id="theTable" rowClasses="odd,even" styleClass="tableClass" width="80%" align="center">	
+		<apex:column >
+        <apex:inputText value="{!pt.DesiredContents}" style="width:100%"/>
+        </apex:column>
+    </apex:dataTable>
+
+    </apex:pageBlockSection>
+    <apex:commandButton action="{!AddMoreAliasLines}" value="Add More Rows" reRender="AliasSection" status="specificdm_status"/>
+</apex:pageBlock>
+</apex:form>
+</apex:page>

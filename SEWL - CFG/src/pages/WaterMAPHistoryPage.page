@@ -1,0 +1,76 @@
+<apex:page sidebar="false" controller="WaterMAPHistoryController"
+                    tabstyle="waterMAP_Portal_Home__tab">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <!--
+        Description: Shows historical watermap submissions with status
+                     = Completed. It looks for submission attachments
+                     named WaterMAP.pdf and Review.pdf
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+    <style type="text/css">
+        .list .headerRow TH {
+            border-bottom:  #bbb0a6 1px ridge;
+        }
+        
+        .bPageBlock .pbBody {
+            padding-left: 7px;
+        }    </style>
+
+    <div class="shell" style="margin: auto; width: 720px;">
+        « <apex:outputLink value="{!$Page.WaterMAPHomePage}">Back to waterMAP Home</apex:outputLink>
+        <br/><br/>
+        <apex:pageBlock >
+            <apex:facet name="header">
+                <div class="pageBlockHeader">
+                    <span class="pageBlockTitle">Completed waterMAPs</span>
+                </div>
+            </apex:facet>
+            <div style="margin:0px; width:690px; border-bottom: #bbb0a6 1px ridge;">
+                <apex:pageBlockTable value="{!wmapHistoryRecords}" var="h" width="690px">
+                    <apex:column headerValue="Year" width="80px">
+                        <apex:outputText value="{!h.year}" style="width:80px"/>
+                    </apex:column>
+                    <apex:column headerValue="Customer Number">
+                        <apex:outputText value="{!h.customerNbr}"/>
+                    </apex:column>
+                    <apex:column headerValue="Primary Site Address" width="300px">
+                        <apex:outputText value="{!h.siteAddress}" escape="false" style="width:250px"/>
+                    </apex:column>
+                    <apex:column headerValue="waterMAP" width="100px">
+                        <apex:outputPanel rendered="{!h.waterMAP.Id!=null}">
+                            <apex:image value="{!URLFOR($Resource.Icons, 'Icons/PDF_Small.gif')}"/>&nbsp;
+                            <apex:outputLink value="/servlet/servlet.FileDownload?file={!h.waterMAP.Id}" target="_blank" style="vertical-align: top">Download</apex:outputLink>
+                        </apex:outputPanel>
+                        <apex:outputText value="Not Available" style="vertical-align: top" rendered="{!h.waterMAP.Id==null}"/>
+                    </apex:column>
+                    <apex:column headerValue="Review" width="100px">
+                        <apex:outputPanel rendered="{!h.Review.Id!=null}">
+                            <apex:image value="{!URLFOR($Resource.Icons, 'Icons/PDF_Small.gif')}"/>&nbsp;
+                            <apex:outputLink value="/servlet/servlet.FileDownload?file={!h.Review.Id}" target="_blank" style="vertical-align: top">Download</apex:outputLink>
+                        </apex:outputPanel>
+                        <apex:outputText value="Not Available" style="vertical-align: top" rendered="{!h.Review.Id==null}"/>
+                    </apex:column>
+                </apex:pageBlockTable>
+                <apex:outputPanel style="padding: 8px;" layout="block" rendered="{!wmapHistoryRecordsCount==0}"><i>No records to display</i></apex:outputPanel>
+            </div>
+            <p/>
+
+            <apex:outputLink value="http://get.adobe.com/reader/" target="_blank">
+                <apex:image url="{!URLFOR($Resource.Icons, 'Icons/get_adobe_reader.png')}"/>
+            </apex:outputLink>
+            <div style="width: 300px; color: #595959; text-align: left; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; padding: 5px 0px">
+                If you cannot view the above documents, click the button above to download and install Adobe Acrobat Reader
+            </div>
+        </apex:pageBlock>
+        « <apex:outputLink value="{!$Page.WaterMAPHomePage}">Back to waterMAP Home</apex:outputLink>
+    </div>
+
+</apex:page>

@@ -1,0 +1,110 @@
+<apex:page tabstyle="My_Accounts_Portal__tab" sidebar="false"
+	controller="PortalMyAccountHomePageController">
+
+	<!--
+        Description: Branded home page for My Accounts. Displays a list of accounts
+
+        History:
+            4-Nov-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <head>
+		<apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+
+	<apex:stylesheet value="{!$Resource.SEWPortalStyles}" />
+
+	<style type="text/css">
+		.MyAccountHomeBox {
+			width: 740px;
+			padding-left: 7px;
+		}
+		.list .headerRow TH {
+			border-bottom: #bbb0a6 1px ridge;
+		}
+		.bPageBlock .pbBody {
+			padding-left: 7px;
+		}
+	</style>
+
+	<div class="shell" style="margin: auto; width: 740px;">
+		<div class="MyAccountHomeBox" style="margin-top: 10px;">
+			IMAGE HERE
+			<p />
+			<p />
+			<p />
+			<div style="padding-top: 10px">Lorem Ipsum Lorem Ipsum Lorem
+				Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
+				Lorem Ipsum</div>
+		</div>
+		<br />
+		<apex:form >
+			<apex:pageBlock >
+				<apex:facet name="header">
+					<div class="pageBlockHeader">
+						<span class="pageBlockTitle">My Accounts</span>
+					</div>
+				</apex:facet>
+				<div
+					style="margin: 0px; width: 710px; border-bottom: #bbb0a6 1px ridge;">
+					<!--  ACCOUNTS TABLE -->
+					<apex:pageBlockTable value="{!accounts}" var="acct">
+						<apex:column headerValue="Action" width="50px">
+							<apex:outputLink value="{!$Page.PortalAccountDetailPage}?id={!acct.id}">View</apex:outputLink>
+						</apex:column>
+						<apex:column headerValue="Customer Number" width="130px">
+							<apex:outputText value="{!acct.HiAF_Account_Number_Check_Digit__c}" />
+						</apex:column>
+						<apex:column headerValue="Property Reference" width="150px">
+							<apex:outputText value="{!acct.CIS_Property_Id__c}" />
+						</apex:column>
+						<apex:column headerValue="Property Address">
+							<apex:outputText value="{!acct.Property_Address__c}"
+								escape="false" />
+						</apex:column>
+						<apex:column headerValue="Status">
+							<apex:outputText value="{!acct.Status__c}"/>
+						</apex:column>
+						<apex:column headerValue="Balance" headerClass="headerRowRight"
+							styleClass="dataRowRight">
+							<apex:outputText value="{0, number, $#,###,##0.00}">
+								<apex:param value="{!acct.Balance__c}" />
+							</apex:outputText>
+						</apex:column>
+					</apex:pageBlockTable>
+					<apex:outputPanel style="padding: 8px;" layout="block"
+						rendered="{!nbrOfAccounts=0}">
+						<i>No records to display</i>
+					</apex:outputPanel>
+				</div>
+				<!--  NAVIGATION LINKS -->
+				<p />
+				<apex:outputPanel rendered="{!nbrOfAccounts>0}">
+					<table style="width: 100%">
+						<tr>
+							<td>
+								<apex:commandLink value="<< First"
+									action="{!accountsSetCon.First}"
+									rendered="{!accountsSetCon.HasPrevious}"
+									style="margin-right:10px" /> <apex:outputText value="<< First"
+									style="color:#bbb0a6;margin-right:10px"
+									rendered="{!NOT(accountsSetCon.HasPrevious)}" /> <apex:commandLink value="< Previous" action="{!accountsSetCon.Previous}"
+									rendered="{!accountsSetCon.HasPrevious}"
+									style="margin-right:10px" /> <apex:outputText value="< Previous" style="color:#bbb0a6;margin-right:10px"
+									rendered="{!NOT(accountsSetCon.HasPrevious)}" /> <apex:commandLink value="Next >" action="{!accountsSetCon.Next}"
+									rendered="{!accountsSetCon.HasNext}" style="margin-right:10px" />
+								<apex:outputText value="Next >"
+									style="color:#bbb0a6;margin-right:10px"
+									rendered="{!NOT(accountsSetCon.HasNext)}" /> <apex:commandLink value="Last >>" action="{!accountsSetCon.Last}"
+									rendered="{!accountsSetCon.HasNext}" style="margin-right:10px" />
+								<apex:outputText value="Last >>"
+									style="color:#bbb0a6;margin-right:10px"
+									rendered="{!NOT(accountsSetCon.HasNext)}" /></td>
+							<td style="text-align: right">Page {!accountsSetCon.PageNumber} of {!totalNoOfPages}</td>
+						</tr>
+					</table>
+				</apex:outputPanel>
+			</apex:pageBlock>
+		</apex:form>
+	</div>
+</apex:page>

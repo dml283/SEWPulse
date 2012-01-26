@@ -1,0 +1,73 @@
+<apex:page showHeader="false" id="PortalHomePanel">
+
+    <!--
+        Description: Home Page Content for the portal
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <head>
+		<apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+    </head>
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+
+    <style type="text/css">
+        BODY {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            margin: 0px;
+        }
+
+        A {
+            color: #005F98;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        /* Reset the page block */
+        .secondaryPalette.bPageBlock {
+            padding: 0;
+            border: none;
+            -moz-border-radius: none;
+            -webkit-border-radius: none;
+            border-radius: none;
+            -moz-box-shadow: none;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+        
+        .bPageBlock .pbBody {padding:0}
+        .bPageBlock .dataCol {padding:0}
+    </style>
+
+    <apex:image url="{!$Resource.PortalHomeBanner}"/>
+
+    <div style="padding: 10px; display: block;">
+        <!-- The home banner text -->
+        <c:PortalHomeBanner />
+        <br/>
+        <br/>
+        <!-- Key account managed user specific text -->
+        <c:PortalHomeKAM rendered="{!$Profile.Name='SEW WaterMAP Portal User'}" />
+        <!--  Navigation Links -->
+
+        <apex:pageBlock >
+            <apex:pageBlockSection >
+                <!--
+                <apex:outputPanel >
+                    <apex:outputLink value="{!$Page.PortalMyAccountHomePage}" target="_top">My Accounts</apex:outputLink>
+                    <br/>
+                    View the details of your accounts with us
+                </apex:outputPanel>
+                -->
+                <apex:outputPanel rendered="{!$Profile.Name='SEW WaterMAP Portal User'}">
+                    <apex:outputLink value="{!$Page.WaterMAPHomePage}" target="_top">waterMAP</apex:outputLink>
+                    <br/>
+                    Access your Water Management Action Plan
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </div>
+</apex:page>

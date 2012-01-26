@@ -1,0 +1,21 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_View_Extension"
+            sidebar="false" showHeader="false" action="{!Preview}" standardstylesheets="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <!--
+        Description: Not currently being used. Can be used by the submission
+                     page layout button "View" if users have issues with direct
+                     MIME retrieval of the watermap in PDF format. This page
+                     simply creates a PDF of the submission and redirects the user
+                     to the attachment content
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:pageMessages />
+
+    <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+
+</apex:page>

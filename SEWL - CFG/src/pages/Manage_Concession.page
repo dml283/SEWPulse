@@ -1,0 +1,193 @@
+<apex:page standardController="Case" extensions="ConcessionExCon"
+	tabStyle="Case">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Performs Concession Management in SFDC
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+	<apex:includeScript value="/support/console/22.0/integration.js" />
+	<script type="text/javascript">
+
+       function setTabTitle() {
+         if (sforce.console.isInConsole())
+           sforce.console.setTabTitle('Concessions {!JSINHTMLENCODE(cse.CaseNumber)}');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+   </script>
+	<apex:pagemessages id="messages" />
+
+	<apex:sectionHeader title="Manage Concessions" subtitle="{!bAcc.Name}" />
+
+	<apex:form >
+		<apex:pageBlock id="wholepage">
+			<apex:actionRegion >
+				<apex:pageBlockSection title="Customer Details" columns="2"
+					collapsible="false">
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$ObjectType.Account.Fields.Name.Label}" />
+						<apex:inputField value="{!cse.AccountId}" required="true" />
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$ObjectType.Billing_Account__c.Fields.Name.Label}" />
+						<apex:inputField value="{!cse.Billing_Account__c}" required="true"
+							onchange="SelectAccount()">
+							<apex:actionFunction action="{!SelectAccount}"
+								name="SelectAccount" rerender="wholepage,messages"
+								status="loading" />
+						</apex:inputField>
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$ObjectType.Contact.Fields.Name.Label}" />
+						<apex:inputField value="{!cse.ContactId}" />
+					</apex:pageBlockSectionItem>
+					<apex:pageBlockSectionItem >
+						<apex:outputLabel value="{!$ObjectType.Billing_Account__c.Fields.Status__c.Label}" />
+						<apex:outputField value="{!bAcc.Status__c}"
+							rendered="{!bAcc.Id != null}" />
+					</apex:pageBlockSectionItem>
+				</apex:pageBlockSection>
+			</apex:actionRegion>
+
+			<apex:pageblockSection title="Confirm Customer" columns="1"
+				collapsible="false">
+				<apex:pageblockSectionItem >
+					<apex:outputLabel value="{!$ObjectType.Billing_Account__c.Fields.Concession_Holder__c.Label}" />
+					<apex:inputField value="{!cse.Concession_Holder__c}">
+						<apex:actionSupport event="onchange" rerender="wholepage"
+							status="loading" />
+					</apex:inputField>
+				</apex:pageblockSectionItem>
+			</apex:pageblockSection>
+
+			<apex:pageBlock id="thirdParty"
+				rendered="{!cse.Concession_Holder__c=='Third Party'}">
+				<apex:pageblockSection title="Third Party" columns="1"
+					collapsible="false">
+					<apex:inputField value="{!cse.Received_Application_Form__c}">
+						<apex:actionSupport event="onchange" rerender="wholepage"
+							status="loading" />
+					</apex:inputField>
+				</apex:pageblockSection>
+				<apex:pageblockSection columns="1"
+					rendered="{!cse.Received_Application_Form__c=='No'}">
+					<apex:inputField value="{!cse.Received_Evidence_of_Responsibility__c}">
+						<apex:actionSupport event="onchange" rerender="wholepage"
+							status="loading" />
+					</apex:inputField>
+				</apex:pageblockSection>
+				<apex:pageBlockSection columns="2"
+					rendered="{!cse.Received_Application_Form__c=='Yes'}">
+					<apex:inputField value="{!cse.Concession_Contact_Point__c}" />
+					<apex:inputField value="{!cse.Concession_Customer_Type__c}" />
+					<apex:inputField value="{!cse.Concession_Evidence__c}" />
+				</apex:pageBlockSection>
+				<apex:pageblockSection columns="1"
+					rendered="{!cse.Received_Application_Form__c=='No'&&cse.Received_Evidence_of_Responsibility__c='No'}">
+					<apex:outputLabel value="If your customer is not the account holder but the occupant of the property, evidence is required to determine that they are the resident of the property and to verify eligibility. This could include a letter from the owner, copy of the lease or private agreement." />
+					<apex:inputField value="{!cse.Send_Application_Form__c}" />
+					<apex:inputField value="{!cse.Contact_Person_Name__c}" />
+					<apex:outputLabel value="Select the appropriate postal address." />
+					<apex:panelGrid columns="3">
+						<apex:outputLabel value="Property Address" />
+						<apex:inputCheckbox id="bPropAddr" value="{!bPropAddr}"
+							onclick="PropAddrFlag('{!$Component.bPropAddr}','{!$Component.bBillAddr}')" />
+						<apex:outputText value="{!bAcc.Property__r.Street_Address__c} {!bAcc.Property__r.Suburb__c} {!bAcc.Property__r.State__c} {!bAcc.Property__r.Postal_Code__c}" />
+
+						<apex:outputLabel value="Billing Account Address" />
+						<apex:inputCheckbox id="bBillAddr" value="{!bBillAddr}"
+							onclick="BillAddrFlag('{!$Component.bBillAddr}','{!$Component.bPropAddr}')" />
+						<apex:outputText value="{!bAcc.Street_Address__c} {!bAcc.City__c} {!bAcc.City__c} {!bAcc.State__c} {!bAcc.Postal_Code__c} {!bAcc.Country__c}" />
+					</apex:panelGrid>
+					<apex:commandButton value="Submit Application Form Request"
+						action="{!submitAppForm}" />
+				</apex:pageblockSection>
+			</apex:pageBlock>
+
+			<apex:pageBlock id="partner"
+				rendered="{!cse.Concession_Holder__c=='A/C Holder Partner'}">
+				<apex:pageblockSection title="Account Holder Partner" columns="1"
+					collapsible="false">
+					<apex:outputlabel value="To claim a concession the customer must have authority to transact on the account. You cannot processd unless evidence of the authority is present." />
+					<apex:inputField value="{!cse.Authority_to_Transact__c}">
+						<apex:actionSupport event="onchange" rerender="wholepage"
+							status="loading" />
+					</apex:inputField>
+				</apex:pageblockSection>
+				<apex:pageblockSection id="appFormPartner" columns="1"
+					rendered="{!cse.Authority_to_Transact__c=='No'}">
+					<apex:outputLabel value="A letter of authority is required to allow this customer to transact." />
+					<!--            <apex:inputField value="{!cse.Send_Application_Form__c}"/>
+            <apex:outputLabel value="Select the appropriate postal address."/>
+            <apex:panelGrid columns="3">
+                <apex:outputLabel value="Property Address"/>
+                <apex:inputCheckbox id="bPropAddr1" value="{!bPropAddr}" onclick="PropAddrFlag('{!$Component.bPropAddr1}','{!$Component.bBillAddr1}')"/>
+                <apex:outputText value="{!bAcc.Property__r.Street_Address__c} {!bAcc.Property__r.Suburb__c} {!bAcc.Property__r.State__c} {!bAcc.Property__r.Postal_Code__c}"/>
+
+                <apex:outputLabel value="Billing Account Address"/>
+                <apex:inputCheckbox id="bBillAddr1" value="{!bBillAddr}" onclick="BillAddrFlag('{!$Component.bBillAddr1}','{!$Component.bPropAddr1}')"/>
+                <apex:outputText value="{!bAcc.Street_Address__c} {!bAcc.City__c} {!bAcc.City__c} {!bAcc.State__c} {!bAcc.Postal_Code__c} {!bAcc.Country__c}"/>
+            </apex:panelGrid>
+-->
+					<apex:commandButton value="Close Case" action="{!CloseCase}" />
+				</apex:pageblockSection>
+			</apex:pageBlock>
+
+			<apex:pageBlock id="conDetails"
+				rendered="{!cse.Concession_Holder__c=='Account Holder'||
+            (cse.Concession_Holder__c=='A/C Holder Partner'&&cse.Authority_to_Transact__c=='Yes')||
+            (cse.Concession_Holder__c=='Third Party'&&cse.Received_Application_Form__c='Yes')||
+            (cse.Concession_Holder__c=='Third Party'&&cse.Received_Application_Form__c='No'&&cse.Received_Evidence_of_Responsibility__c='Yes')}">
+				<apex:pageblockSection title="Concession Details" columns="1"
+					collapsible="false">
+					<apex:outputlabel value="South East Water seeks to use the information you provide to electronically match your details with Centrelink of the Department of Veterans Affairs to confirm you are eligible for this concession. Your consent will be used for all accounts issued. However you can revoke your consent at any time by contacting us. Do you authorise us to check your details?" />
+				</apex:pageblockSection>
+				<apex:pageblockSection columns="2">
+					<apex:inputField value="{!cse.Privacy_Statement__c}"
+						required="true" />
+					<apex:outputText value=" " />
+					<apex:inputField value="{!cse.Concession_Card_Firstname__c}" />
+					<apex:inputField value="{!cse.Concession_Card_Lastname__c}" />
+					<apex:inputField value="{!cse.Concession_Card_Number__c}" />
+					<apex:inputField value="{!cse.Concession_Card_Type__c}" />
+					<apex:inputField value="{!cse.Send_Confirmation_Letter__c}" />
+					<apex:inputField value="{!cse.Print_Bill__c}" />
+
+					<apex:commandButton value="Submit Concession"
+						action="{!submitConcession}" status="loading"
+						rerender="wholepage,messages" />
+				</apex:pageblockSection>
+			</apex:pageBlock>
+
+			<!-- Action Status that are not position dependent -->
+			<apex:actionStatus id="loading">
+				<apex:facet name="start">
+					<c:EnhancedActionStatus BackColor="#ffffff" borderColor="#6B6B6B"
+						borderSize="1" height="50px" width="120px" margintop="-25px"
+						marginleft="-60px" ImageUrl="{!$Resource.AjaxAnimation}"
+						Message="Loading..." />
+				</apex:facet>
+			</apex:actionStatus>
+
+			<script type="text/javascript">
+		        function PropAddrFlag(bProdAddrId, bBillAddrId) {
+		                document.getElementById(bBillAddrId).checked = false;
+		        }
+		        function BillAddrFlag(bBillAddrId, bProdAddrId) {
+		                document.getElementById(bProdAddrId).checked = false;
+		        }
+    		</script>
+
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

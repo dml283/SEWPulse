@@ -1,0 +1,523 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Pg2_Comp_Site_Info_Con"
+            sidebar="false" tabstyle="waterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+        function addCommas(nStr)
+        {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            return x1 + x2;
+        }
+        var prevYrTotal;
+    </script>
+
+    <apex:stylesheet value="{!$Resource.SEWPortalStyles}"/>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+
+    <style type="text/css">
+        <!-- increase width of label for this page only -->
+        .bPageBlock .detailList .labelCol {
+            width: 20%;
+        }
+
+        <!-- Decrease size of ms picklist -->
+        .multiSelectPicklistRow select {
+            width: 270px;
+            font-size: 8pt;
+        }
+    </style>
+
+    <apex:form >
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Company_Site_Info_Complete__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Year__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}"/>
+<!--         <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.ANZSIC_Code__c}"/>  -->
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__c}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Site_Manager__r.Name}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Primary_Contact__r.Name}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Secondary_Contact__r.Name}"/>
+        <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.waterMAP__r.Preferred_Postal_Contact_Type__c}"/>
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                    <c:WaterMAPContentsSidebar id="sidebar" waterMAPSubId="{!waterMAPSub.Id}" currentPageNumber="2" />
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:pageBlock id="pageblock">
+
+                        <!--  HEADER -->
+                        <apex:facet name="header">
+                            <div class="pageBlockHeader">
+                                <span class="pageBlockTitle">Company &amp; Site Information</span>
+                            </div>
+                        </apex:facet>
+
+                        <!--  TOP BUTTONS -->
+                        <div style="vertical-align: text-top; height: 40px;">
+                            <div style="float:left">
+                                <apex:commandButton value="Save" action="{!Save}"/>
+                                <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                            </div>
+                            <span style="float:right;">
+                                <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                            </span>
+                        </div>
+                        <!--  PAGE MESSAGES -->
+                        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                        <!-- CONTENT -->
+                        <div class="pbSectionDivider"></div>
+                        <apex:outputPanel styleclass="informationBox">
+                            Please contact your Key Customer Manager to modify those fields you cannot access.
+                            You will be able to modify company information in the near future as part
+                            of South East Water's customer self-service strategy.
+                        </apex:outputPanel>
+                        <p/>
+                        <h1>Company Information</h1>
+                        <p/>
+                        Provide company information, such as a description of business
+                        operations, size of business, number of customers / staff and any
+                        other key statistics.
+                        <p/>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="aboutYourSite" value="{!$ObjectType.WaterMAP__c.fields.About_Your_Site__c.label}"/>
+                                <apex:inputField id="aboutYourSite" value="{!WaterMAP_Submission__c.waterMAP__r.About_Your_Site__c}" style="height:50px"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="custOrgName" value="{!$ObjectType.Account.fields.Name.label}"/>
+                                <apex:outputField id="custOrgName" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Name}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="custOpName" value="{!$ObjectType.Account.fields.Trading_Name__c.label}"/>
+                                <apex:outputField id="custOpName" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Trading_Name__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="custABN" value="{!$ObjectType.Account.fields.ABN__c.label}"/>
+                                <apex:outputField id="custABN" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.ABN__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="custAccNo" value="Primary {!$ObjectType.Account.fields.Customer_Number2__c.label}"/>
+                                <apex:outputField id="custAccNo" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="propRefNo" value="Property Ref"/>
+                                <apex:outputField id="propRefNo" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.CIS_Property_Id__c}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection title="Primary Site Address" collapsible="false" columns="1" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="propStreetAddress" value="{!$ObjectType.Property__c.fields.Street_Address__c.label}"/>
+                                <apex:outputField id="propStreetAddress" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Street_Address__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="propSuburbAddress" value="{!$ObjectType.Property__c.fields.Suburb__c.label}"/>
+                                <apex:outputField id="propSuburbAddress" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Suburb__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="propStateAddress" value="{!$ObjectType.Property__c.fields.State__c.label}"/>
+                                <apex:outputField id="propStateAddress" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.State__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="propPCAddress" value="{!$ObjectType.Property__c.fields.Postal_Code__c.label}"/>
+                                <apex:outputField id="propPCAddress" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Postal_Code__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="siteOrgName" value="{!$ObjectType.WaterMAP__c.fields.Site_Organisation_Name__c.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField id="siteOrgName" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Organisation_Name__c}" style="width:400px"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection rendered="{!consolidatedAccounts.size>0}" title="Combined Sites for Usage" collapsible="false" columns="1" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="List of Combined Sites"/>
+                                <apex:pageblocktable value="{!consolidatedAccounts}" var="consolAcct" style="margin-bottom:10px; border-bottom: #595959 solid 1px;">
+                                    <apex:column headerValue="{!$ObjectType.Account.fields.Customer_Number2__c.label}" headerClass="headerRowLGBack headerRowPeriod">
+                                        <apex:outputField value="{!consolAcct.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}"/>
+                                    </apex:column>
+                                    <apex:column headerValue="{!$ObjectType.WaterMAP_Consolidated_Accounts__c.fields.Site_Address__c.label}" headerClass="headerRowLGBack headerRowPeriod">
+                                        <apex:outputtext escape="false" value="{!consolAcct.Site_Address__c}"/>
+                                    </apex:column>
+                                </apex:pageblocktable>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <!-- SITE MANAGER SECTION -->
+                        <apex:actionRegion >
+                        <apex:pageBlockSection id="siteMgrSection" title="Site Manager" collapsible="false" columns="1" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="siteMgrName" value="Name"/>
+                                </apex:outputPanel>
+                                <apex:outputPanel >
+                                    <apex:selectList id="siteMgrName" size="1" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__c}" style="vertical-align:top;margin-right:10px;">
+                                        <apex:selectOptions value="{!selectableContacts}"/>
+                                        <apex:actionSupport event="onchange"
+                                                            action="{!RefreshSiteMgr}"
+                                                            rerender="siteMgrSection,msg,postalAddressSection"
+                                                            status="loading"/>
+                                    </apex:selectList>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="sitemgrorgname" value="Organisation"/>
+                                <apex:outputField id="sitemgrorgname" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Organisation_Name__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="sitemgrtitle" value="Title"/>
+                                <apex:outputField id="sitemgrtitle" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Title}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="sitemgrphone" value="Phone"/>
+                                <apex:outputField id="sitemgrphone" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Phone}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="sitemgremail" value="Email"/>
+                                <apex:outputField id="sitemgremail" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.Email}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="sitemgrmobile" value="Mobile"/>
+                                <apex:outputField id="sitemgrmobile" value="{!WaterMAP_Submission__c.waterMAP__r.Site_Manager__r.MobilePhone}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        </apex:actionRegion>
+                        <!-- PRIMARY CONTACT SECTION -->
+                        <apex:actionRegion >
+                        <apex:pageBlockSection id="primaryContactSection" title="Primary Contact" collapsible="false" columns="1" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="primaryContactIsSiteMgr" value="Same as Site Manager?"/>
+                                </apex:outputPanel>
+                                <apex:outputPanel >
+                                    <apex:selectRadio value="{!primaryContactIsSiteMgr}">
+                                        <apex:selectOption itemValue="true" itemLabel="Yes"/>
+                                        <apex:selectOption itemValue="false" itemLabel="No"/>
+                                        <apex:actionSupport event="onclick"
+                                                            rerender="primaryContactSection,msg"
+                                                            status="loading"/>
+                                    </apex:selectRadio>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!NOT(primaryContactIsSiteMgr)}">
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="primaryContactName" value="Name"/>
+                                </apex:outputPanel>
+                                <apex:outputPanel >
+                                    <apex:selectList id="primaryContactName" size="1" value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__c}" style="vertical-align:top;margin-right:10px;">
+                                        <apex:selectOptions value="{!selectableContacts}"/>
+                                        <apex:actionSupport event="onchange"
+                                                            action="{!RefreshPrimaryContact}"
+                                                            rerender="primaryContactSection,msg,postalAddressSection"
+                                                            status="loading"/>
+                                    </apex:selectList>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!NOT(primaryContactIsSiteMgr)}">
+                                <apex:outputLabel for="primaryContactorgname" value="Organisation"/>
+                                <apex:outputField id="primaryContactorgname" value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Organisation_Name__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!NOT(primaryContactIsSiteMgr)}">
+                                <apex:outputLabel for="primaryContacttitle" value="Title"/>
+                                <apex:outputField id="primaryContacttitle" value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Title}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!NOT(primaryContactIsSiteMgr)}">
+                                <apex:outputLabel for="primaryContactphone" value="Phone"/>
+                                <apex:outputField id="primaryContactphone" value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Phone}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!NOT(primaryContactIsSiteMgr)}">
+                                <apex:outputLabel for="primaryContactemail" value="Email"/>
+                                <apex:outputField id="primaryContactemail" value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.Email}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!NOT(primaryContactIsSiteMgr)}">
+                                <apex:outputLabel for="primaryContactmobile" value="Mobile"/>
+                                <apex:outputField id="primaryContactmobile" value="{!WaterMAP_Submission__c.waterMAP__r.Primary_Contact__r.MobilePhone}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        </apex:actionRegion>
+                        <!-- SECONDARY CONTACT SECTION -->
+                        <apex:actionRegion >
+                        <apex:pageBlockSection id="secondaryContactSection" title="Secondary Contact (Complete only if required)" collapsible="false" columns="1" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="secondaryContactName" value="Name"/>
+                                <apex:outputPanel >
+                                    <apex:selectList id="secondaryContactName" size="1" value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__c}" style="vertical-align:top;margin-right:10px;">
+                                        <apex:selectOptions value="{!selectableContacts}"/>
+                                        <apex:actionSupport event="onchange"
+                                                            action="{!RefreshSecondaryContact}"
+                                                            rerender="secondaryContactSection,msg,postalAddressSection"
+                                                            status="loading"/>
+                                    </apex:selectList>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="secondaryContactorgname" value="Organisation"/>
+                                <apex:outputField id="secondaryContactorgname" value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Organisation_Name__c}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="secondaryContacttitle" value="Title"/>
+                                <apex:outputField id="secondaryContacttitle" value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Title}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="secondaryContactphone" value="Phone"/>
+                                <apex:outputField id="secondaryContactphone" value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Phone}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="secondaryContactemail" value="Email"/>
+                                <apex:outputField id="secondaryContactemail" value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.Email}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="secondaryContactmobile" value="Mobile"/>
+                                <apex:outputField id="secondaryContactmobile" value="{!WaterMAP_Submission__c.waterMAP__r.Secondary_Contact__r.MobilePhone}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        </apex:actionRegion>
+                        <!-- POSTAL ADDRESS SECTION -->
+                        <apex:actionRegion >
+                        <apex:pageBlockSection id="postalAddressSection" title="Postal Address" collapsible="false" columns="1" >
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="postalPreferredContact" value="{!$ObjectType.WaterMAP__c.fields.Preferred_Postal_Contact_Type__c.label}"/>
+                                </apex:outputPanel>
+                                <apex:inputField id="postalPreferredContact" value="{!WaterMAP_Submission__c.waterMAP__r.Preferred_Postal_Contact_Type__c}">
+                                    <apex:actionSupport event="onchange"
+                                                        action="{!RefreshPostalAddress}"
+                                                        rerender="postalAddressSection,msg"
+                                                        status="loading"/>
+                                </apex:inputField>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="postalSameAsSiteAddress" value="Same as Site Address?"/>
+                                <apex:inputCheckBox id="postalSameAsSiteAddress" value="{!postalAddressIsSiteAddress}">
+                                    <apex:actionSupport event="onclick"
+                                                        action="{!RefreshPostalAddress}"
+                                                        rerender="postalAddressSection,msg"
+                                                        status="loading"/>
+                                </apex:inputCheckBox>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="postalContactName" value="Name"/>
+                                <apex:outputText id="postalContactName" value="{!postalAddress.name}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="postalAddStreet" value="Street"/>
+                                <apex:outputText id="postalAddStreet" value="{!postalAddress.street}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="postalAddSuburb" value="Suburb"/>
+                                <apex:outputText id="postalAddSuburb" value="{!postalAddress.suburb}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="postalAddState" value="State"/>
+                                <apex:outputText id="postalAddState" value="{!postalAddress.state}"/>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="postalAddPostalCode" value="Postal Code"/>
+                                <apex:outputText id="postalAddPostalCode" value="{!postalAddress.postalCode}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        </apex:actionRegion>
+                        <br/>
+                        <h1>Site Industry Data</h1>
+                        <p/>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel >
+                                    <apex:image url="{!URLFOR($Resource.Icons, 'Icons/RequiredField.png')}"/>
+                                    <apex:outputLabel for="anzsicCode" value="{!$ObjectType.WaterMAP__c.fields.ANZSIC__c.label}"/>
+                                </apex:outputPanel>
+                                <apex:outputPanel >
+                                    <apex:selectList id="anzsicCode" size="1" value="{!WaterMAP_Submission__c.waterMAP__r.ANZSIC__c}" style="width:100%;vertical-align:top;margin-bottom:5px;">
+                                        <apex:selectOptions value="{!selectableANZSIC}"/>
+                                    </apex:selectList>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                    The Australia and New Zealand Industrial Classification (ANZSIC) was developed by the Australian
+                                    Bureau of Statistics for use in the compilation and analysis of industry statistics in Australia
+                                    and New Zealand. South East Water can better understand your business needs and provide appropriate
+                                    assistance if we know the nature of the main business activity that occurs at your site.
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="peakIndustryBody" value="{!$ObjectType.WaterMAP__c.fields.Peak_industry_body__c.label}"/>
+                                <apex:inputField id="peakIndustryBody" value="{!WaterMAP_Submission__c.waterMAP__r.Peak_industry_body__c}"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <br/>
+                        <apex:outputPanel >
+                        <h1>Site Water Balance</h1>
+                        <p/>
+                        </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="prevYrWaterConsume" value="Water consumption {!previousYear} (KL/yr)"/>
+                                    <apex:outputPanel >
+                                    <apex:outputText value="{0, number, ###,###,##0}" id="prevYrWaterConsume" >
+                                        <apex:param value="{!totalWaterConsumption}" />
+                                    </apex:outputText>
+                                    <script>
+                                        prevYrTotal = document.getElementById("{!$Component.prevYrWaterConsume}").innerHTML;
+                                    </script>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="prevYrWasteWater" value="Waste-water volume {!previousYear} (KL/yr)"/>
+                                <apex:outputText value="{0, number, ###,###,##0}" id="prevYrWasteWater" >
+                                    <apex:param value="{!totalSewageDisposalVolume}" />
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="prevYrTradeWaste" value="Trade waste volume {!previousYear} (KL/yr)"/>
+                                <apex:outputText value="{0, number, ###,###,##0}" id="prevYrTradeWaste" >
+                                    <apex:param value="{!totalTradeWasteVolume}" />
+                                </apex:outputText>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="processBreakdownList" value="List of major water using equipment/process"/>
+                                <apex:outputPanel id="processBreakdownList" style="font-size:8pt">
+                                    <apex:pageblocktable value="{!processEquipBreakdowns}" var="breakdownWrapper">
+                                        <apex:column headerValue="{!$ObjectType.Activity_Process_Equipment_Breakdown__c.fields.Activity_Process_Equipment__c.label}" headerClass="headerRowLGBack">
+                                            <apex:inputField id="breakdownActivityType" value="{!breakdownWrapper.breakdown.Activity_Process_Equipment__c}" style="width:350px;font-size:8pt" onchange="showTextboxForOtherType{!breakdownWrapper.uniqueID}();"/>
+                                            <apex:outputPanel id="breakdownTypeOther">
+                                                <br/>&nbsp;&nbsp;&nbsp;&nbsp;<apex:inputField value="{!breakdownWrapper.breakdown.Specify_Other__c}" style="width:330px;font-size:8pt;margin-top:2px"/>
+                                            </apex:outputPanel>
+                                            <script>
+                                                showTextboxForOtherType{!breakdownWrapper.uniqueID}();
+                                                function showTextboxForOtherType{!breakdownWrapper.uniqueID}() {
+                                                    var activityTypeChoiceSelect = document.getElementById("{!$Component.breakdownActivityType}");
+                                                    var activityTypeChoice = activityTypeChoiceSelect.options[activityTypeChoiceSelect.selectedIndex].value;
+                                                    if("Other (please specify)"==activityTypeChoice){
+                                                        document.getElementById("{!$Component.breakdownTypeOther}").style.display="inline";
+                                                    }else{
+                                                        document.getElementById("{!$Component.breakdownTypeOther}").style.display="none";
+                                                    }
+                                                }
+                                            </script>
+                                        </apex:column>
+                                        <apex:column style="text-align: right;width:60px; padding-left: 10px;vertical-align:top;font-size:8pt" headerClass="headerRowLGBack">
+                                            <apex:facet name="header">% of Water<br/>Use</apex:facet>
+                                            <apex:inputField id="pctWaterUse" value="{!breakdownWrapper.breakdown.Percentage_of_Water_Use__c}" style="width:50px;font-size:8pt;vertical-align:top;" onchange="calculateKLWaterUse{!breakdownWrapper.uniqueID}();"/>
+                                        </apex:column>
+                                        <apex:column style="width:100px;text-align: right; padding-right:5px !important;font-size:8pt;vertical-align:top;padding-top:8px" headerClass="headerRowLGBack headerRowRight">
+                                            <apex:facet name="header">KL of<br/>Water Used</apex:facet>
+                                            <apex:outputText id="KLWaterUsed" style="width:100px;"/>
+                                        <script>
+                                            function calculateKLWaterUse{!breakdownWrapper.uniqueID}(){
+                                                var pctWaterUseText = document.getElementById("{!$Component.pctWaterUse}").value;
+                                                var kLWaterUseText = document.getElementById("{!$Component.KLWaterUsed}");
+                                                if(isNaN(parseFloat(pctWaterUseText))) kLWaterUseText.innerHTML = "";
+                                                else kLWaterUseText.innerHTML = addCommas(((parseFloat(prevYrTotal.replace(/,/g,''))*((parseFloat(pctWaterUseText.replace(/,/g,''))*1.0)/100))).toFixed(0));
+                                            }
+                                            calculateKLWaterUse{!breakdownWrapper.uniqueID}();
+                                        </script>
+                                        </apex:column>
+                                        <apex:column headerClass="headerRowCenter headerRowLGBack" style="border-top:0;text-align:center;width:20px;vertical-align:top" styleclass="dataRowCentered">
+                                            <apex:commandLink action="{!breakdownWrapper.deleteRecord}" title="Delete Logo" style="text-align:center;" status="loading" rerender="processBreakdownList">
+                                                <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Cross_Icon.png')}" style="vertical-align:top;" alt="Delete record"/>
+                                            </apex:commandLink>
+                                        </apex:column>
+                                    </apex:pageblocktable>
+                                    <apex:commandbutton value="Add Row" action="{!addBreakdownRow}" rerender="processBreakdownList" status="loading" styleClass="btn"/>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <br/>
+                            <apex:outputPanel >
+                                <h1>Water Management Team</h1>
+                                <p/>
+                                The Water Management Team will be dedicated to improve water efficiency on site.
+                                <p/>
+                                The Water Management Team for {!WaterMAP_Submission__c.watermap__r.Customer__r.Name} consists of:
+                                <p/>
+                            </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:inputField id="waterManagementFieldEntry" value="{!WaterMAP_Submission__c.waterMAP__r.Team_Members__c}" style="width:400px;"/>
+                            <apex:pageBlockSectionItem >
+                                    <apex:outputLabel />
+                                    <apex:outputPanel styleclass="informationBox" style="margin-bottom:10px;">
+                                        You may wish to involve staff from groups such as:
+                                        <ul style="padding-left: 0px;">
+                                            <li>Senior Management</li>
+                                            <li>Operations / facilities managers</li>
+                                            <li>On-site maintenance staff</li>
+                                            <li>Finance / accounting staff, who can provide financial information to support initiatives</li>
+                                            <li>OH&#38;S and environment staff</li>
+                                        </ul>
+                                    </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                                <apex:outputPanel >
+                                    <br/><h1>Additional Comments</h1>
+                                    <p/>
+                                    Please enter any additional comments related to the company or site here.
+                                    <p/>
+                                </apex:outputPanel>
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <apex:inputField value="{!WaterMAP_Submission__c.waterMAP__r.Additional_Comments__c}" style="width:400px;"/>
+                        </apex:pageBlockSection>
+                        <!--  BOTTOM BUTTONS -->
+                    <br/><div class="pbSectionDivider"></div>
+                    <br/>
+                    <div style="vertical-align: text-top">
+                        <div style="float:left">
+                            <apex:commandButton value="Save" action="{!Save}"/>
+                            <apex:commandButton value="Next" action="{!Next}" styleClass="btnDarkBlue"/>
+                        </div>
+                        <span style="float:right;">
+                            <apex:commandButton value="View" action="{!NoOp}" styleClass="btnDarkBlue" onclick="window.open('{!URLFOR($Page.WaterMAP_PDF)}?id={!waterMAPSub.id}');return false;"/>
+                        </span>
+                    </div>
+                    <br/>
+                    </apex:pageBlock>
+                </td>
+            </tr>
+        </table>
+
+
+       <!-- Action Status that are not position dependent -->
+       <apex:actionStatus id="loading">
+           <apex:facet name="start">
+               <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+           </apex:facet>
+       </apex:actionStatus>
+    </apex:form>
+
+</apex:page>

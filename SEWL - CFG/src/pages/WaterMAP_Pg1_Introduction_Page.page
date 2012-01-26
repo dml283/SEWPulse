@@ -1,0 +1,136 @@
+<apex:page standardcontroller="WaterMAP_Submission__c" extensions="WaterMAP_Pg1_Introduction_Controller"
+            sidebar="false" tabstyle="waterMAP_Portal_Home__tab" showHeader="true">
+      <head>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+      </head>
+    <script>
+        function init() {
+            window.scrollTo(0,0);
+        }
+        var previousOnload = window.onload;
+        window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            init();
+        }
+    </script>
+    <apex:stylesheet value="{!$Resource.WaterMap_Styles}"/>
+
+
+    <style type="text/css">
+        h1 {
+            font-family:Arial,Helvetica,Geneva,sans-serif;
+            font-weight:bold;
+            font-size:12pt;
+        }
+    </style>
+
+    <apex:form >
+        <apex:inputhidden value="{!WaterMAP_Submission__c.Status__c}"/>
+        <table maxwidth="900px">
+            <tr>
+                <td class="sideBarCell">
+                <!-- Sidebar menu -->
+                </td>
+                <td class="contentCell">
+                <!-- Start of real page content here-->
+                    <apex:pageBlock id="pageblock">
+
+                        <!--  HEADER -->
+                        <apex:facet name="header">
+                            <div class="pageBlockHeader">
+                                <span class="pageBlockTitle">Section 1: Introduction</span>
+                            </div>
+                        </apex:facet>
+
+                        <!--  TOP BUTTONS -->
+                        <div style="text-align:center;">
+                            <apex:commandButton value="Next" action="{!Next}" styleClass="btn"/>
+                        </div>
+
+                        <!--  PAGE MESSAGES -->
+                        <div style="margin-top:5px"><apex:pageMessages id="msg"/></div>
+
+                        <!-- CONTENT -->
+                        <apex:pageBlockSection columns="1" showHeader="false">
+                            <div class="pbSectionDivider"></div>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <h1>1.1 Introduction</h1>
+                                <p/>
+                                Drought and the uncertainty surrounding climate change, as well as population
+                                growth, have placed pressure on Victoria's water supplies. To ensure a secure
+                                and reliable water supply for Victoria the government has developed a holistic
+                                approach to urban water management and has set targets to reduce water consumption.
+                                To meet these targets permanent water saving rules have been introduced, which
+                                require major commercial and industrial water-using customers to develop a water
+                                Management Action Plan (waterMAP).
+                                <p/>
+                                The waterMAP program seeks to improve the water efficiency of major non-residential
+                                customers and will ensure a consistent approach to water management across Victoria.
+                                <p/>
+                                This waterMAP has been prepared for {!WaterMAP_Submission__c.WaterMap__r.Customer__r.Name}.
+                                <p/>
+                            </apex:pageBlockSectionItem>
+                            <div class="pbSectionDivider"></div>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <h1>1.2 Objectives</h1>
+                                <p/>
+                                The objectives of {!WaterMAP_Submission__c.WaterMap__r.Customer__r.Name}'s waterMAP are to:
+                                <ul>
+                                    <li>Assess current water use on site</li>
+                                    <li>Identify inefficiencies and potential water savings</li>
+                                    <li>Prepare an action plan to implement water conservation actions</li>
+                                    <li>Provide a process for annual reporting on implementation of water conservation actions</li>
+                                </ul>
+                            </apex:pageBlockSectionItem>
+                            <div class="pbSectionDivider"></div>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <h1>1.3 Methodology</h1>
+                                <p/>
+                                The major steps involved in developing a waterMAP are:
+                                <p/>
+                                <ol>
+                                    <li>Collection of information and water consumption data</li>
+                                    <li>Assessment of baseline water use</li>
+                                    <li>Development of a water balance</li>
+                                    <li>Development of a water use indicator and targets</li>
+                                    <li>Identification of opportunities for improvement</li>
+                                    <li>Completion of an action plan</li>
+                                    <li>Implementation and monitoring of actions.</li>
+                                </ol>
+                                <p/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+
+                        <!--  BOTTOM BUTTONS -->
+                        <div style="text-align:center;">
+                            <apex:commandButton value="Next" action="{!Next}" styleClass="btn"/>
+                        </div>
+                        <br/>
+                    </apex:pageBlock>
+                </td>
+            </tr>
+        </table>
+
+
+       <!-- Action Status that are not position dependent -->
+       <apex:actionStatus id="loading">
+           <apex:facet name="start">
+               <c:EnhancedActionStatus BackColor="#ffffff"
+                                       borderColor="#6B6B6B"
+                                       borderSize="1"
+                                       height="50px"
+                                       width="120px"
+                                       margintop="-25px"
+                                       marginleft="-60px"
+                                       ImageUrl="{!$Resource.AjaxAnimation}"
+                                       Message="Loading..."/>
+           </apex:facet>
+       </apex:actionStatus>
+    </apex:form>
+
+</apex:page>

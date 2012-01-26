@@ -1,0 +1,59 @@
+<apex:page standardController="Case" extensions="InfoStatementUpdate_Extension">
+<!-- 
+    Type:       VF page
+    Purpose:    Performs an InfoStatementUpdate in HiAF
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+    <script type="text/javascript">
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            PerformInfoStatementUpdate();
+       }
+    </script>
+
+    <apex:pageMessages id="messages" />
+    <apex:form id="theForm">
+        <apex:outputField value="{!Case.Information_Int_Long__c}" rendered="false" />
+        <apex:outputField value="{!Case.Alerts_Int_Long__c}" rendered="false" />
+        <apex:outputField value="{!Case.Status}" rendered="false" />
+        <apex:outputField value="{!Case.Property__r.CIS_Property_Id__c}" rendered="false" />
+        <apex:outputField value="{!Case.Billing_Account_Quoted__c}" rendered="false" />
+        <apex:outputField value="{!Case.Address_Available__c}" rendered="false" />
+        <apex:outputField value="{!Case.Attention_Of__c}" rendered="false" />
+        <apex:outputField value="{!Case.Street__c}" rendered="false" />
+        <apex:outputField value="{!Case.City__c}" rendered="false" />
+        <apex:outputField value="{!Case.State__c}" rendered="false" />
+        <apex:outputField value="{!Case.Postcode__c}" rendered="false" />
+        <apex:outputField value="{!Case.Update_Given__c}" rendered="false" />
+        <apex:outputField value="{!Case.Manual_Check__c}" rendered="false" />
+        <apex:commandLink value="<-- Back to Case" action="{!back}" />
+
+        <apex:actionFunction name="PerformInfoStatementUpdate"
+                                action="{!performInfoStatementUpdate}"
+                                status="loading"
+                                rerender="theForm,messages"/>
+
+        <apex:actionStatus id="loading">
+            <apex:facet name="start">
+                <c:EnhancedActionStatus BackColor="#ffffff"
+                                        borderColor="#6B6B6B"
+                                        borderSize="1"
+                                        height="50px"
+                                        width="120px"
+                                        margintop="-25px"
+                                        marginleft="-60px"
+                                        ImageUrl="{!$Resource.AjaxAnimation}"
+                                        Message="Loading..."/>
+            </apex:facet>
+        </apex:actionStatus>
+    </apex:form>
+
+
+
+</apex:page>

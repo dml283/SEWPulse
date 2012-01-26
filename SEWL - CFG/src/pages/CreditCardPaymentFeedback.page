@@ -1,0 +1,60 @@
+<!-- 
+    Type:       VF page
+    Purpose:    Capture Credit Card Payment Result information 
+                
+    Used By:    CreditCardPayment VF 
+    ---------------------------------------------------------------
+    History:
+    
+    17-11-2011 Ji Zhang (Coretec Solutions)   Created
+
+ -->
+<apex:page controller="CreditCardPaymentController">
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <script type="text/javascript">
+       function setTabTitle() {
+        if(sforce.console.isInConsole())
+           sforce.console.setTabTitle('Credit Card Payment');
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) { 
+                previousOnload(); 
+            }
+            setTabTitle(); 
+       }
+    </script>
+    <apex:sectionHeader title="Credit Payment Feedback"/>
+    <apex:form >
+        <apex:pageBlock mode="details" title="Credit Card Payment Information">
+            <apex:pageMessages />
+           
+            <apex:pageBlockSection columns="1">              
+                <apex:outputField value="{!taskRec.Description}" rendered="{!paymentSucceeded}" />
+            </apex:pageBlockSection>
+                
+            <apex:pageBlockButtons location="bottom">
+            <apex:commandButton value="Close Page" onclick="testCloseTab();return false"/>
+            <script type="text/javascript">
+                function testCloseTab() {
+                    if(sforce.console.isInConsole()){
+                        sforce.console.getEnclosingTabId(closeSubtab);
+                    }
+                    else{
+                        window.location = "/{!JSENCODE(userInputFields.Billing_Account__c)}";
+                    }
+                }
+            
+                var closeSubtab = function closeSubtab(result) {
+                    var tabId = result.id;
+                    sforce.console.closeTab(tabId);
+                };
+            </script>
+            <apex:commandButton action="{!payBill}" value="Pay Another Bill" />
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+        
+       
+    </apex:form>
+</apex:page>

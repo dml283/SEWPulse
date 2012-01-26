@@ -1,0 +1,436 @@
+<apex:page standardcontroller="WaterMAP_Submission__c"
+            extensions="WaterMAP_Pg7_Reporting_Con"
+            sidebar="false" showHeader="false" renderAs="pdf" standardStylesheets="false"
+            action="{!checkForSaveAndRedirect}">
+    <html>
+        <head>
+            <style>
+                <apex:stylesheet value="{!$Resource.PDFDocumentStyle}" />
+                <apex:stylesheet value="{!$Resource.WaterMAP_PDF_Style}"/>
+            </style>
+            <apex:includeScript value="{!$Page.GoogleAnalyticsTracker}" />
+        </head>
+        <body>
+            <c:PDFHeaderFooter type="header" position="center">
+                <apex:image url="{!$Resource.WaterMAPHomeBanner}" style="width:693px; padding-top: 15px;"/><br/>
+                <p style="text-align:left;">
+
+                </p>
+            </c:PDFHeaderFooter>
+            <c:PDFHeaderFooter type="header" position="center">
+                <apex:image value="{!$Resource.SEWLogo_HorizontalPanel}" alt="pdfHeader" style="width: 700px; padding-top: 15px;"/>
+            </c:PDFHeaderFooter>
+            <c:PDFHeaderFooter type="footer" position="left">
+                <apex:outputPanel style="font-size:10px;">
+                    Printed on&nbsp;
+                    <apex:outputText value="{0,date,dd MMM yyyy}">
+                        <apex:param value="{!TODAY()}" />
+                    </apex:outputText>
+                </apex:outputPanel>
+            </c:PDFHeaderFooter>
+            <!-- Activate hidden fields for the controller -->
+            <apex:outputField rendered="false" value="{!WaterMAP_Submission__c.Status__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Company_Site_Info_Complete__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Year__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}"/>
+<!--            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.ANZSIC_Code__c}"/> -->
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Site_Manager__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Primary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Secondary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.waterMAP__r.Preferred_Postal_Contact_Type__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Water_Consumption_Complete__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}"/>
+<!--            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__r.ANZSIC_Code__c}"/> -->
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Customer__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Site_Manager__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Primary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Secondary_Contact__r.Name}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Sewage_Disposal_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Trade_Waste_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Water_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Prior_Yr_Fcst_Water_Use_KL_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Sewage_Disposal_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Trade_Waste_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Water_Cost_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Forecast_Water_Use_Pct__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.watermap__r.Id}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Indicators_Targets_Complete__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.ANZSIC__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.ANZSIC_Benchmark_Indicator__c}"/>
+            <apex:outputfield rendered="false" value="{!WaterMAP_Submission__c.Watermap__r.KBAI_Type__c}"/>
+
+            <table maxwidth="900px">
+                <tr>
+                    <td class="contentCell">
+                    <!-- Start of real page content here-->
+                        <apex:pageBlock >
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">{!WaterMAP_Submission__c.Year__c} Annual waterMAP Report<p/>{!WaterMAP_Submission__c.watermap__r.Customer__r.Name}</span>
+                                    <br/><h2>{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.HiAF_Account_Number_Check_Digit__c}</h2>
+                                </div>
+                            </apex:facet>
+                            <p/><p/>
+                            <!-- COMPANY INFORMATION SECTION -->
+                            <table style="margin-left:100px;">
+                                <tr>
+                                    <td colspan="2" style="padding-bottom:15px;">
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:pageBlockSectionItem >
+                                                <h2>Company Information</h2>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel value="Address"/>
+                                                <apex:outputPanel >
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.waterMAP__r.Site_Organisation_Name__c}"/><br/>
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Street_Address__c}"/><br/>
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Suburb__c}"/><br/>
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.State__c}"/>&nbsp;
+                                                     <apex:outputField value="{!WaterMAP_Submission__c.Watermap__r.Billing_Account__r.Property__r.Postal_Code__c}"/>
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="phone" value="Phone"/>
+                                                <apex:outputField id="phone" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Phone}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="fax" value="Fax"/>
+                                                <apex:outputField id="fax" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.Fax}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="Website" value="Website"/>
+                                                <apex:outputField id="website" value="{!WaterMAP_Submission__c.Watermap__r.Customer__r.website}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <!--
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="email" value="Email"/>
+                                                <apex:outputField id="email" value="{!waterMAP_Submission__c.Watermap__r.Customer__r.Email_Address__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem helpText="EREP is a regulatory program introduced by the EPA that helps businesses meet climate
+                                            change and resource scarcity challenges by
+                                            implementing actions that achieve environmental benefits and direct cost savings in a short timeframe.
+                                            The EREP program applies to large energy and water using sites –
+                                            ie. those using more than 100 TJ of energy and/or 120 ML of water per annum.">
+                                                <apex:outputLabel for="IsEREP" value="Does your business participate in EREP?"/>
+                                                <apex:outputField id="iserp" value="{!waterMAP_Submission__c.Watermap__r.EREP__c}" style="vertical-align: middle"/>
+                                            </apex:pageBlockSectionItem>
+                                            -->
+                                        </apex:pageBlockSection>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="border-bottom:solid 1px #005F98; height: 50px;"/>
+                                </tr>
+                                <tr style="font-size:0.8em;">
+                                    <td>
+                                        <!-- PREPARED BY SECTION -->
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:pageBlockSectionItem >
+                                                <h2>Prepared By</h2>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyname" value="Name"/>
+                                                <apex:outputField value="{!WaterMAP_Submission__c.Prepared_By__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyorgname" value="Organisation"/>
+                                                <apex:outputField id="preparedbyorgname" value="{!WaterMAP_Submission__c.Prepared_By__r.Organisation_Name__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbytitle" value="Title"/>
+                                                <apex:outputField id="preparedbytitle" value="{!WaterMAP_Submission__c.Prepared_By__r.Title}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyphone" value="Phone"/>
+                                                <apex:outputField id="preparedbyphone" value="{!WaterMAP_Submission__c.Prepared_By__r.Phone}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbyemail" value="Email"/>
+                                                <apex:outputField id="preparedbyemail" value="{!WaterMAP_Submission__c.Prepared_By__r.Email}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="preparedbysig" value="Signature"/>
+                                                <apex:outputText id="preparedbysig" value=""/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel value=""/>
+                                                <apex:outputText value="______________________"/>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </td>
+                                    <td>
+                                        <!-- AUTHORISED BY SECTION -->
+                                        <apex:pageBlockSection columns="1" collapsible="false">
+                                            <apex:pageBlockSectionItem >
+                                                <h2>Authorised By</h2>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyname" value="Name"/>
+                                                <apex:outputField value="{!WaterMAP_Submission__c.Authorised_By__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyorgname" value="Organisation"/>
+                                                <apex:outputField id="authbyorgname" value="{!WaterMAP_Submission__c.Authorised_By__r.Organisation_Name__c}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbytitle" value="Title"/>
+                                                <apex:outputField id="authbytitle" value="{!WaterMAP_Submission__c.Authorised_By__r.Title}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyphone" value="Phone"/>
+                                                <apex:outputField id="authbyphone" value="{!WaterMAP_Submission__c.Authorised_By__r.Phone}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbyemail" value="Email"/>
+                                                <apex:outputField id="authbyemail" value="{!WaterMAP_Submission__c.Authorised_By__r.Email}"/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="authbysig" value="Signature"/>
+                                                <apex:outputText id="authbysig" value=""/>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel value=""/>
+                                                <apex:outputText value="______________________"/>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding-bottom:15px;border-bottom:solid 1px #005F98;"/>
+                                </tr>
+                            </table>
+                        </apex:pageBlock>
+                        <div style="page-break-after:always;"/>
+                        <apex:pageBlock id="pageblock">
+
+                            <!--  HEADER -->
+                            <apex:facet name="header">
+                                <div class="pageBlockHeader">
+                                    <span class="pageBlockTitle">Reporting</span>
+                                </div>
+                            </apex:facet>
+                            <!-- CONTENT -->
+                            <br/><h1>Assessment of water consumption and targets within reporting period</h1>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <br/>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Actual total site water consumption"/>
+                                    <apex:outputPanel >
+                                        <table class="list" style="width:520px;" cellspacing="0" cellpadding="0" border="0">
+                                            <colgroup span="3"></colgroup>
+                                            <thead class="rich-table-thead">
+                                                <tr class="headerRow ">
+                                                    <th class="headerRow headerRowLGBack headerRowCentered">
+                                                        {!previousYear}
+                                                    </th>
+                                                    <th class="headerRow headerRowLGBack headerRowCentered">
+                                                        &nbsp;
+                                                    </th>
+                                                    <th class="headerRow headerRowLGBack headerRowCentered">
+                                                        {!WaterMAP_Submission__c.Year__c}
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="dataRow even first last">
+                                                    <td rowspan="3" class="dataCell dataRowCentered">
+                                                        <apex:outputText value="{0, number, ###,###,##0} KL">
+                                                            <apex:param value="{!totalWaterConsumptionPreviousYr}" />
+                                                        </apex:outputText>
+                                                    </td>
+                                                    <td class="dataCell dataRowCentered" style="font-weight:bold;color:white;padding-top:3px;width:175px;height:80px;background-image:url({!$Resource.SEWL_Arrow});background-repeat:no-repeat;background-position:center center;">
+                                                        <apex:outputText value="{0, number, ###,###,##0} KL">
+                                                            <apex:param value="{!waterConsumpDiffInKL}" />
+                                                        </apex:outputText>
+                                                        &nbsp;/&nbsp;
+                                                        <apex:outputText value="{0, number, ###,###,##0.00}%">
+                                                            <apex:param value="{!waterConsumpDiffInPc}" />
+                                                        </apex:outputText>
+                                                    </td>
+                                                    <td rowspan="3" class="dataCell dataRowCentered">
+                                                        <apex:outputText value="{0, number, ###,###,##0} KL">
+                                                            <apex:param value="{!totalWaterConsumptionCurrentYr}" />
+                                                        </apex:outputText>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Target saving identified in waterMAP"/>
+                                    <apex:outputPanel >
+                                        <apex:outputField value="{!waterMapSub.waterMAP__r.Forecast_Water_Use_Pct__c}"/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <apex:outputPanel rendered="{!waterConsumpTargetMet}">
+                                            <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Tick_Icon.png')}" style="vertical-align:middle;"/>
+                                            &nbsp;Target has been met - Congratulations
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!NOT(waterConsumpTargetMet)}">
+                                            <apex:image value="{!URLFOR($Resource.Icons, 'Icons/Warning_Icon.png')}" style="vertical-align:middle;"/>
+                                            &nbsp;Target has not been met
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+                            <br/><h1>Assessment of the implementation of specific actions or projects</h1>
+                            <apex:pageblocksection columns="1" showHeader="false">
+                                <apex:pageblocksectionitem rendered="{!actionController.readOnlyNonOngoingActions.size == 0}">
+                                    <apex:outputLabel />
+                                    <apex:outputPanel >
+                                        <apex:outputText value="There are no specific actions or projects specified in waterMAP."/>
+                                    </apex:outputPanel>
+                                </apex:pageblocksectionitem>
+                            </apex:pageblocksection>
+                            <apex:repeat rendered="{!actionController.readOnlyNonOngoingActions.size <> 0}" value="{!actionController.readOnlyNonOngoingActions}" var="actionItemWrapper">
+                                <apex:pageBlockSection columns="1" showHeader="false">
+                                    <br/>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Item {!actionItemWrapper.itemNo}" style="font-size:1.2em;color:#005F98"/>
+                                        <apex:outputPanel />
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Action Category"/>
+                                        <apex:outputPanel >
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action_Category__c<>'Other (please specify)'}">
+                                                <apex:outputField value="{!actionItemWrapper.actionItem.Action_Category__c}"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action_Category__c=='Other (please specify)'}">
+                                                Other
+                                            </apex:outputPanel>
+                                            &nbsp;-&nbsp;
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action__c<>'Other (please specify)'}">
+                                                <apex:outputField value="{!actionItemWrapper.actionItem.Action__c}"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action__c=='Other (please specify)'}">
+                                                Other
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!actionItemWrapper.actionItem.Action_Category__c=='Other (please specify)'||actionItemWrapper.actionItem.Action__c=='Other (please specify)'}">
+                                                {!IF(NOT(ISNULL(actionItemWrapper.actionItem.Action__c)),' - ','')}
+                                                <apex:outputField value="{!actionItemWrapper.actionItem.Other_Action_Type__c}" style="margin-top:5px;width:100%;"/>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Action Description"/>
+                                        <apex:outputPanel >
+                                            <apex:outputField value="{!actionItemWrapper.actionItem.Description__c}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputLabel value="Action Status"/>
+                                        <apex:outputPanel >
+                                            <apex:outputField value="{!actionItemWrapper.actionItem.Status__c}"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem rendered="{!actionItemWrapper.actionItem.Status__c=='Completed'}">
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="Action Cost & Savings"/>
+                                        </apex:outputPanel>
+                                        <apex:pageblocktable value="{!actionItemWrapper.actionItemListWrapper}" var="actionItem" style="width:520px;margin-bottom:10px; font-size: 0.85em;">
+                                            <apex:column headervalue="Cost ($)" style="width:70px;" headerClass="headerRowLGBack headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:outputField id="costText" value="{!actionItem.Cost__c}"/>
+                                            </apex:column>
+                                            <apex:column style="width:90px;" headerClass="headerRowLGBack headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Water (Kl/year)
+                                                </apex:facet>
+                                                <apex:outputField value="{!actionItem.Estimated_Savings_Water_Usage_Per_Yr__c}"/>
+                                            </apex:column>
+                                            <apex:column style="width:120px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                        <center>Actual Savings</center>
+                                                        <center>Water ($/year)</center>
+                                                </apex:facet>
+                                                <apex:outputField id="waterCostSavingText" value="{!actionItem.Estimated_Savings_Water_Cost_Per_Yr__c}"/>
+                                            </apex:column>
+                                            <apex:column style="width:90px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Other ($/year)
+                                                </apex:facet>
+                                                <apex:outputField id="otherCostSavingText" value="{!actionItem.Estimated_Savings_Other_Cost_Per_Yr__c}" style="width:70px"/>
+                                            </apex:column>
+                                            <apex:column style="width:50px;" headerClass="headerRowLGBack headerRowPeriod headerRowCentered" styleclass="dataRowCentered">
+                                                <apex:facet name="header">
+                                                    Payback<br/>
+                                                    (years)
+                                                </apex:facet>
+                                                <apex:outputField id="paybackYrText" value="{!actionItem.Payback_Years_Calc__c}" style="padding-right: 15px !important"/>
+                                            </apex:column>
+                                        </apex:pageblocktable>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel >
+                                            <apex:outputLabel value="{!$ObjectType.Action_Item__c.fields.Project_Comments__c.label}"/>
+                                        </apex:outputPanel>
+                                        <apex:outputPanel >
+                                            <apex:outputField value="{!actionItemWrapper.actionItem.Project_Comments__c}" style="width:99%;"/>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                </apex:pageBlockSection>
+                            </apex:repeat>
+
+                            <br/><h1>Assessment of the implementation of ongoing actions</h1>
+                            <p/>
+                            The following ongoing actions was undertaken / implemented.
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel />
+                                     <apex:outputPanel >
+                                        <apex:repeat value="{!actionController.readOnlyOngoingActionslist}" var="itemCheck">
+                                            <apex:outputPanel rendered="{!itemCheck.isHeader}">
+                                                <br/>
+                                                <apex:outputText value="{!itemCheck.actionCategoryStr}" style="font-weight:bold"/>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!NOT(itemCheck.isHeader)}">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;<apex:outputText value="{!itemCheck.actionStr}"/>
+                                            </apex:outputPanel>
+                                            <br/>
+                                        </apex:repeat>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+<!--
+                            <br/><h1>Completed Actions</h1>
+                            <apex:pageBlockSection columns="1" showHeader="false">
+                                <br/>
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel value="Completed Actions" />
+                                    <apex:outputPanel >
+                                        <apex:repeat value="{!nonDeletedCompletedActionItems}" var="itemYearWrapper">
+                                            <div style="border-top: #595959 solid 1px; padding: 3px 0px; color: #005f98; background-color: #e5f1f8;">
+                                                <h2>Year {!itemYearWrapper.year}</h2>
+                                            </div>
+                                            <apex:pageblocktable value="{!itemYearWrapper.itemWrappers}" var="itemWrapper" style="margin-bottom:10px; font-size: 0.85em; border-bottom: #595959 solid 1px;">
+                                                <apex:column headerValue="Action Category" headerClass="headerRowLeft headerRowLGBack" style="border-top:0; width: 200px;" styleclass="dataRowLeft">
+                                                    <apex:outputField value="{!itemWrapper.actionitem.Action_Category__c}"/><br/>&nbsp;-&nbsp;<apex:outputField value="{!itemWrapper.actionitem.Action__c}"/>
+                                                </apex:column>
+                                                <apex:column headerValue="Action Description" headerClass="headerRowLeft headerRowLGBack" style="border-top:0; width: 200px;" styleclass="dataRowLeft">
+                                                    <apex:outputField value="{!itemWrapper.actionitem.Description__c}"/>
+                                                </apex:column>
+
+                                                <apex:column headerValue="Remove" headerClass="headerRowCenter headerRowLGBack" style="border-top:0;text-align:center;width:40px;" styleclass="dataRowLeft">
+                                                    <apex:commandLink action="{!itemWrapper.deleteRecord}" title="Delete Logo" style="text-align:center;">
+                                                        <apex:image value="{!$Resource.Cross_Icon}" style="vertical-align:middle;" alt="Delete File"/>
+                                                    </apex:commandLink>
+                                                </apex:column>
+                                            </apex:pageblocktable>
+                                        </apex:repeat>
+                                        <apex:outputPanel rendered="{!nonDeletedCompletedActionItems.size=0}" layout="block" style="border-top: #bbb0a6 1px solid; border-bottom: #595959 solid 1px; padding: 10px 4px; margin-bottom: 10px;">
+                                            <i>No completed actions</i>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </apex:pageBlockSectionItem>
+                            </apex:pageBlockSection>
+-->
+                        </apex:pageBlock>
+                    </td>
+                </tr>
+            </table>
+        </body>
+    </html>
+</apex:page>

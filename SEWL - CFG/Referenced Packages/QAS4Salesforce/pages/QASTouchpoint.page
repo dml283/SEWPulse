@@ -1,0 +1,192 @@
+<apex:page controller="experianqas.QASTouchpointController" title="Editing Touchpoint {!Name}" 
+tabStyle="QAS_for_salesforce_com__tab" action="{!AutoRun}">
+<style>
+.isfLabel {
+    background-color: #236FBD;
+    color: white;
+    background-image: none;
+    width: 150px;
+    min-width: 150px;
+}
+</style>
+<apex:includeScript value="{!$Resource.experianqas__QASConfigJS}"/>
+<apex:sectionHeader title="Touchpoint Edit" subtitle="{!Name}" help="https://services3.ondemand.qas.com/SalesForce/HostedPopup/V3/Help/touchpointedit.htm"/>
+<apex:form >
+<apex:pageBlock mode="edit">
+<apex:pageBlockButtons >
+<apex:commandButton action="{!Save}" value="Save"/>
+<apex:commandButton action="{!Cancel}" value="Cancel" immediate="true"/>
+</apex:pageBlockButtons>
+<apex:pageMessages id="msgs" />
+
+<apex:pageBlockSection title="Core Details" columns="2">
+<apex:facet name="header">
+	<apex:pageBlockSectionItem >
+		<apex:outputLabel value="Core Details"/>
+	</apex:pageBlockSectionItem>
+</apex:facet>
+
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="Touchpoint Name" for="tp__name"/>
+<apex:outputPanel layout="block" styleClass="requiredInput">
+	<apex:outputPanel layout="block" styleClass="requiredBlock"/>
+	<apex:inputText value="{!Name}" size="35" id="tp__name" title="Name" alt="Touchpoint Name"/>
+</apex:outputPanel>
+</apex:pageBlockSectionItem>
+
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="Object Name" for="tp__objname"/>
+    <apex:selectList value="{!ObjectName}" size="1" multiselect="false" id="tp__objname">
+        <apex:selectOptions value="{!AvailableObjects}"/>
+        <apex:actionSupport event="onchange" action="{!ChangeObjectName}"
+            rerender="im_panel1, msgs" focus="im__isf" status="inputmapping_status" oncomplete="initial_setup();"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="Perform Search When Saving New Record" for="tp__popuponsave"/>
+    <apex:selectList value="{!PopupOnNewSave}" multiselect="false" size="1" id="tp__popuponsave">
+        <apex:selectOptions value="{!YesNoAuto}"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="Search Message" for="tp__popupmsg"/>
+<apex:inputText value="{!PopupMessage}" size="50" id="tp__popupmsg"/>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="Perform Search When Editing Record" for="tp__popuponedit"/>
+    <apex:selectList value="{!PopupOnEditSave}" multiselect="false" size="1" id="tp__popuponedit">
+        <apex:selectOptions value="{!YesNoAuto}"/>
+    </apex:selectList>
+</apex:pageBlockSectionItem>
+
+</apex:pageBlockSection>
+
+
+<apex:outputPanel id="im_panel1">
+	<apex:actionstatus id="inputmapping_status" startText="working...">
+		<apex:facet name="stop">
+			<apex:pageBlockSection columns="1">
+				<apex:pageBlockSection title="Input Mapping" columns="1" id="inputmapping_pbs" collapsible="false">	
+				
+				<apex:facet name="header">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Input Mapping"/>
+				</apex:pageBlockSectionItem>
+				</apex:facet>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Input Search Fields" for="im__isf"/>
+					<apex:panelGrid columns="2" id="im_grid">
+						<apex:selectList size="10" multiselect="false" id="im__isf">
+							<apex:selectOptions value="{!AvailableFields}"/>
+						</apex:selectList>
+						<apex:outputPanel >
+						<table CELLPADDING="0">
+						<apex:repeat value="{!InputSearchFields}" var="isf">
+						<tr>
+							<td>
+							<input type="button" id="im__isfadd" value="--->" class="btn" onclick="CopyListValueToTargetR('{!$Component.im__isf}', '{!$Component.im__isfdc}');"/>
+							</td>
+							<td>
+							<apex:outputText value="{!isf.FieldTarget}"/>
+							</td>
+							<td NOWRAP="true">
+							<apex:inputText value="{!isf.DesiredContents}" id="im__isfdc" 
+								onmouseout="ManageClearButtonR('{!$Component.im__isfdc}')" onmouseover="ManageClearButtonR('{!$Component.im__isfdc}')" onkeyup="ManageClearButtonR('{!$Component.im__isfdc}')" onchange="ManageClearButtonR('{!$Component.im__isfdc}')"/>
+							<input type="button" value="Clear" id="clearbtn" class="btn" onclick="DoClearR('{!$Component.im__isfdc}');" title="Clear this input field"/>
+							</td>
+							</tr>
+						</apex:repeat>
+						</table>
+						</apex:outputPanel>
+					</apex:panelGrid>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+
+
+
+			<apex:pageBlockSection title="Output Mapping" columns="1" id="specificdm_pbs" collapsible="false">
+				<apex:facet name="header">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Output Mapping For: " for="om__specificdm"/>
+					<apex:selectList value="{!SpecificDataMapping}" multiselect="false" size="1" id="om__specificdm">
+						<apex:selectOptions value="{!AvailableDataMappingsWithDefault}"/>
+						<apex:actionSupport event="onchange" action="{!ChangeSpecficDM}"
+							rerender="om_panel1,msgs" focus="om__layout" status="specificdm_status" oncomplete="initial_setup();"/>
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+				</apex:facet>
+			</apex:pageBlockSection>
+			<apex:outputPanel id="om_panel1">
+				<apex:actionstatus id="specificdm_status" startText="working...">
+					<apex:facet name="stop">
+						<apex:pageBlockSection columns="1" id="specificdm_pbs2" collapsible="false">
+
+	<!--<apex:pageBlockSectionItem >-->
+	<!--<apex:outputLabel value="DI:" for="om__di"/>-->
+	<!--<apex:inputTextarea value="{!DebugInfo}" cols="100" rows="10" readonly="true" id="om__di"/>-->
+	<!--</apex:pageBlockSectionItem>-->
+	
+							<apex:pageBlockSectionItem >
+								<apex:outputLabel value="Output Layout" for="om__layout"/>
+									<apex:selectList value="{!OutputLayout}" size="1" id="om__layout">
+										<apex:selectOptions value="{!AvailableLayouts}"/>
+										<apex:actionSupport event="onchange" action="{!ChangeSpecficDM}"
+										rerender="om_panel2,msgs" focus="om__layout" status="specificdm_status2" oncomplete="initial_setup();"/>
+									</apex:selectList>
+							</apex:pageBlockSectionItem>
+							<apex:outputPanel id="om_panel2">
+								<apex:actionstatus id="specificdm_status2" startText="working...">
+									<apex:facet name="stop">
+										<apex:pageBlockSection columns="1">
+											<apex:pageBlockSectionItem >
+												<apex:outputLabel value="Formatted Address Output Fields" for="om__ptof"/>
+													<apex:panelGrid columns="2">
+														<apex:selectList size="10" multiselect="false" id="om__ptof">
+															<apex:selectOptions value="{!AvailableLineLabels}"/>
+														</apex:selectList>
+														<apex:outputPanel >
+															<table CELLPADDING="0">
+																<apex:repeat value="{!PasteTargets}" var="pt">
+																	<tr>
+																		<td>
+																			<input type="button" id="om__ptab" value="--->" class="btn" onclick="CopyListValueToTargetR('{!$Component.om__ptof}', '{!$Component.om__ptdc}');"/>
+																		</td>
+																		<td>
+																			<apex:selectList value="{!pt.FieldTarget}" size="1" multiselect="false" id="om__ptf">
+																				<apex:selectOptions value="{!AvailableFieldsWithBlank}"/>
+																			</apex:selectList>
+																		</td>
+																		<td NOWRAP="true">
+																			<apex:inputText value="{!pt.DesiredContents}" id="om__ptdc" size="10"
+																				onmouseover="ManageClearButtonR('{!$Component.om__ptdc}')" onmouseout="ManageClearButtonR('{!$Component.om__ptdc}')" onkeyup="ManageClearButtonR('{!$Component.om__ptdc}')" onchange="ManageClearButtonR('{!$Component.om__ptdc}')"/>
+																			<input type="button" value="Clear" id="clearbtn" class="btn" onclick="DoClearR('{!$Component.om__ptdc}');" title="Clear this field on update"/>
+																		</td>
+																	</tr>
+																</apex:repeat>
+															</table>
+															<br/>
+															<apex:commandButton action="{!AddMoreOutputLines}" value="Add More Output Lines"
+																title="Add 5 more blank lines for configuring output mapping" reRender="specificdm_pbs,specificdm_pbs2,msgs" status="specificdm_status"  oncomplete="initial_setup();"/>
+															<apex:commandButton action="{!AutoFillPasteLines}" value="Auto Guess Outputs"
+																title="Assuming the input fields will be ones to be updated upon output, guess the correct Formatted Address Output Fields to use - confirm manually" reRender="specificdm_pbs,specificdm_pbs2,msgs" status="specificdm_status"  oncomplete="initial_setup();"/>
+															<apex:commandButton action="{!ClearAllPasteLines}" value="Clear All Output Lines"
+																title="Reset all output fields" reRender="specificdm_pbs,specificdm_pbs2,msgs" status="specificdm_status"  oncomplete="initial_setup();"/>
+														</apex:outputPanel>
+													</apex:panelGrid> 
+											</apex:pageBlockSectionItem>
+										</apex:pageBlockSection>
+									</apex:facet>
+								</apex:actionstatus>
+							</apex:outputPanel>
+						</apex:pageBlockSection>
+					</apex:facet>
+				</apex:actionstatus>
+			</apex:outputPanel>
+		</apex:pageBlockSection>
+		</apex:facet>		
+	</apex:actionstatus>
+</apex:outputPanel>
+</apex:pageBlock>
+
+</apex:form>
+</apex:page>

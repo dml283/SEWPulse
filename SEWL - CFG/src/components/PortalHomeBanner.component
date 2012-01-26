@@ -1,0 +1,14 @@
+<apex:component id="PortalHomeBanner">
+
+    <!--
+        Description: Changeable content for the home page banner
+
+        History:
+            14-Jun-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <span style="font-weight: bold; color: #005F98">Welcome to the South East Water Customer Portal.</span>
+    <br/>The customer portal will provide a secure environment to access our online services.
+    <br/>Currently, the portal still being developed.
+
+</apex:component>

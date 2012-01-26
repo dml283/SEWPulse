@@ -1,0 +1,26 @@
+<apex:page showHeader="false" title="{!$Label.site.in_maintenance}"
+    cache="false">
+
+    <!--
+        Description: Site in maintenance
+
+        History:
+            29-May-2011 D.Thong (Salesforce)    Created
+    -->
+
+    <apex:composition template="StdExceptionTemplate">
+        <apex:define name="icon">
+            <apex:image url="{!URLFOR($Resource.SiteSamples, 'img/warning.gif')}" />
+        </apex:define>
+        <apex:define name="error">
+            <apex:outputText escape="false" styleClass="siteTitle"
+                value="The South East Water Customer Portal is down for maintenance">
+                <apex:param value="{!$Site.CurrentSiteUrl}" />
+            </apex:outputText>
+            <br />
+            <br />
+            <apex:outputText value="For any enquiries click" />&nbsp;
+            <apex:outputLink value="http://www.southeastwater.com.au/enquiries" target="_new">here</apex:outputLink>.
+        </apex:define>
+    </apex:composition>
+</apex:page>

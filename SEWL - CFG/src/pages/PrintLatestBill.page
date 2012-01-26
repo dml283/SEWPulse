@@ -1,0 +1,74 @@
+<apex:page standardController="Billing_Account__c"
+		extensions="PrintLatestBillExCon"
+		title="{!Billing_Account__c.Name} - Print Latest Bill"
+		showHeader="false">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Prints the latest bill
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+	<head>
+		<base target="_self"></base>
+	</head>
+	<apex:outputField rendered="false"
+			value="{!Billing_Account__c.HiAF_Account_Number__c}" />
+	<apex:sectionHeader title="Print Latest Bill"
+			subtitle="{!Billing_Account__c.HiAF_Account_Number__c}" />
+	<apex:includeScript value="/support/console/22.0/integration.js" />
+	<script type="text/javascript">      
+	    function setTabTitle() {
+	      if (sforce.console.isInConsole())
+	        sforce.console.setTabTitle('{!JSINHTMLENCODE(Billing_Account__c.HiAF_Account_Number__c)} - Print Latest Bill');
+	    }       
+	   
+	    var previousOnload = window.onload;        
+	    window.onload = function() { 
+	         if (previousOnload) { 
+	             previousOnload();
+	         }
+	         setTabTitle();                
+	    }
+   	</script>
+	<apex:pagemessages id="messages" />
+
+	<apex:form >
+		<apex:inputHidden value="{!Billing_Account__c.Last_Bill_Number__c}" />
+
+		<apex:pageblock id="billPrintLatest"
+			title="Print bill {!Billing_Account__c.Last_Bill_Number__c}">
+			<apex:pageblockButtons location="top">
+				<apex:commandButton value="Print" action="{!printSingleBill}"
+					disabled="{!isBlank(Billing_Account__c.Last_Bill_Number__c)}"
+					status="loading" rerender="messages" />
+				<apex:selectList value="{!selectedPrintOption}" size="1"
+					disabled="{!isBlank(Billing_Account__c.Last_Bill_Number__c)}">
+					<apex:selectOption itemValue="Local Print" itemLabel="Local Print" />
+					<apex:selectOption itemValue="Printing House"
+						itemLabel="Printing House" />
+					<!-- Removed option following 27/11/2011 alpha review 
+                	<apex:selectOption itemValue="Send to Bin" itemLabel="Send to Bin"/>
+                -->
+				</apex:selectList>
+			</apex:pageblockButtons>
+			<center>
+				<apex:outputPanel styleClass="btn" onclick="window.close()">Close</apex:outputPanel>
+			</center>
+		</apex:pageblock>
+
+		<!-- Action Status that are not position dependent -->
+		<apex:actionStatus id="loading">
+			<apex:facet name="start">
+				<c:EnhancedActionStatus BackColor="#ffffff" borderColor="#6B6B6B"
+					borderSize="1" height="50px" width="120px" margintop="-25px"
+					marginleft="-60px" ImageUrl="{!$Resource.AjaxAnimation}"
+					Message="Loading..." />
+			</apex:facet>
+		</apex:actionStatus>
+	</apex:form>
+
+</apex:page>

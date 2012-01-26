@@ -1,0 +1,661 @@
+<apex:page standardController="Account" extensions="CustomerVerificationExtension"
+						showHeader="true" standardStylesheets="false" sidebar="false" tabstyle="Account">
+
+<!-- 
+    Type:       VF page
+    Purpose:    Performs customer verification
+    ---------------------------------------------------------------
+    History:
+    
+ -->
+
+
+    <apex:includeScript value="/support/console/23.0/integration.js"/>
+    <script type="text/javascript">
+       function setTabTitle() {
+           if(sforce.console.isInConsole()){
+               sforce.console.setTabTitle('Customer Verification');
+           }
+       }
+
+       var previousOnload = window.onload;
+       window.onload = function() {
+            if (previousOnload) {
+                previousOnload();
+            }
+            setTabTitle();
+       }
+    </script>
+
+    <!-- <script type="text/javascript">
+        window.onload = testCloseTab;
+        function testCloseTab() {
+            if(sforce.console.isInConsole()){
+                alert("Does the page have messages: " + ApexPages.hasMessages());
+
+            }
+            else{
+                window.location = "/{!Account.Id}";
+            }
+        }
+
+        var closeSubtab = function closeSubtab(result) {
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+    </script>  -->
+
+    <apex:stylesheet value="{!$Resource.CustomerCareCheck_Styles}"/>
+    <style>
+        p {
+            margin: 0;
+        }
+    </style>
+
+
+
+    <apex:form id="theForm">
+        <apex:inputField value="{!Account.Is_EWOV_Investigative_Complaint__c}" rendered="false" />
+        <apex:inputField value="{!Account.Is_EWOV_Assisted_Complaint__c}"  rendered="false"/>
+        <apex:outputField value="{!Account.Is_Key_Customer__c}" rendered="false" />
+        <apex:outputField value="{!Account.RecordType.DeveloperName}" rendered="false" />
+
+        <apex:inputHidden value="{!saveSuccessful}" id="saveSuccess"/>
+
+        <apex:actionStatus startText="Requesting...">
+            <apex:facet name="stop">
+                <apex:detail subject="{!$CurrentPage.parameters.cid}" relatedList="false" title="false"/>
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:pageMessages id="errmsgs"/>
+
+        <apex:outputPanel id="theContactTable" layout="inline">
+            <table width="100%" >
+                <tr>
+                    <td class="sectionCell">
+                        <h1>Contact Details</h1>
+                    </td>
+                </tr>
+            </table>
+            <table width="100%" >
+                <tr>
+                    <td width="75%" style="vertical-align: top;">
+                        <table class="contactDetailsTable">
+                            <tr>
+                                <td width="25%" class="dataCell"  >
+                                    <apex:outputLabel value="Who am I talking to: " styleClass="fieldLabel" />
+                                </td>
+                                <td width="75%" class="dataCell"  >
+                                    <apex:actionRegion >
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:selectList value="{!selectedContact}" size="1">
+                                                <apex:selectOptions value="{!contactOptions}" />
+                                                <apex:actionSupport event="onchange" action="{!updateContactDetails}"
+                                                        onsubmit="document.body.style.cursor='wait'"
+                                                        oncomplete="document.body.style.cursor='default'"
+                                                        rerender="theContactTable" status="contactStatus"/>
+                                            </apex:selectList>
+                                            <apex:outputPanel rendered="{!!ISNULL(selectedContact)&&!otherContact}" >
+                                                <a href="#" onclick="goToContact()">View</a>
+
+                                                <script type="text/javascript">
+                                                    function goToContact() {
+                                                        if(sforce.console.isInConsole()){
+                                                            try {
+                                                                sforce.console.getEnclosingPrimaryTabId(openContact);
+                                                            }
+                                                            catch(e) {
+                                                                alert(e.toString());
+                                                            }
+                                                        }
+                                                        else {
+                                                            window.location = "/{!contactToDisplay.contact.Id}";
+                                                        }
+                                                    }
+                                                    var openContact = function openContact (result) {
+                                                        sforce.console.openSubtab(result.id ,'/{!contactToDisplay.contact.Id}', true, '', null);
+                                                    }
+
+                                                </script>
+                                            </apex:outputPanel>
+
+                                            <apex:actionStatus id="contactStatus">
+                                                <apex:facet name="start">
+                                                    <apex:outputPanel layout="none" style="vertical-align:middle">
+                                                        &nbsp;<apex:image value="{!$Resource.AjaxAnimation}" style="vertical-align:middle"/>
+                                                    </apex:outputPanel>
+                                                </apex:facet>
+                                            </apex:actionStatus>
+
+                                        </div>
+                                    </apex:actionRegion>
+                                </td>
+                            </tr>
+                        </table>
+                        <apex:outputPanel rendered="{!!ISNULL(selectedContact)}">
+
+                            <table class="contactDetailsTable" id="nameTable">
+                                <tr >
+                                    <td width="25%" class="dataCell"  >
+                                        <apex:outputLabel value="{!$ObjectType.Contact.Fields.FirstName.Label}: " styleClass="fieldLabel"/>
+                                    </td>
+
+                                    <td width="25%" class="dataCell"  >
+                                        <apex:inputField value="{!contactToDisplay.contact.FirstName}" rendered="{!Not(otherContact)}" style="width: 150px;"/>
+                                        <apex:inputText value="{!contactToDisplay.otherFirstName}" rendered="{!otherContact}" style="width: 150px;"/>
+
+                                    </td>
+                                    <td width="25%" class="dataCell"  >
+                                        <apex:outputLabel value="{!$ObjectType.Contact.Fields.LastName.Label}: " styleClass="fieldLabel"/>
+
+                                    </td>
+                                    <td width="25%" class="dataCell"  >
+                                        <apex:inputField value="{!contactToDisplay.contact.LastName}" rendered="{!Not(otherContact)}" style="width: 150px;"/>
+
+                                        <apex:outputPanel rendered="{!otherContact}" >
+                                            <div class="requiredInput">
+                                                <div class="requiredBlock"></div>
+                                                <apex:inputText value="{!contactToDisplay.otherLastName}"  style="width: 150px;"/>
+                                            </div>
+                                        </apex:outputPanel>
+                                    </td>
+                                </tr>
+                            </table>
+                            <apex:outputPanel rendered="{!individualCustomer && Not(otherContact)}">
+                                <table class="contactDetailsTable">
+                                    <tr>
+                                        <td width="25%" class="dataCell"  >
+                                            <apex:outputLabel value="{!$ObjectType.Contact.Fields.BirthDate.Label}: "  styleClass="fieldLabel" />
+                                        </td>
+                                        <td width="25%" class="dataCell">
+                                            <apex:outputPanel rendered="{!!otherContact}">
+                                                <div class="{!IF(!otherContact && individualCustomer && contactToDisplay.primaryOrSecondary,'requiredInput',null)}">
+                                                    <div class="{!IF(!otherContact && individualCustomer && contactToDisplay.primaryOrSecondary,'requiredBlock',null)}"></div>
+                                                    <apex:inputField value="{!contactToDisplay.contact.BirthDate}"/><br/>
+                                                </div>
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td width="25%" class="dataCell"  >
+                                            <apex:outputLabel value="{!$ObjectType.Contact.Fields.Email.Label}: "  styleClass="fieldLabel"/>
+                                        </td>
+                                        <td width="25%" class="dataCell"  >
+                                            <apex:inputField value="{!contactToDisplay.contact.Email}"  style="width: 150px;"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!Not(individualCustomer) && Not(otherContact)}">
+                                <table class="contactDetailsTable" >
+                                    <tr>
+                                        <td width="25%" class="dataCell" >
+                                            <apex:outputLabel value="{!$ObjectType.Account.Fields.ABN__c.Label}: " styleClass="fieldLabel" />
+                                        </td>
+                                        <td width="25%" class="dataCell" >
+                                            <apex:inputField value="{!Account.ABN__c}"  style="width: 150px;"/>
+                                        </td>
+                                        <td width="25%" class="dataCell" >
+                                            <apex:outputLabel value="{!$ObjectType.Account.Fields.ACN__c.Label}: " styleClass="fieldLabel" />
+                                        </td>
+                                        <td width="25%" class="dataCell" >
+                                            <apex:inputField value="{!Account.ACN__c}" style="width: 150px;"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!individualCustomer && Not(otherContact)}">
+                                <table class="contactDetailsTable">
+                                    <tr>
+                                        <td width="25%" class="dataCell" >
+                                        </td>
+                                        <td width="25%" class="dataCell" >
+                                        </td>
+                                        <td width="25%" class="dataCell" >
+                                            <apex:outputLabel value="Drivers License #: " rendered="{!!ISNULL(selectedContact)&&!otherContact}" styleClass="fieldLabel" />
+                                        </td>
+                                        <td width="25%" class="dataCell" >
+                                            <apex:inputText value="{!contactToDisplay.contact.Drivers_License_Number__c}" rendered="{!!ISNULL(selectedContact)&&!otherContact}" style="width: 150px;"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </apex:outputPanel>
+                            <table class="contactDetailsTable">
+                                <tr >
+                                    <td width="25%" class="dataCell"  >
+                                        <apex:outputLabel value="Preferred Phone #: " styleClass="fieldLabel"/>
+                                    </td>
+                                    <td width="25%" class="dataCell"  >
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:inputText value="{!contactToDisplay.preferredPhoneNum}"  id="preferredPhone" />
+                                            <apex:outputText value=" ({!contactToDisplay.contact.Preferred_Phone_Number__c})" rendered="{!!ISBLANK(contactToDisplay.contact.Preferred_Phone_Number__c)}" />
+                                        </div>
+                                    </td>
+                                    <td width="25%" class="dataCell"  >
+                                        <apex:outputLabel value="{!$ObjectType.Contact.Fields.Preferred_Phone_Type__c.Label}: "  styleClass="fieldLabel"/>
+                                    </td>
+                                    <td width="25%" class="dataCell"  >
+                                        <div class="requiredInput">
+                                            <div class="requiredBlock"></div>
+                                            <apex:selectList value="{!selectedPhoneType}" size="1"  >
+                                                <apex:selectOptions value="{!phoneOptions}" />
+                                            </apex:selectList>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </apex:outputPanel>
+                    </td>
+                    <td width="25%">
+                        <table class="activityDetailsTable">
+                            <tr>
+                                <td>
+                                    <div style="margin-bottom: 6px"><br/></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td  >
+                                    <apex:outputPanel rendered="{!NOT(BEGINS(contactToDisplay.role, 'Primary') || BEGINS(contactToDisplay.role, 'Secondary'))}"  >
+                                        <apex:inputCheckbox value="{!refusedDetails}" rendered="{!!ISNULL(selectedContact)}" style="vertical-align:middle;"/>
+                                        <apex:outputLabel value="Refused Details " rendered="{!!ISNULL(selectedContact)}" styleClass="fieldLabelRight" />
+                                    </apex:outputPanel>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:outputLabel value="Comments: " rendered="{!!ISNULL(selectedPhoneType)&&!ISNULL(selectedContact)}" styleClass="fieldLabelLeft"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <apex:inputTextArea value="{!contactToDisplay.agentComments}" cols="30" rows="4" rendered="{!!ISNULL(selectedContact)}"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </apex:outputPanel> <!-- theContactTable -->
+
+        <apex:outputPanel id="theSegmentTable" layout="block" style="margin-bottom:5px" >
+            <table width="100%" >
+                <tr>
+                    <td class="sectionCell">
+                        <h1>Segment Details
+                        </h1>
+                    </td>
+                </tr>
+            </table>
+            <table width="100%" class="contactDetailsTable" >
+                <tr style="vertical-align: top; margin-bottom:5px">
+                    <td width="19%" class="dataCell">
+                        <apex:outputLabel value="Segment: " styleClass="fieldLabel" /><br/>
+                    </td>
+                    <td class="dataCell">
+                        <apex:outputText value="{!Account.Segment__r.Name}"/>
+						<br/>
+                        <apex:image value="{!Account.Segment__r.Image__c}" style="margin-top:5px"/>
+                    </td>
+                </tr>
+			</table>
+            <table width="100%" class="contactDetailsTable" >
+                <tr style="vertical-align: top; margin-bottom:5px">
+                    <td width="19%" class="dataCell">
+                        <apex:outputLabel value="Last Reviewed: " styleClass="fieldLabel" />
+                    </td>
+                    <td width="8%" class="dataCell">
+                        <apex:outputField value="{!Account.Segment_Profile_Last_Updated__c}" />
+                    </td>
+                    <td width="28%" class="dataCell">
+                        <apex:outputLabel value="Next Review Date: " styleClass="fieldLabel" />
+                    </td>
+                    <td class="dataCell">
+                        <apex:outputField value="{!Account.Segment_Profile_Next_Review_Date__c}" />
+                    </td>
+                </tr>
+            </table>
+
+            <apex:commandButton value="View Segmentation Details"
+                    style="margin-left:45%" onclick="OpenSegmentation(); return false;"/>
+            <script>
+                function OpenSegmentation() {
+                    if(sforce.console.isInConsole()){
+                        sforce.console.getEnclosingPrimaryTabId(OpenSegmentationTab);
+                    } else {
+                        window.open("/apex/CustomerSegmentEntry?id={!Account.Id}", "_new");
+                    }
+                }
+
+                var OpenSegmentationTab = function OpenSegmentationTab (result) {
+                    sforce.console.openSubtab(result.id , '/apex/CustomerSegmentEntry?id={!Account.Id}', true, '', null);
+                }
+            </script>
+
+            <apex:pageMessage summary="The segmentation details for this customer is out-of-date. Please review the segmentation questionaire with the customer."
+                                severity="warning" strength="1" rendered="{!Account.Segmentation_Overdue__c=='Y'}" />
+        </apex:outputPanel>
+
+
+        <table width="100%">
+            <tr>
+                <td colspan="3" class="sectionCell">
+                    <h1 style="padding-bottom:5px">Account and Property</h1>
+                </td>
+            </tr>
+        </table>
+        <table width="100%" class="contactDetailsTable" style="margin-left:8px; width:98% !important;">
+            <tr>
+                <td width="30%" class="dataCell"  >
+                    <apex:outputLabel value="Can I have your property address please? " styleClass="fieldLabel"/>
+                </td>
+                <td colspan="2" class="dataCell"  >
+                    <div style="white-space:nowrap">
+                    <apex:actionRegion >
+                        <div class="requiredInput">
+                            <div class="requiredBlock"></div>
+                            <apex:selectList value="{!selectedBillAccount}" size="1" >
+                                <apex:selectOptions value="{!accountOptions}" />
+                                <apex:actionSupport event="onchange" action="{!updateBillAccountDetails}"
+                                    onsubmit="document.body.style.cursor='wait'"
+                                    oncomplete="document.body.style.cursor='default'"
+                                    rerender="theAccTable,viewacct" status="accountStatus"
+                                />
+                           </apex:selectList>
+                           <apex:actionStatus id="accountStatus">
+                               <apex:facet name="start">
+                                   <apex:outputPanel layout="none" style="vertical-align:middle">
+                                            &nbsp;<apex:image value="{!$Resource.AjaxAnimation}" style="vertical-align:middle"/>
+                                   </apex:outputPanel>
+                               </apex:facet>
+                           </apex:actionStatus>
+                       </div>
+                   </apex:actionRegion>
+                   </div>
+                </td>
+            </tr>
+        </table>
+        <apex:outputPanel id="theAccTable" >
+            <apex:outputPanel rendered="{!!ISNULL(selectedBillAccount)}">
+                <table width="100%"  class="contactDetailsTable" style="margin-left:8px; width:98% !important;">
+                    <tr>
+                        <td width="12%" class="dataCell"  >
+                            <apex:outputLabel value="{!$ObjectType.Billing_Account__c.Fields.Name.Label}: " styleClass="fieldLabel"  />
+                        </td>
+                        <td width="13%" class="dataCell"  >
+                            <apex:outputLink value="javascript:goToAccount('/{!billAccountToDisplay.Id}')">
+                                <apex:outputField value="{!billAccountToDisplay.Name}" />
+                                <script type="text/javascript">
+                                    function goToAccount() {
+                                        if(sforce.console.isInConsole()){
+                                            try {
+                                                sforce.console.getEnclosingPrimaryTabId(openAcct);
+                                            }
+                                            catch(e) {
+                                                alert(e.toString());
+                                            }
+                                        }
+                                        else {
+                                            window.location = "/{!billAccountToDisplay.Id}";
+                                        }
+                                    }
+                                    var openAcct = function openAcct (result) {
+                                        sforce.console.openSubtab(result.id ,'/{!billAccountToDisplay.Id}', true, '', null);
+                                    }
+
+                                </script>
+
+                            </apex:outputLink>
+                        </td>
+                        <td width="12%" class="dataCell"  >
+                            <apex:outputLabel value="Password: " styleClass="fieldLabel"  />
+                        </td>
+                        <td width="13%" class="dataCell dataCellStop"  >
+                            <apex:outputText value="{!acctPasswordToDisplay}" style="color:red; font-weight:bold;"/>
+                        </td>
+                        <td width="25%" class="dataCell" style="border:none"  >
+                            <apex:outputLabel value="Property Address: " styleClass="fieldLabelLeft"  />
+                        </td>
+                        <td width="25%" class="dataCell"  style="border:none">
+                            <apex:outputLabel value="Billing Address: " styleClass="fieldLabelLeft"  />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="dataCell"  >
+                            <apex:outputLabel value="{!$ObjectType.Billing_Account__c.Fields.Account_Name__c.Label}: " styleClass="fieldLabel" />
+                        </td>
+                        <td class="dataCell" colspan="3"  >
+                            <apex:outputField value="{!billAccountToDisplay.Account_Name_Formula__c}"  />
+                        </td>
+                        <td class="dataCell"  style="border:none">
+                            <apex:outputField value="{!billAccountToDisplay.Property__r.Street_Address__c}"  />
+                        </td>
+                        <td class="dataCell"  style="border:none">
+                            <apex:outputField value="{!billAccountToDisplay.Street_Address__c}" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="dataCell"  >
+                            <apex:outputLabel value="{!$ObjectType.Billing_Account__c.Fields.Role__c.Label}: " styleClass="fieldLabel" />
+                        </td>
+                        <td class="dataCell"  >
+                            <apex:outputField value="{!billAccountToDisplay.Role__c}"  />
+                        </td>
+                        <td class="dataCell"  >
+                        </td>
+                        <td class="dataCell"  >
+                        </td>
+                        <td class="dataCell"  >
+                            <apex:outputText value="{!billAccountToDisplay.Property__r.Suburb__c}, {!billAccountToDisplay.Property__r.State__c} {!billAccountToDisplay.Property__r.Postal_Code__c}"  />
+                        </td>
+                        <td class="dataCell"  >
+                            <apex:outputText value="{!billAccountToDisplay.City__c}, {!billAccountToDisplay.State__c} {!billAccountToDisplay.Postal_Code__c}"  />
+                        </td>
+                    </tr>
+                    <tr>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!!ISNULL(selectedBillAccount)}" layout="block" id="alertspanel">
+                <table width="100%">
+                    <tr>
+                        <td class="sectionCell">
+                            <h1>Alerts and Warnings</h1>
+                        </td>
+                    </tr>
+                </table>
+
+                <table width="100%">
+                    <tr>
+                        <td width="50%" style="vertical-align:top">
+                            <table width="100%">
+                                <tr>
+                                    <td class="sectionCell" >
+                                        <h2>Classifications</h2>
+                                        <apex:dataTable value="{!custClassChecks}" cellspacing="0" var="c"
+                                                style="padding-top:6px;" rendered="{!custClassChecksCount>0}">
+                                            <apex:column styleClass="dataCell">
+                                                <apex:image value="{!CASE(c.Classification__r.Customer_Care_Check_Type__c,
+                                                                            '0 - Alert', URLFOR($Resource.Icons, 'Icons/StopX24.png'),
+                                                                            '1 - Warning', URLFOR($Resource.Icons, 'Icons/WarningX24.png'),
+                                                                            URLFOR($Resource.Icons, 'Icons/InfoX24.png'))}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Classification__r.Customer_Care_Check_Type__c = '0 - Alert', 'dataCellStop', '')}">
+                                                <apex:outputField value="{!c.classification__r.name}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Classification__r.Customer_Care_Check_Type__c = '0 - Alert', 'dataCellStop', '')}">
+                                                <!-- <apex:outputText value="{!IF(c.Classification__r.Append_Comments__c,''c.Classification_Message__c' 'c.Reference__c, c.Classification_Message__c)}"/> -->
+                                                {!c.Classification_Message__c}&nbsp;<apex:outputText value="{!IF(c.Classification__r.Append_Comments__c, c.Reference__c, '')}" />
+                                            </apex:column>
+                                        </apex:dataTable>
+                                        <apex:outputPanel rendered="{!custClassChecksCount=0}" styleClass="noRecords" layout="block">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td class="sectionCell" >
+                                        <h2>All Other Alerts</h2>
+                                        <apex:dataTable value="{!manualChecksToDisplay}" cellspacing="0" var="c"
+                                                style="padding-top:6px;" rendered="{!manualChecksCount>0}">
+                                            <apex:column styleClass="dataCell">
+                                                <apex:image value="{!CASE(c.Check_Type__c,
+                                                                            '0 - Alert', URLFOR($Resource.Icons, 'Icons/StopX24.png'),
+                                                                            '1 - Warning', URLFOR($Resource.Icons, 'Icons/WarningX24.png'),
+                                                                            URLFOR($Resource.Icons, 'Icons/InfoX24.png'))}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Check_Type__c = '0 - Alert', 'dataCellStop', '')}">
+                                                <apex:outputField value="{!c.Name}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Check_Type__c = '0 - Alert', 'dataCellStop', '')}">
+                                                <apex:outputText value="{!c.Message1__c}{!c.Message2__c}{!c.Message3__c}"/>
+                                            </apex:column>
+                                        </apex:dataTable>
+                                        <apex:outputPanel rendered="{!manualChecksCount=0}" styleClass="noRecords" layout="block">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td width="50%" style="vertical-align:top">
+                            <table width="100%">
+                                <tr>
+                                    <td class="sectionCell" >
+                                        <h2>Recovery Path Checks</h2>
+                                        <apex:dataTable value="{!recoveryPathsToDisplay}" cellspacing="0" var="c"
+                                                style="width:100%; padding-top:6px;" rendered="{!recoveryPathChecksCount>0}">
+                                            <apex:column styleClass="dataCell" style="width:20px">
+                                                <apex:image value="{!CASE(c.Check_Type__c,
+                                                                            '0 - Alert', URLFOR($Resource.Icons, 'Icons/StopX24.png'),
+                                                                            '1 - Warning', URLFOR($Resource.Icons, 'Icons/WarningX24.png'),
+                                                                            URLFOR($Resource.Icons, 'Icons/InfoX24.png'))}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Check_Type__c = '0 - Alert', 'dataCellStop', '')}"
+                                                                style="width:1px; padding-right:5px">
+                                                <apex:outputField value="{!c.Name}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Check_Type__c = '0 - Alert', 'dataCellStop', '')}">
+                                                <apex:outputField value="{!c.Message__c}"/>
+                                            </apex:column>
+                                        </apex:dataTable>
+                                        <apex:outputPanel rendered="{!recoveryPathChecksCount=0}" styleClass="noRecords" layout="block">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="sectionCell">
+                                        <h2>Clerical Checks</h2>
+                                        <apex:dataTable value="{!clericalChecksToDisplay}" cellspacing="0" var="c"
+                                                style="width:100%; padding-top:6px;" rendered="{!clericalChecksCount>0}">
+                                            <apex:column styleClass="dataCell" style="width:20px">
+                                                <apex:image value="{!CASE(c.Check_Type__c,
+                                                                            '0 - Alert', URLFOR($Resource.Icons, 'Icons/StopX24.png'),
+                                                                            '1 - Warning', URLFOR($Resource.Icons, 'Icons/WarningX24.png'),
+                                                                            URLFOR($Resource.Icons, 'Icons/InfoX24.png'))}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Check_Type__c = '0 - Alert', 'dataCellStop', '')}"
+                                                            style="width:1px; padding-right:5px">
+                                                <apex:outputField value="{!c.Name}"/>
+                                            </apex:column>
+                                            <apex:column styleClass="dataCell {!IF(c.Check_Type__c = '0 - Alert', 'dataCellStop', '')}">
+                                                <apex:outputField value="{!c.Message__c}"/>
+                                            </apex:column>
+                                        </apex:dataTable>
+                                        <apex:outputPanel rendered="{!clericalChecksCount=0}" styleClass="noRecords" layout="block">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <table width="100%">
+                    <tr>
+                        <td class="sectionCell">
+                            <h1></h1>
+                        </td>
+                    </tr>
+                </table>
+            </apex:outputPanel>
+        </apex:outputPanel>
+        <apex:pageMessages id="errmsgs2"/>
+
+        <center>
+            <apex:commandButton value="Save and Close" action="{!saveAndClose}" id="saveCloseBtn"
+                    onclick="preSave('{!$Component.saveCloseBtn}', '{!$Component.saveQuickNoteBtn}');"
+                    oncomplete="postSaveAndClose('{!$Component.saveCloseBtn}', '{!$Component.saveQuickNoteBtn}');"
+                    status="saveStatus"
+                    rerender="theForm"/>
+            <!-- <apex:actionStatus id="saveCloseStatus">
+                <apex:facet name="start">
+                    <apex:outputPanel layout="none" style="vertical-align:middle">
+                        &nbsp;<apex:image value="{!$Resource.AjaxAnimation}" style="vertical-align:middle"/>
+                    </apex:outputPanel>
+                </apex:facet>
+            </apex:actionStatus>-->
+            <apex:commandButton value="Save and Quick Note" action="{!saveAndQuickNote}" id="saveQuickNoteBtn"
+                    onclick="preSave('{!$Component.saveQuickNoteBtn}', '{!$Component.saveCloseBtn}');"
+                    oncomplete="postSaveAndQuickNote('{!$Component.saveQuickNoteBtn}', '{!$Component.saveCloseBtn}');"
+                    status="saveStatus"
+                    rerender="theForm"/>
+            <apex:actionStatus id="saveStatus">
+                <apex:facet name="start">
+                    <apex:outputPanel layout="none" style="vertical-align:middle">
+                        &nbsp;<apex:image value="{!$Resource.AjaxAnimation}" style="vertical-align:middle"/>
+                    </apex:outputPanel>
+                </apex:facet>
+            </apex:actionStatus>
+
+        </center>
+
+        <script>
+            function preSave(comp1Id, comp2Id) {
+                document.body.style.cursor='wait';
+                document.getElementById(comp1Id).disabled=true;
+                document.getElementById(comp1Id).style.color="#ccc";
+                document.getElementById(comp2Id).disabled=true;
+                document.getElementById(comp2Id).style.color="#ccc";
+            }
+
+            function postSaveAndClose(comp1Id, comp2Id) {
+                document.body.style.cursor='default';
+                document.getElementById(comp1Id).disabled=false;
+                document.getElementById(comp1Id).style.color="#333333";
+                document.getElementById(comp2Id).disabled=false;
+                document.getElementById(comp2Id).style.color="#333333";
+
+                if ({!saveSuccessful} == true){
+                    if(sforce.console.isInConsole()){
+                        sforce.console.getEnclosingTabId(closeSubtab);
+                    }
+                    else{
+                        window.location = "/{!Account.Id}";
+                    }
+                }
+                window.scrollTo(0,0);
+            }
+
+            function postSaveAndQuickNote(comp1Id, comp2Id) {
+                document.body.style.cursor='default';
+                document.getElementById(comp1Id).disabled=false;
+                document.getElementById(comp1Id).style.color="#333333";
+                document.getElementById(comp2Id).disabled=false;
+                document.getElementById(comp2Id).style.color="#333333";
+                window.scrollTo(0,0);
+            }
+
+            var closeSubtab = function closeSubtab(result) {
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            }
+
+        </script>
+
+
+    </apex:form>
+
+</apex:page>
