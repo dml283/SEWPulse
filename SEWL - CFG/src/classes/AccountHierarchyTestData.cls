@@ -1,7 +1,7 @@
 /**
 * Generate the enviroment for the Unit Tests
 * @author Sebastian Muñoz - Force.com Labs
-* @createddate 06/08/2010
+* @createddate 06/08/2010x
 */
 public with sharing class AccountHierarchyTestData{
     
